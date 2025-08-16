@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { ConversationAssistant } from './components/ConversationAssistant';
+import logoSvg from '../../logo.svg';
 
 type AppMode = 'conversation' | 'cards' | 'analytics' | 'settings';
 
@@ -36,10 +37,27 @@ export const App: React.FC = () => {
       micStatus = 'offline';
     }
 
-    // Check OpenAI API (simplified check)
-    const openaiStatus = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here' 
-      ? 'online' 
-      : 'offline';
+    // Check OpenAI API - check if valid key is configured
+    let openaiStatus: 'online' | 'offline' = 'offline';
+    
+    // Check if API key exists and is not placeholder
+    const apiKey = process.env.OPENAI_API_KEY;
+    console.log('Environment check:');
+    console.log('- OPENAI_API_KEY available:', !!apiKey);
+    console.log('- Key starts with sk-:', apiKey?.startsWith('sk-'));
+    console.log('- Key length:', apiKey?.length);
+    console.log('- First 20 chars:', apiKey?.substring(0, 20));
+    
+    if (apiKey && 
+        apiKey !== 'your_openai_api_key_here' && 
+        apiKey.startsWith('sk-') && 
+        apiKey.length > 40) {
+      openaiStatus = 'online';
+      console.log('OpenAI: Valid API key detected - status online');
+    } else {
+      openaiStatus = 'offline';
+      console.log('OpenAI: Invalid or missing API key - status offline');
+    }
 
     setServiceStatus({
       speechRecognition: speechSupported ? 'online' : 'offline',
@@ -59,7 +77,9 @@ export const App: React.FC = () => {
     <div className="app">
       <header className="app-header">
         <div className="app-brand">
-          <div className="brand-logo">S</div>
+          <div className="brand-logo">
+            <img src={logoSvg} alt="SenScript" className="logo-svg" />
+          </div>
           <div className="brand-text">
             <div className="brand-name">SenScript</div>
             <div className="brand-tagline">AI Voice Assistant</div>

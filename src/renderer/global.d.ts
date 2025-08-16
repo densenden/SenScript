@@ -76,3 +76,9 @@ interface Window {
   SpeechRecognition: typeof SpeechRecognition;
   webkitSpeechRecognition: typeof webkitSpeechRecognition;
 }
+
+// SVG imports
+declare module '*.svg' {
+  const content: string;
+  export default content;
+}
