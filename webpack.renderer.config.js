@@ -24,7 +24,7 @@ module.exports = {
   output: {
     filename: 'renderer.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/'
+    publicPath: './'
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -36,7 +36,7 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist')
     },
-    port: 9000,
+    port: 3000,
     hot: true,
     open: false
   },

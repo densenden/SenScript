@@ -27,6 +27,7 @@ export const ConversationAssistant: React.FC = () => {
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
+        recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
           console.log('Speech recognition started');
@@ -52,7 +53,29 @@ export const ConversationAssistant: React.FC = () => {
 
         recognition.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
-          setError(`Speech recognition error: ${event.error}`);
+          let errorMessage = 'Speech recognition error';
+          
+          switch (event.error) {
+            case 'network':
+              errorMessage = 'Network connection required for speech recognition. Please check your internet connection.';
+              break;
+            case 'not-allowed':
+              errorMessage = 'Microphone access denied. Please allow microphone permissions.';
+              break;
+            case 'no-speech':
+              errorMessage = 'No speech detected. Try speaking closer to the microphone.';
+              break;
+            case 'audio-capture':
+              errorMessage = 'Microphone not found or not working. Please check your audio settings.';
+              break;
+            case 'service-not-allowed':
+              errorMessage = 'Speech recognition service not available. Please try again later.';
+              break;
+            default:
+              errorMessage = `Speech recognition error: ${event.error}`;
+          }
+          
+          setError(errorMessage);
           setIsListening(false);
         };
 
@@ -62,11 +85,11 @@ export const ConversationAssistant: React.FC = () => {
         };
       } catch (err) {
         console.error('Error setting up speech recognition:', err);
-        setError('Error setting up speech recognition');
+        setError('Error setting up speech recognition. Please ensure microphone permissions are granted.');
       }
     } else {
       console.log('Speech recognition not supported');
-      setError('Speech recognition not supported in this browser');
+      setError('Speech recognition not supported. Please use a Chromium-based browser (Chrome, Edge, etc.).');
     }
 
     return () => {
@@ -98,10 +121,35 @@ export const ConversationAssistant: React.FC = () => {
   if (error) {
     return (
       <div className="conversation-assistant">
-        <div className="error-message">
-          <h3>Error</h3>
+        <div className="error-message glass">
+          <h3>⚠️ Speech Recognition Issue</h3>
           <p>{error}</p>
-          <p>Try using Chrome or Edge for best speech recognition support.</p>
+          {error.includes('network') && (
+            <div className="error-solutions">
+              <h4>Solutions:</h4>
+              <ul>
+                <li>Check your internet connection</li>
+                <li>Try restarting the application</li>
+                <li>Ensure you're using a Chromium-based browser engine</li>
+              </ul>
+            </div>
+          )}
+          {error.includes('not supported') && (
+            <div className="error-solutions">
+              <h4>Requirements:</h4>
+              <ul>
+                <li>SenScript uses Chromium's speech recognition engine</li>
+                <li>Microphone permissions are required</li>
+                <li>Internet connection is needed for processing</li>
+              </ul>
+            </div>
+          )}
+          <button 
+            className="retry-button"
+            onClick={() => window.location.reload()}
+          >
+            🔄 Retry
+          </button>
         </div>
       </div>
     );

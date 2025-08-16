@@ -36,7 +36,7 @@
 .brand-text {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -67,7 +67,7 @@
 .status-text {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
 }
 
 @keyframes pulse {
@@ -103,14 +103,14 @@
 .transcript-card .transcript-label,
 .error-card h3 {
   margin-bottom: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   font-size: 18px;
   font-weight: 600;
 }
 
 .main-card p,
 .error-card p {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin-bottom: 8px;
   line-height: 1.5;
 }
@@ -169,7 +169,7 @@
 }
 
 .transcript-text {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   font-size: 16px;
   line-height: 1.5;
   font-weight: 500;
@@ -193,7 +193,7 @@
 }
 
 .examples h4 {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   font-size: 14px;
   margin-bottom: 12px;
   font-weight: 600;
@@ -202,7 +202,7 @@
 .examples p {
   font-style: italic;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-tertiary);
   margin-bottom: 6px;
 }
 
