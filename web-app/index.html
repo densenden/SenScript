@@ -3,70 +3,823 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SenScript - Chrome Web App</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>SenScript - AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #3b82f6 50%, #1d4ed8 75%, #1e3a8a 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        /* iOS 16 Glass Morphism */
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+        
+        .glass-light {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+            color: #1f2937;
+        }
+        
+        .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+        
+        .glass-button:active {
+            transform: scale(0.98);
+        }
+        
+        /* Light theme button styles */
+        .light .glass-button {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+        }
+        
+        .light .glass-button:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Mobile-first responsive design */
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 16px;
+            gap: 16px;
+        }
+        
+        /* Screen 1: Logo + Record Controls */
+        .screen-1 {
+            order: 1;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .logo-section img {
+            width: 36px;
+            height: 36px;
+        }
+        
+        .logo-text h1 {
+            font-size: 21px;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+        
+        .logo-text p {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .light .logo-text h1,
+        .light .logo-text p {
+            color: #1f2937;
+        }
+        
+        .controls-section {
+            padding: 24px;
+        }
+        
+        .audio-selector {
+            width: 100%;
+            padding: 18px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 16px;
+        }
+        
+        .light .audio-selector {
+            color: #1f2937;
+        }
+        
+        .light .audio-selector option {
+            color: #1f2937;
+            background: white;
+        }
+        
+        .record-button {
+            width: 100%;
+            padding: 24px;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            color: white;
+            border-radius: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .light .record-button {
+            color: #1f2937;
+        }
+        
+        .record-dot {
+            width: 16px;
+            height: 16px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .language-info {
+            font-weight: 600;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .light .language-info {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-toggle {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: white;
+            border-radius: 12px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .light .theme-toggle {
+            color: #1f2937;
+        }
+        
+        /* Integrated Status & Features */
+        .integrated-status {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 24px 24px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .light .status-item {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-label {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .light .status-label {
+            color: #1f2937;
+        }
+        
+        .features-list {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        
+        .light .features-list {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .features-list h4 {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .light .features-list h4 {
+            color: #1f2937;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .light .features-list ul {
+            color: rgba(31, 41, 55, 0.8);
+        }
+        
+        .features-list li {
+            margin-bottom: 4px;
+        }
+        
+        .export-section {
+            margin-top: auto;
+        }
+        
+        .export-button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            border-radius: 16px;
+        }
+        
+        .light .export-button {
+            color: #1f2937;
+        }
+        
+        .export-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Screen 2: Transcript */
+        .screen-2 {
+            order: 2;
+            flex: 1;
+        }
+        
+        .transcript-container {
+            padding: 24px;
+            min-height: 200px;
+        }
+        
+        .transcript-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+        
+        .light .transcript-title {
+            color: #1f2937;
+        }
+        
+        .transcript-content {
+            font-size: 28px;
+            line-height: 1.3;
+            min-height: 120px;
+            padding: 20px;
+            background: transparent;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        /* Animated transcript lines */
+        .transcript-line {
+            display: block;
+            margin-bottom: 8px;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+        }
+        
+        .transcript-line.current {
+            opacity: 1;
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+        
+        .light .transcript-line.current {
+            color: #1f2937;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .light .transcript-line.previous,
+        .light .transcript-line.old {
+            color: #374151;
+        }
+        
+        .transcript-line.previous {
+            opacity: 0.6;
+            transform: translateY(-4px);
+            font-size: 0.9em;
+        }
+        
+        .transcript-line.old {
+            opacity: 0.3;
+            transform: translateY(-8px);
+            font-size: 0.8em;
+        }
+        
+        .transcript-line.fadeout {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 1.2s ease-out;
+        }
+        
+        /* Sound wave letter animation */
+        .transcript-letter {
+            display: inline-block;
+            animation: soundWave 3s ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+        
+        @keyframes soundWave {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            25% {
+                transform: translateY(-2px);
+            }
+            75% {
+                transform: translateY(1px);
+            }
+        }
+        
+        /* Interim text (current speech) */
+        .transcript-interim {
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .light .transcript-interim {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        /* Screen 3: Flashcards */
+        .screen-3 {
+            order: 3;
+        }
+        
+        .cards-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 24px 16px;
+        }
+        
+        .cards-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .light .cards-title {
+            color: #1f2937;
+        }
+        
+        .cards-count {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .light .cards-count {
+            color: #1f2937;
+        }
+        
+        .cards-container {
+            padding: 0 24px 24px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+        }
+        
+        .light .card {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+        }
+        
+        .light .card-header,
+        .light .card-front,
+        .light .card-back {
+            color: #1f2937;
+        }
+        
+        .card.new-card {
+            animation: cardBirth 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card.push-down {
+            transform: translateY(8px);
+            opacity: 0.9;
+            scale: 0.98;
+        }
+        
+        @keyframes cardBirth {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+                filter: blur(2px);
+            }
+            50% {
+                opacity: 0.7;
+                transform: translateY(15px) scale(0.98);
+                filter: blur(1px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card-header {
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        
+        .card-front {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .card-back {
+            font-size: 13px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        /* Screen 4: Hidden - integrated into screen-1 */
+        .screen-4 {
+            order: 4;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 4px;
+        }
+        
+        .theme-circle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .theme-circle.dark::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: black;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        
+        .theme-circle.dark::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .theme-circle.light::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        
+        .theme-circle.light::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: black;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .green { background: #10b981; }
+        .red { background: #ef4444; }
+        .yellow { background: #f59e0b; }
+        
+        /* Desktop layout - 3 columns: Logo, Content (Transcript + Cards), Cards */
+        @media (min-width: 768px) {
+            .container {
+                display: grid;
+                grid-template-columns: 350px 1fr;
+                grid-template-rows: 1fr 1fr;
+                padding: 24px;
+                gap: 24px;
+                height: 100vh;
+            }
+            
+            .screen-1 {
+                grid-column: 1;
+                grid-row: 1 / -1;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .screen-2 {
+                grid-column: 2;
+                grid-row: 1;
+                min-height: 300px;
+            }
+            
+            .screen-3 {
+                grid-column: 2;
+                grid-row: 2;
+                min-height: 300px;
+            }
+            
+            .screen-4 {
+                display: none; /* Integrated into screen-1 */
+            }
+        }
+        
+        /* Large desktop */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+            
+            .screen-1 {
+                flex: 0 0 350px;
+            }
+            
+            .screen-4 {
+                flex: 0 0 300px;
+            }
+        }
+        
+        /* Tablet portrait */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .container {
+                flex-wrap: wrap;
+            }
+            
+            .screen-1, .screen-4 {
+                flex: 0 0 calc(50% - 12px);
+            }
+            
+            .screen-2, .screen-3 {
+                flex: 0 0 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <div class="floating-popup">
-            <!-- Header -->
-            <div class="popup-header">
-                <div class="recording-status">
-                    <span class="status-dot" id="statusDot"></span>
-                    <span class="status-text" id="statusText">Ready</span>
+    <div class="container">
+        <!-- Screen 1: Logo + Record Controls -->
+        <div class="screen-1 glass-dark" id="screen1">
+            <div class="logo-section">
+                <img id="logo" src="assets/images/logo-white.svg" alt="SenScript">
+                <div class="logo-text">
+                    <h1>SenScript</h1>
+                    <p>Smart Meeting Companion</p>
                 </div>
-                <div class="controls">
-                    <button id="recordBtn" class="record-btn">
-                        <span class="record-icon">🎤</span>
-                        <span class="record-text">Start</span>
+            </div>
+            
+            <div class="controls-section">
+                <select id="audioSource" class="audio-selector glass-button">
+                    <option value="microphone">Microphone</option>
+                    <option value="system">System Audio</option>
+                </select>
+                
+                <button id="recordBtn" class="record-button glass-button">
+                    <span id="recordDot" class="record-dot"></span>
+                    <span id="recordText">Start</span>
+                </button>
+            </div>
+            
+            <div class="status-bar">
+                <div class="language-info">
+                    <span id="langCode">DE</span>
+                    <span id="langConf"></span>
+                </div>
+                <button id="themeBtn" class="theme-toggle glass-button">
+                    <span id="themeCircle" class="theme-circle dark"></span>
+                    Theme
+                </button>
+            </div>
+            
+            <!-- Integrated Status & Features -->
+            <div class="integrated-status">
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Speech API</span>
+                        <span class="status-dot green" id="speechStatus"></span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">AI Processing</span>
+                        <span class="status-dot yellow" id="aiStatus"></span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Microphone</span>
+                        <span class="status-dot green" id="micStatus"></span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">System Audio</span>
+                        <span class="status-dot red" id="audioStatus"></span>
+                    </div>
+                </div>
+                
+                <div class="features-list">
+                    <h4>Key Features</h4>
+                    <ul>
+                        <li>• Real-time transcription</li>
+                        <li>• Auto language detection</li>
+                        <li>• AI flashcard generation</li>
+                        <li>• System audio capture</li>
+                        <li>• Export to JSON</li>
+                    </ul>
+                </div>
+                
+                <div class="export-section">
+                    <button id="exportBtn" class="export-button glass-button" disabled>
+                        Export Cards
                     </button>
                 </div>
             </div>
-
-            <!-- Live Transcript -->
-            <div class="transcript-section">
-                <div class="transcript-display" id="transcriptDisplay">
-                    <div class="transcript-placeholder">
-                        <div class="pulse-indicator"></div>
-                        <span>Click Start to begin transcription</span>
-                    </div>
+        </div>
+        
+        <!-- Screen 2: Live Transcript -->
+        <div class="screen-2 glass-dark" id="screen2">
+            <div class="transcript-container">
+                <h2 class="transcript-title">Live Transcript</h2>
+                <div id="transcript" class="transcript-content">
+                    Click "Start Listening" to begin transcription...
                 </div>
             </div>
-
-            <!-- Generated Cards -->
-            <div class="cards-section">
-                <div class="cards-header">
-                    <span class="cards-title">AI Flashcards</span>
-                    <span class="cards-count" id="cardsCount">0 cards</span>
-                </div>
-                <div class="cards-container" id="cardsContainer">
-                    <div class="cards-placeholder">
-                        <div class="cards-icon">🃏</div>
-                        <span>Flashcards will appear as AI analyzes your transcript</span>
-                    </div>
+        </div>
+        
+        <!-- Screen 3: Flashcards -->
+        <div class="screen-3 glass-dark" id="screen3">
+            <div class="cards-header">
+                <h2 class="cards-title">AI Flashcards</h2>
+                <span id="cardCount" class="cards-count">0 cards</span>
+            </div>
+            <div id="cardsContainer" class="cards-container">
+                <div style="text-align: center; opacity: 0.5; padding: 40px 20px;">
+                    <p>Flashcards will appear here</p>
+                    <p style="font-size: 12px; margin-top: 8px;">AI analyzes your speech in real-time</p>
                 </div>
             </div>
-
-            <!-- Status Bar -->
-            <div class="status-bar">
-                <div class="status-item">
-                    <span class="status-label">Speech</span>
-                    <span class="status-indicator" id="speechStatus">●</span>
+        </div>
+        
+        <!-- Screen 4: Info & Status -->
+        <div class="screen-4 glass-dark" id="screen4">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>Speech API</h4>
+                    <span class="status-dot green" id="speechStatus"></span>
                 </div>
-                <div class="status-item">
-                    <span class="status-label">AI</span>
-                    <span class="status-indicator" id="aiStatus">●</span>
+                <div class="info-card">
+                    <h4>AI Processing</h4>
+                    <span class="status-dot yellow" id="aiStatus"></span>
                 </div>
-                <div class="status-item">
-                    <span class="status-label">Mic</span>
-                    <span class="status-indicator" id="micStatus">●</span>
+                <div class="info-card">
+                    <h4>Microphone</h4>
+                    <span class="status-dot green" id="micStatus"></span>
                 </div>
-                <div class="status-spacer"></div>
-                <button id="exportBtn" class="export-btn" disabled>Export</button>
+                <div class="info-card">
+                    <h4>System Audio</h4>
+                    <span class="status-dot red" id="audioStatus"></span>
+                </div>
+            </div>
+            
+            <div style="padding: 16px 24px;">
+                <h3 style="font-size: 14px; margin-bottom: 12px; opacity: 0.9;">Features</h3>
+                <ul style="font-size: 12px; opacity: 0.8; line-height: 1.6; list-style: none; padding: 0;">
+                    <li>• Real-time transcription</li>
+                    <li>• Auto language detection</li>
+                    <li>• AI flashcard generation</li>
+                    <li>• System audio capture</li>
+                    <li>• Export to Anki/JSON</li>
+                </ul>
+            </div>
+            
+            <div class="export-section">
+                <button id="exportBtn" class="export-button glass-button" disabled>
+                    💾 Export Cards
+                </button>
             </div>
         </div>
     </div>
-
+    
     <script src="app.js"></script>
 </body>
 </html>

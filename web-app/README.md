@@ -1,75 +1,83 @@
-# SenScript Chrome Web App - Testing Instructions
+# SenScript Web App
 
-## 🧪 Testing the Web App
+Real-time conversation assistant that runs in Chrome browser with continuous speech recognition and AI-powered flashcard generation.
 
-### 1. Start the Development Server
+## Quick Start
+
 ```bash
-npm run dev:web
+# Start the server
+node server.js
+
+# Open in Chrome browser
+http://localhost:3002
 ```
 
-### 2. Open in Chrome
-- Navigate to `http://localhost:3000`
-- **IMPORTANT**: Must use Chrome (or Chromium-based browser)
-- Other browsers may not support Web Speech API
+## Features
 
-### 3. Grant Permissions
-1. Click "Start" button
-2. Allow microphone access when prompted
-3. Verify status indicators show:
-   - Speech: ● (green)
-   - AI: ● (green) 
-   - Mic: ● (green)
+- **Real-time Speech Recognition**: Continuous listening with Web Speech API
+- **Auto Language Detection**: German/English detection with confidence scoring  
+- **OpenAI-Powered Flashcards**: Intelligent card generation using GPT-3.5-turbo
+- **Animated Subtitles**: Sound wave text animation with subtitle best practices
+- **System Audio Capture**: Record from any app via screen sharing permission
+- **Responsive Design**: Mobile-first with 4 distinct screens
+- **iOS 16 Glass Morphism**: Elegant dark blue gradient with blur effects
+- **Theme Toggle**: Dark/light mode with proper logo switching
 
-### 4. Test Transcription
-1. Speak clearly into your microphone
-2. Watch live transcript appear in the subtitle area
-3. Observe AI-generated flashcards appearing below
-4. Test the export functionality
+## File Structure
 
-### 🎯 Expected Behavior
+```
+web-app/
+├── index.html          # Main responsive UI with 4 screens
+├── app.js              # Complete SenScript class with all functionality  
+├── server.js           # Simple HTTP server with CORS support
+├── assets/images/      # Logo files for theme switching
+│   ├── logo-white.svg  # Dark mode logo
+│   └── logo-black.svg  # Light mode logo
+└── README.md           # This file
+```
 
-**Recording State:**
-- Status dot pulses red when recording
-- "Recording..." appears in header
-- Stop button shows instead of Start
+## Screens Layout
 
-**Transcript Display:**
-- Live text appears in dark subtitle-style box
-- Text flows naturally in 2-line format
-- Previous line dims as new text appears
+### Mobile (4 Screens)
+1. **Logo + Controls**: SenScript branding, audio selector, record button
+2. **Live Transcript**: Real-time speech-to-text display
+3. **AI Flashcards**: Generated cards with category detection
+4. **Info & Status**: API status, features list, export functionality
 
-**Flashcard Generation:**
-- Mock cards appear after ~20 characters of transcript
-- Cards show in bottom section with categories
-- Export button becomes enabled
+### Desktop  
+- **Left Panel**: Logo + Controls + Status
+- **Center**: Transcript (top) + Flashcards (bottom)
+- **Right Panel**: Info + Features + Export
 
-### 🚨 Troubleshooting
+## Usage
 
-**No Audio Detected:**
-- Check microphone permissions in Chrome settings
-- Verify microphone is working in system settings
-- Ensure Chrome has microphone access
+1. **Setup**: Add your OpenAI API key to `.env` file
+2. **Start Listening**: Click record button, allow microphone permissions
+3. **Audio Source**: Choose microphone or system audio (screen sharing)
+4. **Language Detection**: Automatic DE/EN switching based on content
+5. **AI Card Generation**: 3+ word segments create intelligent flashcards with confidence scores
+6. **Animated Transcript**: Watch live text with sound wave animation effects
+7. **Theme Toggle**: Switch between dark/light modes
+8. **Export**: Download cards as JSON when ready
 
-**Speech Recognition Errors:**
-- Check browser console (F12) for detailed error messages
-- Verify internet connection (speech service needs network)
-- Try refreshing the page and granting permissions again
+## Development
 
-**Visual Issues:**
-- The popup should appear as a transparent overlay
-- If styling looks wrong, check browser supports backdrop-filter
+All functionality is contained in a single working version:
+- Clean file structure with no unused code
+- Comprehensive console logging for debugging
+- Error handling with graceful fallbacks
+- Mobile-responsive with CSS Grid for desktop
 
-### 🔧 Development Notes
+## Browser Requirements
 
-This is a **proof of concept** web app that demonstrates:
-- ✅ Browser-native speech recognition
-- ✅ Real-time transcript display
-- ✅ Mock AI card generation
-- ✅ Transparent popup UI
-- ✅ Status monitoring
+- **Chrome recommended**: Web Speech API works best
+- **Microphone permissions**: Required for speech recognition
+- **System audio**: Requires screen sharing permission via getDisplayMedia()
 
-**Next Steps:**
-1. Convert to Chrome Extension
-2. Add real OpenAI API integration
-3. Add conferencing service detection
-4. Implement advanced card generation
+## Architecture
+
+- **Frontend**: Vanilla JavaScript class-based architecture
+- **Speech API**: webkitSpeechRecognition with continuous mode
+- **Audio Capture**: MediaDevices API for system/microphone input
+- **Styling**: CSS-only with glass morphism effects
+- **Server**: Simple Node.js HTTP server for local development

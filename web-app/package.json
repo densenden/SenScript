@@ -1,0 +1,16 @@
+{
+  "name": "senscript-web-app",
+  "version": "1.0.0",
+  "description": "Real-time conversation assistant with AI-powered flashcard generation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "keywords": ["speech-recognition", "ai", "flashcards", "openai"],
+  "author": "SenScript",
+  "license": "MIT"
+}
