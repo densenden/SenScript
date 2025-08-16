@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { ConversationAssistant } from './components/ConversationAssistant';
+import { Cards } from './components/Cards';
 import logoSvg from '../../logo.svg';
 
 type AppMode = 'conversation' | 'cards' | 'analytics' | 'settings';
@@ -12,7 +13,7 @@ interface ServiceStatus {
 }
 
 export const App: React.FC = () => {
-  const [activeMode, setActiveMode] = useState<AppMode>('conversation');
+  const [activeMode, setActiveMode] = useState<AppMode>('cards');
   const [serviceStatus, setServiceStatus] = useState<ServiceStatus>({
     speechRecognition: 'pending',
     openai: 'pending',
@@ -67,8 +68,8 @@ export const App: React.FC = () => {
   };
 
   const modes = [
-    { id: 'conversation' as AppMode, label: 'Conversation', available: true },
-    { id: 'cards' as AppMode, label: 'Cards', available: false },
+    { id: 'cards' as AppMode, label: 'Cards', available: true },
+    { id: 'conversation' as AppMode, label: 'Assistant', available: true },
     { id: 'analytics' as AppMode, label: 'Analytics', available: false },
     { id: 'settings' as AppMode, label: 'Settings', available: false }
   ];
@@ -102,14 +103,8 @@ export const App: React.FC = () => {
 
       <div className="app-content">
         <main className="main-content">
+          {activeMode === 'cards' && <Cards />}
           {activeMode === 'conversation' && <ConversationAssistant />}
-          {activeMode === 'cards' && (
-            <div className="placeholder-content">
-              <h2 className="text-xl font-bold">Card Creator</h2>
-              <p className="text-secondary">Transform conversations into flashcards.</p>
-              <p className="text-tertiary">Coming soon...</p>
-            </div>
-          )}
           {activeMode === 'analytics' && (
             <div className="placeholder-content">
               <h2 className="text-xl font-bold">Analytics</h2>
@@ -128,38 +123,38 @@ export const App: React.FC = () => {
 
         <aside className="status-panel">
           <div className="status-header">
-            <h3 className="text-sm font-semibold">System Status</h3>
+            <h3 className="text-xs font-medium">Status</h3>
           </div>
           
           <div className="status-grid">
             <div className="status-item">
-              <span className="status-label">Speech Recognition</span>
+              <span className="status-label">Speech</span>
               <span className={`status-indicator ${serviceStatus.speechRecognition === 'online' ? 'status-online' : serviceStatus.speechRecognition === 'offline' ? 'status-offline' : 'status-pending'}`}>
-                {serviceStatus.speechRecognition}
+                {serviceStatus.speechRecognition === 'online' ? '●' : serviceStatus.speechRecognition === 'offline' ? '○' : '◑'}
               </span>
             </div>
             
             <div className="status-item">
-              <span className="status-label">OpenAI API</span>
+              <span className="status-label">AI</span>
               <span className={`status-indicator ${serviceStatus.openai === 'online' ? 'status-online' : serviceStatus.openai === 'offline' ? 'status-offline' : 'status-pending'}`}>
-                {serviceStatus.openai}
+                {serviceStatus.openai === 'online' ? '●' : serviceStatus.openai === 'offline' ? '○' : '◑'}
               </span>
             </div>
             
             <div className="status-item">
-              <span className="status-label">Microphone</span>
+              <span className="status-label">Mic</span>
               <span className={`status-indicator ${serviceStatus.microphone === 'online' ? 'status-online' : serviceStatus.microphone === 'offline' ? 'status-offline' : 'status-pending'}`}>
-                {serviceStatus.microphone}
+                {serviceStatus.microphone === 'online' ? '●' : serviceStatus.microphone === 'offline' ? '○' : '◑'}
               </span>
             </div>
           </div>
 
           <button 
             onClick={checkServiceStatuses}
-            className="btn btn-secondary btn-sm"
-            style={{ width: '100%', marginTop: 'var(--space-3)' }}
+            className="btn btn-secondary"
+            style={{ width: '100%', padding: 'var(--space-1) var(--space-2)', fontSize: 'var(--font-size-xs)' }}
           >
-            Refresh Status
+            ↻
           </button>
         </aside>
       </div>

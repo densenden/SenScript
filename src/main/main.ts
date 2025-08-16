@@ -3,6 +3,13 @@ import path from "node:path";
 
 let win: BrowserWindow;
 
+// Add Chrome flags to enable speech recognition
+app.commandLine.appendSwitch('--enable-speech-input');
+app.commandLine.appendSwitch('--enable-web-speech-api');
+app.commandLine.appendSwitch('--disable-web-security');
+app.commandLine.appendSwitch('--allow-running-insecure-content');
+app.commandLine.appendSwitch('--use-fake-ui-for-media-stream');
+
 app.whenReady().then(() => {
   // Handle microphone permissions
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
@@ -13,9 +20,17 @@ app.whenReady().then(() => {
     }
   });
 
+  // Set permissions for media devices
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+    if (permission === 'media') {
+      return true;
+    }
+    return false;
+  });
+
   win = new BrowserWindow({
-    width: 420,
-    height: 720,
+    width: 480,
+    height: 800,
     frame: false,              // no OS chrome
     transparent: true,         // allow see-through
     resizable: false,          // required for transparency
@@ -26,7 +41,11 @@ app.whenReady().then(() => {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, "preload.js"),
-      webSecurity: false       // Allow microphone access
+      webSecurity: false,       // Allow microphone access
+      allowRunningInsecureContent: true,  // Allow speech recognition
+      experimentalFeatures: true,  // Enable experimental web features
+      enableRemoteModule: false,
+      sandbox: false            // Disable sandbox for speech API
     }
   });
 

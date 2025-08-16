@@ -1,16 +1,15 @@
 # SenScript 🎙️
 
-> Real-time AI conversation assistant that listens continuously and provides instant answers when questions are detected.
+> AI-powered transcript-to-flashcard generator with floating transparent interface for macOS
 
-## ✨ Features
+## ✨ New Interface Features (v2.0)
 
-- **🎯 Continuous Speech Recognition** - Always listening for questions in the background
-- **🧠 Smart Question Detection** - Automatically identifies questions with keywords like "what", "how", "was", "wie"
-- **🤖 AI-Powered Answers** - Uses OpenAI GPT-3.5 for contextual, intelligent responses
-- **📱 Overlay Display** - Answers appear instantly without disrupting your workflow
-- **🌍 Multi-Language Support** - Supports both German and English conversations
-- **💳 Flashcard Creator** - Generate and manage educational flashcards
-- **⚡ Real-time Processing** - Instant response to spoken questions
+- **🎯 Multi-Source Input** - Teams, Zoom, Slack integration + direct microphone
+- **📝 Live Transcription** - Real-time speech-to-text with context processing
+- **🃏 Dynamic Card Generation** - AI creates flashcards from conversation content
+- **👻 Floating Transparent UI** - 4 glass-morphism containers with macOS vibrancy
+- **📊 Smart Layout** - Cards take 50% height, grow with transcript context
+- **⚡ Real-time Processing** - Speech → Transcript → AI Analysis → Card Generation
 
 ## 🚀 Getting Started
 
@@ -54,24 +53,36 @@
 
 ## 🎯 Usage
 
-### Conversation Assistant Mode (Default)
+### Interface Layout (Top to Bottom)
 
-1. Launch the app - it automatically starts in **Conversation Assistant** mode
-2. Click the microphone button to begin listening
-3. Speak naturally - questions containing keywords are automatically detected
-4. AI-generated answers appear instantly in the overlay window
-5. The app continues listening for follow-up questions
+```
+┌─────────────────────────────────────────┐
+│ [Input Controls] Teams|Zoom|Slack|Mic   │ ← Horizontal recording bar  
+├─────────────────────────────────────────┤
+│ Live Transcript Display                 │ ← Real-time text output
+├─────────────────────────────────────────┤
+│                                         │
+│     Growing Card Stack (50%)            │ ← AI-generated flashcards
+│     [Card 1] [Card 2] [Card 3]         │
+│                                         │
+├─────────────────────────────────────────┤
+│ Status: ● Speech ● AI ● Mic             │ ← Compact status line
+└─────────────────────────────────────────┘
+```
 
-### Card Creator Mode
+### Navigation Modes
 
-1. Toggle to **Card Creator** mode using the header buttons
-2. Generate flashcards from your conversations
-3. Review and manage your flashcard collection
+1. **SenScript** (default) - Main transcript-to-cards interface with integrated logo
+2. **Files** - Card collection management and export
+3. **Settings** - Configuration and source preferences
 
-### Keyboard Shortcuts
+### Workflow
 
-- Toggle between modes using the interface buttons
-- Microphone controls via click interaction
+1. Select input source (Teams/Zoom/Slack/Mic) from horizontal control bar
+2. Start transcription - see live text appear in transcript panel
+3. Watch AI automatically generate flashcards from conversation content
+4. Cards grow and stack in the main 50% height container
+5. Monitor system status via compact indicators at bottom
 
 ## 🏗️ Architecture
 

@@ -1,0 +1,112 @@
+/* Transparent Window Implementation */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: rgba(0,0,0,0); /* required for see-through */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  overflow: hidden;
+  user-select: none;
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Main App Layout - 4 Floating Containers */
+.app-v2 {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  -webkit-app-region: drag; /* entire app is draggable by default */
+}
+
+/* Floating Container Base */
+.floating-container {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-4);
+  -webkit-app-region: no-drag;
+}
+
+/* Container 1: Navigation (Top) */
+.nav-container {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  box-shadow: var(--glass-shadow-strong);
+}
+
+/* Container 2: Input Controls (Horizontal) */
+.input-container {
+  height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+/* Container 3: Transcript Display */
+.transcript-container {
+  flex: 0 0 160px; /* Fixed height for transcript - bigger for subtitle style */
+  overflow: hidden; /* No scroll needed for subtitle style */
+}
+
+/* Container 4: Card Stack (50% of remaining height) */
+.cards-container {
+  flex: 1; /* Takes remaining space */
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  box-shadow: var(--glass-shadow-strong);
+}
+
+/* Container 5: Status Bar (Bottom) */
+.status-container {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  opacity: 0.9;
+}
+
+/* Responsive adjustments */
+@media (max-height: 700px) {
+  .transcript-container {
+    flex: 0 0 80px;
+  }
+  
+  .nav-container,
+  .input-container {
+    height: 45px;
+  }
+  
+  .status-container {
+    height: 35px;
+  }
+}
+
+@media (max-height: 600px) {
+  .app-v2 {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+  
+  .floating-container {
+    padding: var(--space-3);
+  }
+  
+  .transcript-container {
+    flex: 0 0 60px;
+  }
+}

@@ -1,6 +1,8 @@
 :root {
   /* Design System - Bold Minimalism */
-  --radius: 24px;
+  --radius: 32px;
+  --radius-large: 40px;
+  --radius-small: 20px;
   
   /* Colors - High Contrast */
   --white: #ffffff;
@@ -32,9 +34,12 @@
   --border: var(--grey-200);
   --border-strong: var(--grey-300);
   
-  /* Glass Effect */
-  --glass-bg: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(0, 0, 0, 0.1);
+  /* Glass Effect - Enhanced */
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-bg-strong: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --glass-shadow-strong: 0 12px 48px rgba(0, 0, 0, 0.15);
   
   /* Typography */
   --font-size-xs: 11px;
@@ -70,8 +75,11 @@
     --border: var(--grey-700);
     --border-strong: var(--grey-600);
     
-    --glass-bg: rgba(0, 0, 0, 0.95);
-    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-bg: rgba(0, 0, 0, 0.85);
+    --glass-bg-strong: rgba(0, 0, 0, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --glass-shadow-strong: 0 12px 48px rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -95,10 +103,20 @@ body {
 /* Glass Effect */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-large);
+  box-shadow: var(--glass-shadow-strong);
 }
 
 /* Buttons */

@@ -29,12 +29,13 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: var(--radius-large) var(--radius-large) 0 0;
   border-bottom: none;
+  box-shadow: var(--glass-shadow);
   -webkit-app-region: drag;
 }
 
@@ -129,30 +130,33 @@ html, body {
   flex: 1;
   padding: var(--space-4);
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
   border-top: none;
   border-right: none;
-  border-radius: 0 0 0 var(--radius);
+  border-radius: 0 0 0 var(--radius-large);
+  box-shadow: var(--glass-shadow);
   overflow-y: auto;
   -webkit-app-region: no-drag;
 }
 
-/* Status Panel */
+/* Status Panel - Compact */
 .status-panel {
-  width: 180px;
-  padding: var(--space-4);
+  width: 140px;
+  padding: var(--space-3);
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--glass-border);
   border-top: none;
   border-radius: 0 0 var(--radius) 0;
+  box-shadow: var(--glass-shadow);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   -webkit-app-region: no-drag;
+  opacity: 0.8;
 }
 
 .status-header h3 {

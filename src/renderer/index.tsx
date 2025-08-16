@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
+import { App } from './App-v2';
 import './styles/global.css';
 
 console.log('React index.tsx loading...');

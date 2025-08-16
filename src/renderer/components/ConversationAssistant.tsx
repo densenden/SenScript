@@ -24,80 +24,19 @@ export const ConversationAssistant: React.FC = () => {
       console.log('Speech recognition supported');
       setIsSupported(true);
       
-      try {
-        recognitionRef.current = new SpeechRecognition();
-        const recognition = recognitionRef.current;
-        
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-        recognition.maxAlternatives = 1;
-
-        recognition.onstart = () => {
-          console.log('Speech recognition started');
-          setIsListening(true);
-          setError('');
-        };
-
-        recognition.onresult = async (event) => {
-          let finalTranscript = '';
-          
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const result = event.results[i];
-            if (result.isFinal) {
-              finalTranscript += result[0].transcript + ' ';
-            }
-          }
-
-          if (finalTranscript.trim()) {
-            console.log('Transcript:', finalTranscript);
-            const newTranscript = finalTranscript.trim();
-            setTranscript(newTranscript);
-            
-            // Process the transcript for questions
-            await processTranscriptForInsights(newTranscript);
-          }
-        };
-
-        recognition.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
-          let errorMessage = 'Speech recognition error';
-          
-          switch (event.error) {
-            case 'network':
-              errorMessage = 'Network connection required for speech recognition. Please check your internet connection.';
-              break;
-            case 'not-allowed':
-              errorMessage = 'Microphone access denied. Please allow microphone permissions.';
-              break;
-            case 'no-speech':
-              errorMessage = 'No speech detected. Try speaking closer to the microphone.';
-              break;
-            case 'audio-capture':
-              errorMessage = 'Microphone not found or not working. Please check your audio settings.';
-              break;
-            case 'service-not-allowed':
-              errorMessage = 'Speech recognition service not available. Please try again later.';
-              break;
-            default:
-              errorMessage = `Speech recognition error: ${event.error}`;
-          }
-          
-          setError(errorMessage);
-          setIsListening(false);
-        };
-
-        recognition.onend = () => {
-          console.log('Speech recognition ended');
-          setIsListening(false);
-        };
-      } catch (err) {
-        console.error('Error setting up speech recognition:', err);
-        setError('Error setting up speech recognition. Please ensure microphone permissions are granted.');
-      }
+      // Check microphone permissions first
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+          console.log('Microphone permission granted');
+          initializeSpeechRecognition(SpeechRecognition);
+        })
+        .catch((err) => {
+          console.error('Microphone permission denied:', err);
+          setError('Microphone access denied. Please allow microphone permissions and restart the app.');
+        });
     } else {
       console.log('Speech recognition not supported');
-      setError('Speech recognition not supported. Please use a Chromium-based browser (Chrome, Edge, etc.).');
+      setError('Speech recognition not supported. Please use a Chromium-based browser.');
     }
 
     return () => {
@@ -106,6 +45,86 @@ export const ConversationAssistant: React.FC = () => {
       }
     };
   }, []);
+
+  const initializeSpeechRecognition = (SpeechRecognition: any) => {
+    try {
+      recognitionRef.current = new SpeechRecognition();
+      const recognition = recognitionRef.current;
+      
+      if (!recognition) {
+        setError('Failed to initialize speech recognition');
+        return;
+      }
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        console.log('Speech recognition started');
+        setIsListening(true);
+        setError('');
+      };
+
+      recognition.onresult = async (event) => {
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalTranscript += result[0].transcript + ' ';
+          }
+        }
+
+        if (finalTranscript.trim()) {
+          console.log('Transcript:', finalTranscript);
+          const newTranscript = finalTranscript.trim();
+          setTranscript(newTranscript);
+          
+          // Process the transcript for questions
+          await processTranscriptForInsights(newTranscript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        let errorMessage = 'Speech recognition error';
+        
+        switch (event.error) {
+          case 'network':
+            errorMessage = 'Network connection required for speech recognition. Please check your internet connection.';
+            break;
+          case 'not-allowed':
+            errorMessage = 'Microphone access denied. Please allow microphone permissions.';
+            break;
+          case 'no-speech':
+            errorMessage = 'No speech detected. Try speaking closer to the microphone.';
+            break;
+          case 'audio-capture':
+            errorMessage = 'Microphone not found or not working. Please check your audio settings.';
+            break;
+          case 'service-not-allowed':
+            errorMessage = 'Speech recognition service not available. Please try again later.';
+            break;
+          default:
+            errorMessage = `Speech recognition error: ${event.error}`;
+        }
+        
+        setError(errorMessage);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        console.log('Speech recognition ended');
+        setIsListening(false);
+      };
+      
+    } catch (err) {
+      console.error('Error setting up speech recognition:', err);
+      setError('Error setting up speech recognition. Please ensure microphone permissions are granted.');
+    }
+  };
 
   const processTranscriptForInsights = async (transcript: string) => {
     try {

@@ -1,20 +1,59 @@
-Claude.md — SenScript
+# SenScript - AI-Powered Transcript & Flashcard Generator
 
-Real-time meeting “cheat cards” for macOS.
-Source streams: Zoom Video SDK LTT and Fireflies transcripts.
-UI: draggable horizontal/vertical strip that stacks AI cards (facts, action items, quotes, definitions, context) while the call is happening.
+## New Interface Concept (v2.0)
+SenScript transforms real-time conversations into intelligent flashcards through a clean, floating 4-container layout.
+
+## Core Workflow
+1. **Input Selection**: Choose source (Teams, Zoom, Slack, mic) from horizontal control bar
+2. **Live Transcription**: Real-time speech-to-text display with context processing  
+3. **Dynamic Cards**: AI generates flashcards from transcript content (50% of screen height)
+4. **Status Monitor**: Compact single-line indicators for system health
+
+## Interface Layout (Top to Bottom)
+```
+┌─────────────────────────────────────────┐
+│ [Input Controls] Teams|Zoom|Slack|Mic   │ ← Horizontal recording bar
+├─────────────────────────────────────────┤
+│ Live Transcript Display                 │ ← Real-time text output
+├─────────────────────────────────────────┤
+│                                         │
+│     Growing Card Stack (50%)            │ ← AI-generated flashcards
+│     [Card 1] [Card 2] [Card 3]         │
+│                                         │
+├─────────────────────────────────────────┤
+│ Status: ● Speech ● AI ● Mic             │ ← Compact status line
+└─────────────────────────────────────────┘
+```
+
+## Navigation
+- **SenScript** (default): Main transcript-to-cards interface with integrated logo
+- **Files**: Card collection management  
+- **Settings**: Configuration and preferences
+
+## Technical Architecture
+- **Transparent Electron Window**: Frameless with macOS vibrancy effects
+- **4 Floating Containers**: Independent glass-morphism panels
+- **Real-time Processing**: Speech → Transcript → AI Analysis → Card Generation
+- **Adaptive Layout**: Cards grow with conversation context
+
+## Features
+- **Multi-Source Input**: Teams, Zoom, Slack integration + direct microphone
+- **Contextual Cards**: AI creates relevant flashcards from conversation topics
+- **Live Processing**: Real-time transcript analysis and card generation
+- **Persistent Collections**: Save and organize generated flashcard sets
+
+## Dev Commands
+- `npm run dev` - Development mode with hot reload
+- `npm run build` - Production build  
+- `npm start` - Run built application
+
+## API Key
+OpenAI API key configured in `.env` file for AI-powered card generation.
 
 ⸻
 
-1) Product Snapshot
-	•	Name: SenScript
-	•	Platform: macOS desktop (Electron + React + Tailwind)
-	•	Branding: small logo.svg (top-left in the strip), product name SenScript always visible
-	•	Core value: During a meeting, convert live transcript into micro-cards with 2-line teasers and optional transcript quotes. Cards stack from bottom to top like a chat feed.
-	•	Sources (MVP):
-	•	Zoom Video SDK LTT (Live Transcription & Translation stream)
-	•	Fireflies transcript (meeting or post-meeting webhook/pull; for fallback & enrichment)
-	•	AI: LLM to classify, summarize, and enrich snippets into cards
+## Legacy Documentation (v1.0)
+Previous concept focused on meeting cards and transcript processing:
 
 Non-goals (MVP):
 	•	No video recording/streaming
