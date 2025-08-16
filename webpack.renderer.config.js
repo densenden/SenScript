@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   entry: './src/renderer/index.tsx',
@@ -36,9 +37,11 @@ module.exports = {
       template: './src/renderer/index.html',
       inject: 'body'
     }),
-    new webpack.DefinePlugin({
-      'process.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY || 'your_openai_api_key_here'),
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+    new Dotenv({
+      path: './.env',
+      safe: false,
+      systemvars: true,
+      silent: false
     })
   ],
   devServer: {
