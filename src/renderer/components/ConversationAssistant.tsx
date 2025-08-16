@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ConversationAssistant.css';
+import { voiceProcessingService, VoiceInsight } from '../services/VoiceProcessingService';
+import { openAIService } from '../services/OpenAIService';
 
 console.log('ConversationAssistant.tsx loading...');
 
@@ -10,6 +12,8 @@ export const ConversationAssistant: React.FC = () => {
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState('');
+  const [insights, setInsights] = useState<VoiceInsight[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
@@ -35,7 +39,7 @@ export const ConversationAssistant: React.FC = () => {
           setError('');
         };
 
-        recognition.onresult = (event) => {
+        recognition.onresult = async (event) => {
           let finalTranscript = '';
           
           for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -47,7 +51,11 @@ export const ConversationAssistant: React.FC = () => {
 
           if (finalTranscript.trim()) {
             console.log('Transcript:', finalTranscript);
-            setTranscript(finalTranscript.trim());
+            const newTranscript = finalTranscript.trim();
+            setTranscript(newTranscript);
+            
+            // Process the transcript for questions
+            await processTranscriptForInsights(newTranscript);
           }
         };
 
@@ -99,6 +107,45 @@ export const ConversationAssistant: React.FC = () => {
     };
   }, []);
 
+  const processTranscriptForInsights = async (transcript: string) => {
+    try {
+      setIsProcessing(true);
+      console.log('Processing transcript for insights:', transcript);
+      
+      // Process the transcript
+      const sentences = voiceProcessingService.processTranscript(transcript);
+      console.log('Processed sentences:', sentences);
+      
+      // Get AI responses for questions
+      const newInsights = await voiceProcessingService.processQuestions(
+        sentences,
+        async (question: string, context: string) => {
+          return await openAIService.getConversationInsight(question, context);
+        }
+      );
+      
+      if (newInsights.length > 0) {
+        console.log('Generated insights:', newInsights);
+        setInsights(prev => [...prev, ...newInsights]);
+      }
+      
+    } catch (error) {
+      console.error('Error processing transcript for insights:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const clearInsights = () => {
+    setInsights([]);
+    voiceProcessingService.clearInsights();
+  };
+
+  const removeInsight = (id: string) => {
+    setInsights(prev => prev.filter(insight => insight.id !== id));
+    voiceProcessingService.removeInsight(id);
+  };
+
   const startListening = () => {
     console.log('Starting speech recognition...');
     if (recognitionRef.current && isSupported) {
@@ -122,7 +169,7 @@ export const ConversationAssistant: React.FC = () => {
     return (
       <div className="conversation-assistant">
         <div className="error-message glass">
-          <h3>⚠️ Speech Recognition Issue</h3>
+          <h3>Speech Recognition Issue</h3>
           <p>{error}</p>
           {error.includes('network') && (
             <div className="error-solutions">
@@ -145,10 +192,10 @@ export const ConversationAssistant: React.FC = () => {
             </div>
           )}
           <button 
-            className="retry-button"
+            className="btn btn-primary"
             onClick={() => window.location.reload()}
           >
-            🔄 Retry
+            Retry
           </button>
         </div>
       </div>
@@ -166,11 +213,11 @@ export const ConversationAssistant: React.FC = () => {
         </div>
         
         <button
-          className={`listen-toggle ${isListening ? 'active' : ''}`}
+          className={`btn ${isListening ? 'btn-danger' : 'btn-primary'}`}
           onClick={isListening ? stopListening : startListening}
           disabled={!isSupported}
         >
-          {isListening ? '⏸️' : '🎤'}
+          {isListening ? 'Stop' : 'Listen'}
         </button>
       </div>
 
@@ -182,17 +229,61 @@ export const ConversationAssistant: React.FC = () => {
           </div>
         )}
 
-        <div className="instructions">
-          <h3>Welcome to SenScript!</h3>
-          <p>Click the microphone button to start listening.</p>
-          <p>Ask questions and get instant AI-powered answers.</p>
-          
-          <div className="test-section">
-            <h4>Test Speech Recognition:</h4>
-            <p>Try saying: "What is artificial intelligence?"</p>
-            <p>Or: "How does machine learning work?"</p>
+        {isProcessing && (
+          <div className="analyzing-indicator glass">
+            <div className="thinking-dots">Analyzing for questions...</div>
           </div>
-        </div>
+        )}
+
+        {insights.length > 0 && (
+          <div className="insights-container">
+            <div className="insights-header">
+              <h4 className="text-lg font-semibold">AI Insights</h4>
+              <button onClick={clearInsights} className="btn btn-danger btn-sm">
+                Clear All
+              </button>
+            </div>
+            
+            {insights.map((insight) => (
+              <div key={insight.id} className="insight-panel glass">
+                <div className="insight-header">
+                  <div className="insight-label text-sm font-medium">
+                    Q&A
+                  </div>
+                  <button 
+                    onClick={() => removeInsight(insight.id)}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="insight-content">
+                  <div className="insight-question">
+                    <strong>Q:</strong> {insight.question}
+                  </div>
+                  <div className="insight-answer">
+                    <strong>A:</strong> {insight.answer}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {insights.length === 0 && !transcript && (
+          <div className="instructions">
+            <h3>Welcome to SenScript!</h3>
+            <p>Click the microphone button to start listening.</p>
+            <p>Ask questions and get instant AI-powered answers.</p>
+            
+            <div className="test-section">
+              <h4>Test Speech Recognition:</h4>
+              <p>Try saying: "What is artificial intelligence?"</p>
+              <p>Or: "How does machine learning work?"</p>
+              <p>Or: "Wie funktioniert maschinelles Lernen?"</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
