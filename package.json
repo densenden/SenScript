@@ -7,10 +7,12 @@
     "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
     "dev:main": "webpack --config webpack.main.config.js --mode development --watch",
     "dev:renderer": "webpack serve --config webpack.renderer.config.js --mode development",
+    "dev:web": "node web-app/server.js",
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "webpack --config webpack.main.config.js --mode production",
     "build:renderer": "webpack --config webpack.renderer.config.js --mode production",
     "start": "electron .",
+    "start:web": "npm run dev:web",
     "dist": "npm run build && electron-builder"
   },
   "keywords": [

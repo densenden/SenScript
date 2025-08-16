@@ -1,54 +1,138 @@
-# SenScript - AI-Powered Transcript & Flashcard Generator
+# SenScript - Chrome Web App for Universal Conferencing
 
-## New Interface Concept (v2.0)
-SenScript transforms real-time conversations into intelligent flashcards through a clean, floating 4-container layout.
+## Chrome Web App Concept (v3.0)
+SenScript is now a Chrome-based application that works seamlessly with any web conferencing service through browser-native speech recognition and transparent overlay UI.
 
-## Core Workflow
-1. **Input Selection**: Choose source (Teams, Zoom, Slack, mic) from horizontal control bar
-2. **Live Transcription**: Real-time speech-to-text display with context processing  
-3. **Dynamic Cards**: AI generates flashcards from transcript content (50% of screen height)
-4. **Status Monitor**: Compact single-line indicators for system health
+## Why Chrome Instead of Electron?
+- **Web Speech API Works Perfectly**: No compatibility issues or permission problems
+- **Universal Conferencing Support**: Works with Teams, Zoom, Slack, Meet, WebEx, and any web-based service
+- **Better Performance**: Direct browser integration without Electron overhead
+- **Easier Deployment**: Chrome Web Store distribution vs complex app packaging
+- **Cross-Platform**: Works on any OS that runs Chrome
 
-## Interface Layout (Top to Bottom)
+## Core Architecture
+
+### Extension Mode (Recommended)
 ```
-┌─────────────────────────────────────────┐
-│ [Input Controls] Teams|Zoom|Slack|Mic   │ ← Horizontal recording bar
-├─────────────────────────────────────────┤
-│ Live Transcript Display                 │ ← Real-time text output
-├─────────────────────────────────────────┤
-│                                         │
-│     Growing Card Stack (50%)            │ ← AI-generated flashcards
-│     [Card 1] [Card 2] [Card 3]         │
-│                                         │
-├─────────────────────────────────────────┤
-│ Status: ● Speech ● AI ● Mic             │ ← Compact status line
-└─────────────────────────────────────────┘
+Chrome Extension
+├── Background Script → Manages permissions & storage
+├── Content Scripts → Inject into conferencing tabs
+├── Popup UI → Compact floating interface
+└── Options Page → Settings and preferences
 ```
 
-## Navigation
-- **SenScript** (default): Main transcript-to-cards interface with integrated logo
-- **Files**: Card collection management  
-- **Settings**: Configuration and preferences
+### Web App Mode (Development)
+```
+Standalone Web App
+├── Service Worker → Offline functionality
+├── Web Speech API → Direct microphone access
+├── Transparent Popup → Floating overlay window
+└── Local Storage → Card persistence
+```
 
-## Technical Architecture
-- **Transparent Electron Window**: Frameless with macOS vibrancy effects
-- **4 Floating Containers**: Independent glass-morphism panels
-- **Real-time Processing**: Speech → Transcript → AI Analysis → Card Generation
-- **Adaptive Layout**: Cards grow with conversation context
+## Interface Design
 
-## Features
-- **Multi-Source Input**: Teams, Zoom, Slack integration + direct microphone
-- **Contextual Cards**: AI creates relevant flashcards from conversation topics
-- **Live Processing**: Real-time transcript analysis and card generation
-- **Persistent Collections**: Save and organize generated flashcard sets
+### Transparent Popup Overlay
+```
+┌──────────────────────────────┐
+│ ● Live Recording             │ ← Minimal header
+├──────────────────────────────┤
+│ "How does machine learning   │ ← Subtitle-style
+│  work in practice?"          │   live transcript
+├──────────────────────────────┤
+│ [Card 1] [Card 2] [Card 3]   │ ← AI-generated
+│ ┌─────────┐ ┌─────────┐      │   flashcards
+│ │ML Basics│ │Training │      │
+│ └─────────┘ └─────────┘      │
+├──────────────────────────────┤
+│ ● Speech ● AI ● Export       │ ← Status indicators
+└──────────────────────────────┘
+```
 
-## Dev Commands
-- `npm run dev` - Development mode with hot reload
-- `npm run build` - Production build  
-- `npm start` - Run built application
+## Integration Strategy
 
-## API Key
-OpenAI API key configured in `.env` file for AI-powered card generation.
+### Conference Detection
+- **Teams**: Detect `teams.microsoft.com` URLs and inject content script
+- **Zoom**: Detect `zoom.us` web client and activate overlay
+- **Slack**: Detect Slack Huddles and provide recording option
+- **Google Meet**: Integrate directly with `meet.google.com`
+- **Generic**: Work with any tab that has microphone access
+
+### Audio Processing Pipeline
+1. **Microphone Access**: Request permissions via Chrome Extension API
+2. **Speech Recognition**: Use browser's native `webkitSpeechRecognition`
+3. **Real-time Processing**: Stream transcript to AI analysis
+4. **Card Generation**: OpenAI API creates educational flashcards
+5. **Export**: Save in Anki, CSV, JSON formats
+
+## Technical Implementation
+
+### Chrome Extension Structure
+```
+manifest.json           # Extension configuration
+background.js           # Service worker for permissions
+content/
+  ├── teams.js         # Teams integration
+  ├── zoom.js          # Zoom integration
+  └── universal.js     # Generic conferencing
+popup/
+  ├── index.html       # Extension popup
+  ├── app.js           # React app bundle
+  └── styles.css       # Transparent styling
+options/
+  ├── settings.html    # Options page
+  └── config.js        # User preferences
+```
+
+### Web Speech API Configuration
+```javascript
+const recognition = new webkitSpeechRecognition();
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.lang = 'en-US';
+recognition.maxAlternatives = 1;
+```
+
+## Development Workflow
+
+### Phase 1: Basic Web App
+1. Create transparent popup with mic input
+2. Implement Web Speech API transcription
+3. Test in Chrome browser with localhost
+4. Verify audio processing works reliably
+
+### Phase 2: Chrome Extension
+1. Convert web app to extension popup
+2. Add content scripts for conferencing sites
+3. Implement cross-tab communication
+4. Add extension permissions and manifest
+
+### Phase 3: Conferencing Integration
+1. Detect when user joins meetings
+2. Auto-activate recording with permission
+3. Integrate with conferencing controls
+4. Add meeting-specific features
+
+## Key Advantages
+
+- **Zero Installation Friction**: Just add to Chrome
+- **Perfect Audio**: Native browser speech recognition
+- **Universal Compatibility**: Works with any web conference
+- **Privacy First**: All processing in browser
+- **Easy Updates**: Chrome Web Store auto-updates
+- **Cross-Platform**: Works on Windows, Mac, Linux
+
+## Dev Commands (Updated)
+- `npm run dev:web` - Development web app
+- `npm run dev:extension` - Development extension  
+- `npm run build:extension` - Build for Chrome
+- `npm run package:store` - Package for Web Store
+
+## Environment Variables
+```
+OPENAI_API_KEY=sk-...           # For AI card generation
+CHROME_EXTENSION_ID=abc123...   # For extension development
+```
 
 ⸻
 

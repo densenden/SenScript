@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SenScript - Chrome Web App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="floating-popup">
+            <!-- Header -->
+            <div class="popup-header">
+                <div class="recording-status">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span class="status-text" id="statusText">Ready</span>
+                </div>
+                <div class="controls">
+                    <button id="recordBtn" class="record-btn">
+                        <span class="record-icon">🎤</span>
+                        <span class="record-text">Start</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Transcript -->
+            <div class="transcript-section">
+                <div class="transcript-display" id="transcriptDisplay">
+                    <div class="transcript-placeholder">
+                        <div class="pulse-indicator"></div>
+                        <span>Click Start to begin transcription</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generated Cards -->
+            <div class="cards-section">
+                <div class="cards-header">
+                    <span class="cards-title">AI Flashcards</span>
+                    <span class="cards-count" id="cardsCount">0 cards</span>
+                </div>
+                <div class="cards-container" id="cardsContainer">
+                    <div class="cards-placeholder">
+                        <div class="cards-icon">🃏</div>
+                        <span>Flashcards will appear as AI analyzes your transcript</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Speech</span>
+                    <span class="status-indicator" id="speechStatus">●</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">AI</span>
+                    <span class="status-indicator" id="aiStatus">●</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Mic</span>
+                    <span class="status-indicator" id="micStatus">●</span>
+                </div>
+                <div class="status-spacer"></div>
+                <button id="exportBtn" class="export-btn" disabled>Export</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

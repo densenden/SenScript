@@ -1,88 +1,84 @@
 # SenScript 🎙️
 
-> AI-powered transcript-to-flashcard generator with floating transparent interface for macOS
+> Chrome-based AI transcript-to-flashcard generator with universal conferencing integration
 
-## ✨ New Interface Features (v2.0)
+## ✨ Chrome Web App Features (v3.0)
 
-- **🎯 Multi-Source Input** - Teams, Zoom, Slack integration + direct microphone
-- **📝 Live Transcription** - Real-time speech-to-text with context processing
-- **🃏 Dynamic Card Generation** - AI creates flashcards from conversation content
-- **👻 Floating Transparent UI** - 4 glass-morphism containers with macOS vibrancy
-- **📊 Smart Layout** - Cards take 50% height, grow with transcript context
-- **⚡ Real-time Processing** - Speech → Transcript → AI Analysis → Card Generation
+- **🌐 Browser-Native** - Runs in Chrome with full Web Speech API support
+- **🎯 Universal Conferencing** - Works with Teams, Zoom, Slack, Meet, and any web-based service
+- **📝 Real-time Transcription** - Reliable browser-based speech recognition
+- **🃏 AI Card Generation** - Intelligent flashcards from live conversations
+- **👻 Transparent Popup** - Floating overlay that works over any application
+- **🎧 Perfect Audio Integration** - Direct mic access with zero compatibility issues
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- npm or yarn
-- macOS (primary target platform)
-- OpenAI API key
+- **Google Chrome** (latest version recommended)
+- **OpenAI API key** (for AI-powered card generation)
+- **Microphone access** (for speech recognition)
 
-### Installation
+### Installation Options
 
+#### Option 1: Chrome Extension (Recommended)
 1. **Clone the repository**
    ```bash
    git clone https://github.com/yourusername/SenScript.git
    cd SenScript
+   git checkout chrome-web-app
    ```
 
-2. **Install dependencies**
+2. **Build the extension**
    ```bash
    npm install
+   npm run build:extension
    ```
 
-3. **Set up environment variables**
+3. **Load in Chrome**
+   - Open `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select the `dist-extension` folder
+
+#### Option 2: Web App
+1. **Start development server**
    ```bash
-   cp .env.example .env
-   # Add your OpenAI API key to .env
-   echo "OPENAI_API_KEY=your_api_key_here" > .env
+   npm run dev:web
    ```
 
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Build for production**
-   ```bash
-   npm run build
-   npm start
-   ```
+2. **Open in Chrome**
+   - Navigate to `http://localhost:3000`
+   - Allow microphone permissions when prompted
 
 ## 🎯 Usage
 
-### Interface Layout (Top to Bottom)
+### As Chrome Extension
+1. **Click the SenScript icon** in Chrome toolbar
+2. **Grant microphone permissions** when prompted
+3. **Join any web conference** (Teams, Zoom, Slack, Meet, etc.)
+4. **Start recording** - the extension automatically transcribes audio
+5. **View live flashcards** generated from the conversation
+
+### Universal Conferencing Integration
 
 ```
-┌─────────────────────────────────────────┐
-│ [Input Controls] Teams|Zoom|Slack|Mic   │ ← Horizontal recording bar  
-├─────────────────────────────────────────┤
-│ Live Transcript Display                 │ ← Real-time text output
-├─────────────────────────────────────────┤
-│                                         │
-│     Growing Card Stack (50%)            │ ← AI-generated flashcards
-│     [Card 1] [Card 2] [Card 3]         │
-│                                         │
-├─────────────────────────────────────────┤
-│ Status: ● Speech ● AI ● Mic             │ ← Compact status line
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│  Teams Meeting Tab  │  SenScript   │ ← Works alongside any conference
+├─────────────────────────────────────┤
+│                     │ 🎤 Recording  │
+│   Video Conference  │ 📝 Live Text  │ ← Transparent overlay
+│                     │ 🃏 AI Cards   │
+│                     │ ● Status      │
+└─────────────────────────────────────┘
 ```
 
-### Navigation Modes
+### Key Features
 
-1. **SenScript** (default) - Main transcript-to-cards interface with integrated logo
-2. **Files** - Card collection management and export
-3. **Settings** - Configuration and source preferences
-
-### Workflow
-
-1. Select input source (Teams/Zoom/Slack/Mic) from horizontal control bar
-2. Start transcription - see live text appear in transcript panel
-3. Watch AI automatically generate flashcards from conversation content
-4. Cards grow and stack in the main 50% height container
-5. Monitor system status via compact indicators at bottom
+- **Overlay Mode**: Transparent popup that floats over conference windows
+- **Auto-Detection**: Recognizes when you're in a meeting and offers to start
+- **Cross-Platform**: Works with any web-based conferencing service
+- **Privacy-First**: All processing happens locally in your browser
+- **Export Ready**: Save flashcards in multiple formats (Anki, CSV, JSON)
 
 ## 🏗️ Architecture
 
@@ -105,36 +101,40 @@ SenScript/
 ### Tech Stack
 
 - **Frontend**: React 18 + TypeScript
-- **Desktop**: Electron 27
-- **Animations**: Framer Motion
+- **Platform**: Chrome Extension API + Web Standards
+- **Speech Recognition**: Browser Web Speech API (Google's service)
 - **AI**: OpenAI GPT-3.5 Turbo
-- **Speech**: Web Speech API
-- **Build**: Webpack 5
-- **Package**: Electron Builder
+- **Animations**: Framer Motion
+- **Build**: Webpack 5 + Chrome Extension Tools
+- **Package**: Chrome Web Store ready
 
 ## 🔧 Development
 
 ### Available Scripts
 
 ```bash
-# Development with hot reload
-npm run dev
+# Development web app with hot reload
+npm run dev:web
 
-# Build for production
-npm run build
+# Build Chrome extension
+npm run build:extension
 
-# Start built application
-npm start
+# Development extension (watch mode)
+npm run dev:extension
 
-# Create distributable package
-npm run dist
+# Start web app in production mode
+npm run start:web
+
+# Package for Chrome Web Store
+npm run package:store
 ```
 
 ### Development Workflow
 
-1. **Main Process**: `npm run dev:main` - Watches and rebuilds Electron main process
-2. **Renderer Process**: `npm run dev:renderer` - Starts webpack dev server for React app
-3. **Combined**: `npm run dev` - Runs both processes concurrently
+1. **Web Development**: `npm run dev:web` - Start local development server
+2. **Extension Testing**: Load unpacked extension from `dist-extension/` folder
+3. **Live Reload**: Changes automatically refresh in both web and extension modes
+4. **Testing**: Open Chrome DevTools to debug speech recognition and API calls
 
 ## 🛠️ Configuration
 
