@@ -305,13 +305,13 @@ class SenScript {
         console.log(`📋 [${timestamp}] [INTERIM-DISPLAY] Set interim text: "${interim.substring(0, 30)}..." (length: ${interim.length})`);
         console.log(`📊 [${timestamp}] [UI-STATE] Lines stored: ${this.transcriptLines.length}, pending: ${this.pendingSentence.length}`);
         
-        // Throttle UI updates for better performance
+        // Throttle UI updates for smooth performance - reduced frequency
         if (!this.transcriptUpdatePending) {
             this.transcriptUpdatePending = true;
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 this.updateAnimatedTranscript();
                 this.transcriptUpdatePending = false;
-            });
+            }, 50); // Faster than requestAnimationFrame for smoother text flow
         }
     }
     
@@ -1102,11 +1102,11 @@ class SenScript {
         // GOAL: CARD CREATION SPEED - Optimize UI display
         const maxLineLength = 80; // From config
         
-        // Prevent duplicate detection
-        const recentText = this.transcriptLines.slice(-2).map(line => line.text).join(' ');
-        if (recentText.includes(text.trim())) {
-            console.log('🚫 [UI] Prevented duplicate line:', text.substring(0, 30));
-            return; // Skip duplicate
+        // Prevent exact duplicate detection (less aggressive)
+        const lastLine = this.transcriptLines.slice(-1)[0];
+        if (lastLine && lastLine.text === text.trim()) {
+            console.log('🚫 [UI] Prevented exact duplicate line:', text.substring(0, 30));
+            return; // Skip only exact duplicates
         }
         
         // Cut off long sentences for display (speed optimization)
@@ -1123,7 +1123,7 @@ class SenScript {
         this.transcriptLines.push(lineData);
         
         // CONTINUOUS CLEANUP: Keep only recent lines for performance (speed optimization)  
-        const maxLines = 10;
+        const maxLines = 6; // Consistent with display logic
         if (this.transcriptLines.length > maxLines) {
             this.transcriptLines = this.transcriptLines.slice(-maxLines);
             console.log(`🧹 [CLEANUP] Trimmed transcript lines to ${maxLines} for performance`);
