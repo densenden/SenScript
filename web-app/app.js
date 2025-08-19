@@ -1163,7 +1163,7 @@ class SenScript {
         if (!this.els.transcript) return;
         
         // Show recording status only when NOT attempting to record
-        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0) {
+        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0 && !this.currentInterim) {
             this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
             return;
         }
@@ -1238,8 +1238,8 @@ class SenScript {
             return;
         }
         
-        // Show recording status only when NOT attempting to record
-        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0) {
+        // Show recording status only when completely inactive
+        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0 && !this.currentInterim) {
             this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
             this.hideTranscriptVisualizer();
             return;
