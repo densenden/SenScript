@@ -42,17 +42,20 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
+            border-radius: 12px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .glass-button:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
         }
         
         .glass-button:active {
             transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
         /* Light theme button styles */
@@ -60,22 +63,289 @@
             background: rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(0, 0, 0, 0.1);
             color: #1f2937;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
         }
         
         .light .glass-button:hover {
             background: rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.08);
         }
         
-        /* Mobile-first responsive design */
+        .light .glass-button:active {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Mobile-first responsive design - APP-LIKE LAYOUT */
         .container {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            padding: 16px;
-            gap: 16px;
+            padding: 0; /* Remove padding for full app experience */
+            gap: 0; /* Remove gaps for seamless app feel */
         }
         
-        /* Screen 1: Logo + Record Controls */
+        /* Mobile Portrait: Move navbar to bottom (below cards) */
+        .app-header {
+            order: 3; /* Move to bottom after cards */
+            flex: 0 0 auto;
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            top: auto;
+            z-index: 100;
+            margin: 0;
+        }
+        
+        /* Mobile Navbar theme inversion: opposite to global content theme */
+        /* Default (dark mode): content is dark, navbar should be light */
+        body:not(.light) .app-header .mobile-header-content {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        body:not(.light) .app-header .mobile-header-content *,
+        body:not(.light) .app-header .mobile-header-content h1,
+        body:not(.light) .app-header .mobile-header-content button {
+            color: #1f2937 !important;
+        }
+        
+        /* Dark mode: white background needs black logo */
+        body:not(.light) .app-header .logo-section img {
+            content: url('assets/images/logo-black.svg') !important;
+        }
+        
+        /* Light mode: content is light, navbar should be dark */
+        body.light .app-header .mobile-header-content {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        body.light .app-header .mobile-header-content *,
+        body.light .app-header .mobile-header-content h1,
+        body.light .app-header .mobile-header-content button {
+            color: white !important;
+        }
+        
+        /* Light mode: dark background needs white logo */
+        body.light .app-header .logo-section img {
+            content: url('assets/images/logo-white.svg') !important;
+        }
+        
+        /* Super Tiny Header - One Line All Elements with Glass Design */
+        .app-header .mobile-header-content {
+            padding: 8px 16px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        
+        .app-header .logo-section {
+            padding: 0;
+            margin: 0;
+            flex: 0 0 auto;
+        }
+        
+        .app-header .logo-section img {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .app-header .logo-text h1 {
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .app-header .logo-text p {
+            display: none; /* Hide subtitle in tiny header */
+        }
+        
+        .app-header .controls-section {
+            padding: 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .app-header .record-button {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            margin: 0;
+            border-radius: 50%; /* Perfect circle by default */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-radius 0.3s ease;
+        }
+        
+        /* Recording state: circle becomes square with flashing animation */
+        .app-header .record-button.recording {
+            border-radius: 8px; /* Square when recording */
+            animation: recordingFlash 1.5s infinite;
+        }
+        
+        @keyframes recordingFlash {
+            0%, 100% { 
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+        
+        .app-header .record-button span:not(.record-dot) {
+            display: none; /* Hide text on mobile */
+        }
+        
+        .app-header .audio-source-toggle {
+            display: none; /* Hide audio toggle in tiny header */
+        }
+        
+        .app-header .status-bar {
+            padding: 0;
+            margin: 0;
+            flex: 0 0 auto;
+            gap: 8px;
+            display: flex; /* Force display on mobile */
+        }
+        
+        .app-header .theme-toggle {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .app-header .theme-toggle span:not(.theme-circle):not(.status-dot) {
+            display: none; /* Hide text on mobile */
+        }
+        
+        .app-header .integrated-status {
+            display: none !important; /* Completely invisible on mobile */
+        }
+        
+        /* Make features section completely invisible on mobile */
+        .features-list {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        /* Hide integrated-status only on mobile */
+        .desktop-only {
+            display: none !important; /* Hide on mobile */
+        }
+        
+        /* Mobile: Hide main screen-1, show app-header/app-footer */
+        .screen-1 {
+            display: none; /* Hide on mobile - use app-header instead */
+        }
+        
+        .app-content {
+            order: 1; /* Content comes first now */
+            flex: 1;
+            display: flex;
+            flex-direction: column; /* Stack vertically: transcript top, cards bottom */
+            overflow: hidden;
+            gap: 8px;
+            margin: 16px 16px 80px 16px; /* Top margin, bottom margin for navbar */
+        }
+        
+        .app-footer {
+            display: none; /* Hide footer in mobile portrait - navbar is now bottom */
+        }
+        
+        /* Mobile Footer theme inversion: opposite to global content theme */
+        /* Default (dark mode): content is dark, footer should be light */
+        body:not(.light) .app-footer .screen-4 {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        body:not(.light) .app-footer .screen-4 *,
+        body:not(.light) .app-footer .screen-4 h4 {
+            color: #1f2937 !important;
+        }
+        
+        /* Light mode: content is light, footer should be dark */
+        body.light .app-footer .screen-4 {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        body.light .app-footer .screen-4 *,
+        body.light .app-footer .screen-4 h4 {
+            color: white !important;
+        }
+        
+        /* Super Tiny Footer - Same Height as Header */
+        .app-footer .screen-4 {
+            padding: 8px 16px; /* Same padding as header */
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px; /* Exact same height as header */
+            box-sizing: border-box;
+        }
+        
+        .app-footer .info-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding: 0;
+        }
+        
+        .app-footer .info-card {
+            flex: 0 0 auto;
+            text-align: center;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .app-footer .info-card h4 {
+            font-size: 10px;
+            margin: 0;
+            opacity: 0.7;
+        }
+        
+        .app-footer .status-dot {
+            width: 8px;
+            height: 8px;
+        }
+        
+        /* Hide features and export in footer on mobile */
+        .app-footer .features-list,
+        .app-footer .export-section {
+            display: none;
+        }
+
+        /* Screen 1: Logo + Record Controls - NOW HEADER */
         .screen-1 {
             order: 1;
         }
@@ -157,17 +427,35 @@
         .record-dot {
             width: 16px;
             height: 16px;
-            background: #ef4444;
+            background: #ef4444; /* Red instead of grey */
             border-radius: 50%;
+            transition: all 0.3s ease;
         }
         
-        .pulse {
-            animation: pulse 2s infinite;
+        .light .record-dot {
+            background: #ef4444; /* Red in light mode too */
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        /* Mobile record button: red dot becomes square when recording */
+        .app-header .record-button.recording .record-dot {
+            border-radius: 3px; /* Square red dot when recording */
+        }
+        
+        /* Active state - red blinking */
+        .record-dot.pulse {
+            background: #ef4444;
+            animation: redBlink 1.5s infinite;
+        }
+        
+        @keyframes redBlink {
+            0%, 100% { 
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: scale(1.1);
+            }
         }
         
         .status-bar {
@@ -236,7 +524,7 @@
             padding: 12px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            border-radius: 8px;
             font-size: 12px;
         }
         
@@ -288,6 +576,26 @@
         
         .light .features-list ul {
             color: #1f2937;
+        }
+        
+        /* Universal text color fixes */
+        .glass-dark,
+        .glass-dark *,
+        .glass-dark h1,
+        .glass-dark h2, 
+        .glass-dark h3,
+        .glass-dark h4,
+        .glass-dark p,
+        .glass-dark span,
+        .glass-dark div,
+        .glass-dark li,
+        .glass-dark ul,
+        .glass-dark button,
+        .glass-dark label,
+        .glass-dark .features-list ul,
+        .glass-dark .features-list li,
+        .glass-dark .features-list h4 {
+            color: white !important;
         }
         
         /* Universal light mode text fixes - FORCE black text */
@@ -343,17 +651,29 @@
         .export-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
         }
         
-        /* Screen 2: Transcript */
+        .light .export-button:disabled {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+        
+        /* Screen 2: Transcript - Mobile Portrait: 30% height */
         .screen-2 {
-            order: 2;
-            flex: 1;
+            order: 1; /* Transcript first */
+            flex: 0 1 30%; /* Back to 30% for mobile portrait */
+            display: flex;
+            flex-direction: column;
+            border-radius: 24px; /* Glass morphism design */
+            overflow: hidden;
+            min-height: 180px; /* Increased for better readability */
         }
         
         .transcript-container {
-            padding: 24px;
-            min-height: 200px;
+            padding: 16px 12px; /* Reduced padding for mobile */
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
         .transcript-header {
@@ -392,16 +712,26 @@
         }
         
         .transcript-content {
-            font-size: 28px;
-            line-height: 1.3;
-            min-height: 120px;
+            font-size: 24px;
+            line-height: 1.4;
+            flex: 1;
             padding: 20px;
             background: transparent;
             border-radius: 16px;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
             position: relative;
             font-weight: 500;
-            text-align: center;
+            text-align: left;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
         }
         
         /* Animated transcript lines */
@@ -435,15 +765,25 @@
         }
         
         .transcript-line.old {
-            opacity: 0.3;
+            opacity: 0.2;
             transform: translateY(-8px);
-            font-size: 0.8em;
+            font-size: 0.75em;
+            transition: all 2s ease-out;
         }
         
         .transcript-line.fadeout {
             opacity: 0;
-            transform: translateY(-20px);
-            transition: all 1.2s ease-out;
+            transform: translateY(-30px) scale(0.9);
+            transition: all 2.5s ease-out;
+            filter: blur(1px);
+        }
+        
+        .transcript-line.very-old {
+            opacity: 0.1;
+            transform: translateY(-12px) scale(0.95);
+            font-size: 0.7em;
+            transition: all 3s ease-out;
+            filter: blur(0.5px);
         }
         
         /* Sound wave letter animation */
@@ -476,16 +816,21 @@
             color: rgba(31, 41, 55, 0.7);
         }
         
-        /* Screen 3: Flashcards */
+        /* Screen 3: Flashcards - Main content area below transcript */
         .screen-3 {
-            order: 3;
+            order: 2; /* Cards second, below transcript */
+            flex: 1; /* Take remaining space - biggest area */
+            display: flex;
+            flex-direction: column;
+            border-radius: 24px; /* Glass morphism design */
+            overflow: hidden;
         }
         
         .cards-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 24px 24px 16px;
+            padding: 16px 12px 12px; /* Reduced padding for mobile */
         }
         
         .cards-title {
@@ -507,25 +852,34 @@
         }
         
         .cards-container {
-            padding: 0 24px 24px;
-            max-height: 400px;
+            padding: 0 12px 0px; /* Reduced padding for mobile */
+            flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            background: transparent;
         }
         
         .card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 12px;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform: translateY(0);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
         .light .card {
-            background: rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid rgba(0, 0, 0, 0.1);
             color: #1f2937;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
         }
         
         .light .card-header,
@@ -535,30 +889,71 @@
         }
         
         .card.new-card {
-            animation: cardBirth 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: cardSlideFromLeft 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .card.push-down {
-            transform: translateY(8px);
-            opacity: 0.9;
-            scale: 0.98;
+            transform: translateY(12px) scale(0.96);
+            opacity: 0.85;
+            z-index: 1; /* Lower z-index for older cards */
         }
         
-        @keyframes cardBirth {
+        /* Latest card should be on top */
+        .card:first-child {
+            z-index: 10; /* Highest z-index for newest card */
+        }
+        
+        @keyframes cardSlideFromLeft {
             0% {
                 opacity: 0;
-                transform: translateY(30px) scale(0.95);
+                transform: translateX(-100px) scale(0.9);
                 filter: blur(2px);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             }
-            50% {
-                opacity: 0.7;
-                transform: translateY(15px) scale(0.98);
+            30% {
+                opacity: 0.6;
+                transform: translateX(-40px) scale(0.95);
                 filter: blur(1px);
+                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+            }
+            70% {
+                opacity: 0.9;
+                transform: translateX(-10px) scale(1.02);
+                filter: blur(0.5px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             }
             100% {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: translateX(0) scale(1);
                 filter: blur(0);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+        }
+        
+        @keyframes cardFloatUp {
+            0% {
+                opacity: 0;
+                transform: translateY(60px) scale(0.9) rotateX(10deg);
+                filter: blur(4px);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            }
+            30% {
+                opacity: 0.6;
+                transform: translateY(40px) scale(0.95) rotateX(5deg);
+                filter: blur(2px);
+                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+            }
+            70% {
+                opacity: 0.9;
+                transform: translateY(10px) scale(1.02) rotateX(0deg);
+                filter: blur(1px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0deg);
+                filter: blur(0);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             }
         }
         
@@ -666,38 +1061,762 @@
         .red { background: #ef4444; }
         .yellow { background: #f59e0b; }
         
-        /* Desktop layout - 3 columns: Logo, Content (Transcript + Cards), Cards */
-        @media (min-width: 768px) {
+        /* Audio Waveform Animation */
+        .waveform-bar {
+            transition: height 0.1s ease;
+            animation: waveformPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes waveformPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        /* Sophisticated Toggle Switch */
+        .audio-source-toggle {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 100%;
+            padding: 0;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 44px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        /* Vertical Divider Line */
+        .toggle-divider {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 50%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        
+        .light .toggle-divider {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Remove separate indicator - use option background instead */
+        
+        .toggle-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .toggle-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            background: transparent;
+            margin: 0;
+        }
+        
+        .toggle-option:first-child {
+            border-radius: 12px 0 0 12px;
+        }
+        
+        .toggle-option:last-child {
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .toggle-icon {
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .light .toggle-text {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        /* Active state - Background highlighting */
+        .toggle-option.active {
+            background: rgba(16, 185, 129, 0.15);
+            border: none;
+            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+        
+        .toggle-option.active .toggle-icon .status-dot {
+            background: #10b981 !important;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        }
+        
+        .toggle-option.active .toggle-text {
+            color: #10b981;
+            font-weight: 700;
+        }
+        
+        /* Inactive state - GREY DIMMED */
+        .toggle-option:not(.active) {
+            opacity: 0.5;
+        }
+        
+        .toggle-option:not(.active) .toggle-icon .status-dot {
+            background: #6b7280 !important;
+            box-shadow: none;
+        }
+        
+        .toggle-option:not(.active) .toggle-text {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .light .toggle-option:not(.active) .toggle-text {
+            color: rgba(31, 41, 55, 0.4);
+        }
+        
+        /* Hover effects */
+        .toggle-option:not(.active):hover {
+            transform: scale(1.02);
+            opacity: 0.7;
+        }
+        
+        /* Transcript Container */
+        .transcript-container-inner {
+            position: relative;
+            min-height: 200px;
+        }
+        
+        /* Transcript Background Visualizer - HIDDEN */
+        .transcript-visualizer {
+            display: none !important;
+        }
+        
+        .transcript-visualizer.active {
+            display: none !important;
+        }
+        
+        .transcript-visualizer-bars {
+            display: flex;
+            align-items: end;
+            gap: 4px;
+            height: 120px;
+            width: 90%;
+        }
+        
+        .transcript-visualizer-bar {
+            flex: 1;
+            min-height: 6px;
+            background: #10b981;
+            border-radius: 2px;
+            transition: height 0.08s ease;
+            opacity: 0.6;
+            animation: transcriptVisualizerPulse 2s ease-in-out infinite;
+        }
+        
+        .light .transcript-visualizer-bar {
+            background: #059669;
+        }
+        
+        @keyframes transcriptVisualizerPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        
+        /* Make transcript content overlay the visualizer */
+        .transcript-content {
+            position: relative;
+            z-index: 2;
+            background: transparent;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 400px) {
+            .toggle-text {
+                font-size: 11px;
+            }
+            
+            .toggle-icon {
+                font-size: 18px;
+            }
+            
+            .toggle-switch {
+                padding: 16px;
+            }
+        }
+        
+        /* Settings Modal */
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .settings-content {
+            background: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh; /* Limit height on mobile */
+            overflow-y: auto; /* Enable scrolling */
+            color: white;
+        }
+        
+        .light .settings-content {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .settings-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .settings-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        
+        .light .settings-close {
+            color: #1f2937;
+        }
+        
+        .settings-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .light .settings-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting-group {
+            margin-bottom: 24px;
+        }
+        
+        .setting-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .setting-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .light .setting-input {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: #1f2937;
+        }
+        
+        .setting-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .light .setting-input::placeholder {
+            color: rgba(31, 41, 55, 0.5);
+        }
+        
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .model-button {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .light .model-button {
+            background: rgba(0, 0, 0, 0.03);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+        }
+        
+        .model-button:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .light .model-button:hover {
+            border-color: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .model-button.selected {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .model-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .model-cost {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
+        .usage-stats {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .light .usage-stats {
+            background: rgba(0, 0, 0, 0.03);
+        }
+        
+        .usage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            font-size: 13px;
+        }
+        
+        .usage-item {
+            text-align: center;
+        }
+        
+        .usage-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #10b981;
+        }
+        
+        /* Mobile Landscape View - Complete Override */
+        @media (max-width: 1023px) and (orientation: landscape) {
+            /* FORCE mobile landscape layout - override everything */
             .container {
-                display: grid;
-                grid-template-columns: 350px 1fr;
-                grid-template-rows: 1fr 1fr;
-                padding: 24px;
-                gap: 24px;
+                display: flex !important;
+                flex-direction: row !important;
+                padding: 0 !important;
+                gap: 0 !important;
+                height: 100vh !important;
+            }
+            
+            /* Hide all desktop elements */
+            .screen-1,
+            .app-footer {
+                display: none !important;
+            }
+            
+            /* Content area - horizontal split */
+            .app-content {
+                order: 1 !important;
+                flex: 1 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 8px !important;
+                margin: 8px 8px 64px 8px !important;
+                height: calc(100vh - 72px) !important;
+            }
+            
+            /* Transcript: Left side, 40% width */
+            .screen-2 {
+                order: 1 !important;
+                flex: 0 0 40% !important;
+                min-height: auto !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                border-radius: 24px !important;
+                overflow: hidden !important;
+            }
+            
+            .screen-2 .transcript-container {
+                padding: 12px !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 !important;
+            }
+            
+            .screen-2 .transcript-content {
+                font-size: 16px !important;
+                flex: 1 !important;
+            }
+            
+            /* Cards: Right side, 60% width */
+            .screen-3 {
+                order: 2 !important;
+                flex: 1 !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                border-radius: 24px !important;
+                overflow: hidden !important;
+            }
+            
+            .screen-3 .cards-header {
+                padding: 12px !important;
+                flex: 0 0 auto !important;
+            }
+            
+            .screen-3 .cards-container {
+                padding: 0 12px !important;
+                flex: 1 !important;
+                overflow-y: auto !important;
+            }
+            
+            .screen-3 .card {
+                padding: 10px !important;
+                margin-bottom: 8px !important;
+                font-size: 13px !important;
+            }
+            
+            .screen-3 .card-front {
+                font-size: 13px !important;
+            }
+            
+            .screen-3 .card-back {
+                font-size: 12px !important;
+            }
+            
+            /* Landscape: Bottom navbar - logo+record+status in one line */
+            .app-header {
+                order: 3 !important;
+                position: fixed !important;
+                bottom: 8px !important;
+                left: 8px !important;
+                right: 8px !important;
+                top: auto !important;
+                margin: 0 !important;
+                z-index: 100 !important;
+            }
+            
+            .app-header .mobile-header-content {
+                padding: 6px 16px !important;
+                border-radius: 22px !important;
+                height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                gap: 12px !important;
+            }
+            
+            /* Logo section - compact */
+            .app-header .logo-section {
+                flex: 0 0 auto !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+            }
+            
+            .app-header .logo-section img {
+                width: 18px !important;
+                height: 18px !important;
+            }
+            
+            .app-header .logo-text h1 {
+                font-size: 11px !important;
+                margin: 0 !important;
+            }
+            
+            /* Record button - same as portrait mobile */
+            .app-header .record-button {
+                width: 32px !important;
+                height: 32px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+                flex: 0 0 auto !important;
+            }
+            
+            /* Status section - compact horizontal */
+            .app-header .status-bar {
+                flex: 0 0 auto !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+            
+            .app-header .theme-toggle {
+                width: 24px !important;
+                height: 24px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+            }
+        }
+        
+        /* Desktop layout - Restore original perfect layout */
+        @media (min-width: 768px) and (orientation: portrait), (min-width: 1024px) {
+            /* Reset container to original desktop layout */
+            .container {
+                display: flex;
+                flex-direction: row;
+                padding: 16px;
+                gap: 16px;
                 height: 100vh;
             }
             
+            /* Hide mobile-specific app header/footer on desktop */
+            .app-header,
+            .app-footer {
+                display: none;
+            }
+            
+            /* Show app-content as main content area on desktop */
+            .app-content {
+                display: flex;
+                flex-direction: column; /* Stack transcript and cards vertically on right */
+                flex: 1;
+                gap: 16px;
+                margin: 0;
+            }
+            
+            /* Show main Screen 1 as sidebar on desktop with inverted theme */
             .screen-1 {
-                grid-column: 1;
-                grid-row: 1 / -1;
+                display: flex !important; /* Override mobile hiding */
+                order: 1;
+                flex: 0 0 350px;
+                flex-direction: column;
+                border-radius: 24px;
+            }
+            
+            /* Desktop sidebar theme inversion: opposite to global content theme */
+            /* Default (dark mode): content is dark, sidebar should be light */
+            body:not(.light) .screen-1 {
+                background: rgba(255, 255, 255, 0.9) !important;
+                backdrop-filter: blur(40px) saturate(180%);
+                -webkit-backdrop-filter: blur(40px) saturate(180%);
+                border: 1px solid rgba(0, 0, 0, 0.15) !important;
+                padding: 20px;
+            }
+            
+            body:not(.light) .screen-1 *,
+            body:not(.light) .screen-1 h1,
+            body:not(.light) .screen-1 h4,
+            body:not(.light) .screen-1 p,
+            body:not(.light) .screen-1 ul,
+            body:not(.light) .screen-1 li,
+            body:not(.light) .screen-1 button {
+                color: #1f2937 !important;
+            }
+            
+            /* Dark mode: white desktop sidebar needs black logo */
+            body:not(.light) .screen-1 .logo-section img {
+                content: url('assets/images/logo-black.svg') !important;
+            }
+            
+            /* Light mode: content is light, sidebar should be dark */
+            body.light .screen-1 {
+                background: rgba(0, 0, 0, 0.8) !important;
+                backdrop-filter: blur(40px) saturate(180%);
+                -webkit-backdrop-filter: blur(40px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                padding: 20px;
+            }
+            
+            body.light .screen-1 *,
+            body.light .screen-1 h1,
+            body.light .screen-1 h4,
+            body.light .screen-1 p,
+            body.light .screen-1 ul,
+            body.light .screen-1 li,
+            body.light .screen-1 button {
+                color: white !important;
+            }
+            
+            /* Light mode: dark desktop sidebar needs white logo */
+            body.light .screen-1 .logo-section img {
+                content: url('assets/images/logo-white.svg') !important;
+            }
+            
+            .screen-1 .logo-section {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+            }
+            
+            .screen-1 .logo-section img {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .screen-1 .logo-text h1 {
+                font-size: 21px;
+                font-weight: 400;
+                margin-bottom: 4px;
+            }
+            
+            .screen-1 .logo-text p {
+                display: block;
+                font-size: 14px;
+                opacity: 0.7;
+            }
+            
+            .screen-1 .controls-section {
+                padding: 24px;
+                flex-direction: column;
+            }
+            
+            .screen-1 .audio-source-toggle {
+                display: block;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .screen-1 .record-button {
+                width: 100%;
+                padding: 24px;
+                font-size: 20px;
+                font-weight: 600;
+                border-radius: 18px;
+                margin-bottom: 20px;
+                height: auto;
+            }
+            
+            .screen-1 .status-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px 24px;
+                font-size: 14px;
+                margin-bottom: 20px;
+                gap: 16px;
+            }
+            
+            .screen-1 .theme-toggle {
+                padding: 12px 16px;
+                font-size: 14px;
+                font-weight: 500;
+                height: 44px;
+                border-radius: 12px;
+                white-space: normal;
+            }
+            
+            /* Show features on desktop */
+            .desktop-only {
+                display: block !important; /* Show on desktop */
+            }
+            
+            .screen-1 .integrated-status {
+                display: flex !important;
+                flex: 1;
+                flex-direction: column;
+                gap: 20px;
+                padding: 0 24px 24px;
+                margin-top: auto;
+            }
+            
+            .screen-1 .features-list {
+                display: block !important;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 16px;
+                margin-bottom: 24px;
+            }
+            
+            .screen-1 .status-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-top: 16px;
+            }
+            
+            /* Screen 2: Transcript on top right */
+            .screen-2 {
+                order: 1; /* First in right column */
+                flex: 0 1 40%; /* Fixed height, about 40% */
+                display: flex;
+                flex-direction: column;
+                min-height: 300px;
+                border-radius: 24px;
+            }
+            
+            .screen-2 .transcript-container {
+                padding: 24px;
+                flex: 1;
                 display: flex;
                 flex-direction: column;
             }
             
-            .screen-2 {
-                grid-column: 2;
-                grid-row: 1;
-                min-height: 300px;
-            }
-            
+            /* Screen 3: Flashcards below transcript on right */
             .screen-3 {
-                grid-column: 2;
-                grid-row: 2;
-                min-height: 300px;
+                order: 2; /* Second in right column */
+                flex: 1; /* Take remaining space */
+                display: flex;
+                flex-direction: column;
+                min-height: 400px; /* Bigger for flashcards */
+                border-radius: 24px;
             }
             
+            .screen-3 .cards-header {
+                padding: 24px 24px 16px;
+            }
+            
+            .screen-3 .cards-container {
+                padding: 0 24px 0px;
+            }
+            
+            /* Hide screen-4 on desktop (integrated into screen-1) */
             .screen-4 {
-                display: none; /* Integrated into screen-1 */
+                display: none;
             }
         }
         
@@ -735,7 +1854,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Screen 1: Logo + Record Controls -->
+        <!-- Screen 1: Main Control Panel (Desktop Sidebar / Mobile Header Content) -->
         <div class="screen-1 glass-dark" id="screen1">
             <div class="logo-section">
                 <img id="logo" src="assets/images/logo-white.svg" alt="SenScript">
@@ -746,10 +1865,22 @@
             </div>
             
             <div class="controls-section">
-                <select id="audioSource" class="audio-selector glass-button">
-                    <option value="microphone">Microphone</option>
-                    <option value="system">System Audio</option>
-                </select>
+                <!-- Sophisticated Audio Source Toggle Switch -->
+                <div class="audio-source-toggle">
+                    <div id="audioSourceSwitch" class="toggle-switch glass-button">
+                        <div class="toggle-divider"></div>
+                        <div class="toggle-labels">
+                            <div class="toggle-option active" data-value="microphone">
+                                <div class="toggle-icon"><span class="status-dot green"></span></div>
+                                <div class="toggle-text">Microphone</div>
+                            </div>
+                            <div class="toggle-option" data-value="system">
+                                <div class="toggle-icon"><span class="status-dot yellow"></span></div>
+                                <div class="toggle-text">Device Output</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <button id="recordBtn" class="record-button glass-button">
                     <span id="recordDot" class="record-dot"></span>
@@ -762,30 +1893,15 @@
                     <span id="themeCircle" class="theme-circle dark"></span>
                     Theme
                 </button>
+                <button id="settingsBtn" class="theme-toggle glass-button">
+                    <span class="status-dot yellow"></span>
+                    LLM
+                </button>
             </div>
             
-            <!-- Integrated Status & Features -->
-            <div class="integrated-status">
-                <div class="status-grid">
-                    <div class="status-item">
-                        <span class="status-label">Speech API</span>
-                        <span class="status-dot green" id="speechStatus"></span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">AI Processing</span>
-                        <span class="status-dot yellow" id="aiStatus"></span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Microphone</span>
-                        <span class="status-dot green" id="micStatus"></span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">System Audio</span>
-                        <span class="status-dot red" id="audioStatus"></span>
-                    </div>
-                </div>
-                
-                <div class="features-list">
+            <!-- Status & Features (desktop only) -->
+            <div class="integrated-status desktop-only" style="margin-top: auto; padding: 24px; margin: auto 24px 24px 24px;">
+                <div class="features-list" style="margin-bottom: 24px; border-radius: 16px;">
                     <h4>Key Features</h4>
                     <ul>
                         <li>• Real-time transcription</li>
@@ -796,32 +1912,90 @@
                     </ul>
                 </div>
                 
-                <div class="export-section">
-                    <button id="exportBtn" class="export-button glass-button" disabled>
-                        Export Cards
+                <div class="status-grid" style="margin-top: 16px;">
+                    <div class="status-item" style="border-radius: 8px;">
+                        <span class="status-label">Speech API</span>
+                        <span class="status-dot green" id="speechStatus"></span>
+                    </div>
+                    <div class="status-item" style="border-radius: 8px;">
+                        <span class="status-label">AI Processing</span>
+                        <span class="status-dot yellow" id="aiStatus"></span>
+                    </div>
+                    <div class="status-item" style="border-radius: 8px;">
+                        <span class="status-label">Microphone</span>
+                        <span class="status-dot green" id="micStatus"></span>
+                    </div>
+                    <div class="status-item" style="border-radius: 8px;">
+                        <span class="status-label">System Audio</span>
+                        <span class="status-dot red" id="audioStatus"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- App Header: Mobile Navigation (clone of screen-1 content) -->
+        <div class="app-header">
+            <div class="mobile-header-content glass-dark">
+                <div class="logo-section">
+                    <img src="assets/images/logo-white.svg" alt="SenScript">
+                    <div class="logo-text">
+                        <h1>SenScript</h1>
+                    </div>
+                </div>
+                
+                <div class="controls-section">
+                    <button class="record-button glass-button" onclick="document.getElementById('recordBtn').click()">
+                        <span class="record-dot"></span>
+                        <span>Start</span>
+                    </button>
+                </div>
+                
+                <div class="status-bar">
+                    <button id="mobileThemeBtn" class="theme-toggle glass-button">
+                        <span id="mobileThemeCircle" class="theme-circle dark"></span>
+                    </button>
+                    <button id="mobileSettingsBtn" class="theme-toggle glass-button">
+                        <span class="status-dot yellow"></span>
                     </button>
                 </div>
             </div>
         </div>
         
-        <!-- Screen 2: Live Transcript -->
-        <div class="screen-2 glass-dark" id="screen2">
+        <!-- App Content: 1/3 Transcript, 2/3 Cards -->
+        <div class="app-content">
+            <!-- Screen 2: Live Transcript -->
+            <div class="screen-2 glass-dark" id="screen2">
             <div class="transcript-container">
                 <div class="transcript-header">
                     <h2 class="transcript-title">Live Transcript</h2>
                     <div class="language-indicator">
-                        <span id="langCodeTranscript">DE</span>
+                        <span id="langCodeTranscript">AUTO</span>
                         <span id="langConfTranscript"></span>
                     </div>
                 </div>
-                <div id="transcript" class="transcript-content">
-                    Click "Start Listening" to begin transcription...
+                <div class="transcript-container-inner">
+                    <!-- Background Audio Visualizer -->
+                    <div id="transcriptVisualizer" class="transcript-visualizer">
+                        <div id="transcriptVisualizerBars" class="transcript-visualizer-bars"></div>
+                    </div>
+                    
+                    <!-- Transcript Content -->
+                    <div id="transcript" class="transcript-content">
+                        Click "Start" to begin transcription...
+                    </div>
                 </div>
             </div>
-        </div>
+            
+            <!-- Transcript Export Button - Hidden on mobile -->
+            <div class="desktop-only" style="padding: 24px; margin: 0;">
+                <button id="exportTranscriptBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
+                    Export Transcript
+                </button>
+            </div>
+            </div> <!-- Close screen-2 -->
         
-        <!-- Screen 3: Flashcards -->
-        <div class="screen-3 glass-dark" id="screen3">
+            <!-- Screen 3: Flashcards -->
+            <div class="screen-3 glass-dark" id="screen3">
             <div class="cards-header">
                 <h2 class="cards-title">AI Flashcards</h2>
                 <span id="cardCount" class="cards-count">0 cards</span>
@@ -832,10 +2006,20 @@
                     <p style="font-size: 12px; margin-top: 8px;">AI analyzes your speech in real-time</p>
                 </div>
             </div>
-        </div>
+            
+            <!-- Cards Export Button - Hidden on mobile -->
+            <div class="desktop-only" style="padding: 24px; margin: 0;">
+                <button id="exportBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
+                    Export Cards
+                </button>
+            </div>
+            </div> <!-- Close screen-3 -->
+        </div> <!-- Close app-content -->
         
-        <!-- Screen 4: Info & Status -->
-        <div class="screen-4 glass-dark" id="screen4">
+        <!-- App Footer: Status Indicators -->
+        <div class="app-footer">
+            <!-- Screen 4: Info & Status - Now Footer -->
+            <div class="screen-4 glass-dark" id="screen4">
             <div class="info-grid">
                 <div class="info-card">
                     <h4>Speech API</h4>
@@ -855,22 +2039,80 @@
                 </div>
             </div>
             
-            <div style="padding: 16px 24px;">
-                <h3 style="font-size: 14px; margin-bottom: 12px; opacity: 0.9;">Features</h3>
-                <ul style="font-size: 12px; opacity: 0.8; line-height: 1.6; list-style: none; padding: 0;">
-                    <li>• Real-time transcription</li>
-                    <li>• Auto language detection</li>
-                    <li>• AI flashcard generation</li>
-                    <li>• System audio capture</li>
-                    <li>• Export to Anki/JSON</li>
-                </ul>
-            </div>
+            <!-- Features section hidden on mobile -->
             
             <div class="export-section">
                 <button id="exportBtn" class="export-button glass-button" disabled>
                     💾 Export Cards
                 </button>
             </div>
+            </div> <!-- Close screen-4 -->
+        </div> <!-- Close app-footer -->
+    </div> <!-- Close container -->
+    
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2 class="settings-title">LLM Settings</h2>
+                <button id="settingsClose" class="settings-close">×</button>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">🚀 Select AI Model (fastest response wins)</label>
+                <div id="modelGrid" class="model-grid">
+                    <!-- Models loaded dynamically -->
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">🔑 OpenAI API Key</label>
+                <input type="password" id="openaiKey" class="setting-input" placeholder="sk-... (optional - fallback key provided)">
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">🧠 Anthropic API Key</label>
+                <input type="password" id="anthropicKey" class="setting-input" placeholder="sk-ant-... (optional - fallback key provided)">
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">🌊 DeepSeek API Key</label>
+                <input type="password" id="deepseekKey" class="setting-input" placeholder="sk-... (optional - fallback key provided)">
+            </div>
+            
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                    <input type="checkbox" id="useFallback" checked>
+                    Use SenScript fallback keys when your keys aren't provided
+                </label>
+            </div>
+            
+            <div class="usage-stats">
+                <h4 style="margin-bottom: 12px; font-size: 16px;">📊 Usage Stats</h4>
+                <div class="usage-grid">
+                    <div class="usage-item">
+                        <div id="totalCalls" class="usage-value">0</div>
+                        <div>API Calls</div>
+                    </div>
+                    <div class="usage-item">
+                        <div id="totalTokens" class="usage-value">0</div>
+                        <div>Tokens Used</div>
+                    </div>
+                    <div class="usage-item">
+                        <div id="cardsGenerated" class="usage-value">0</div>
+                        <div>Cards Created</div>
+                    </div>
+                    <div class="usage-item">
+                        <div id="avgResponseTime" class="usage-value">0ms</div>
+                        <div>Avg Response</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="saveSettings" class="glass-button" style="width: 100%; padding: 16px; margin-top: 24px; font-weight: 600;">
+                💾 Save Settings
+            </button>
         </div>
     </div>
     

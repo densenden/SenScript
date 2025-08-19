@@ -11,9 +11,10 @@
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "webpack --config webpack.main.config.js --mode production",
     "build:renderer": "webpack --config webpack.renderer.config.js --mode production",
-    "start": "electron .",
+    "start": "node web-app/server.js",
     "start:web": "npm run dev:web",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "vercel-build": "echo 'No build needed for web app'"
   },
   "keywords": [
     "flashcards",
@@ -54,7 +55,8 @@
     "framer-motion": "^10.16.0",
     "openai": "^4.20.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "dotenv": "^16.0.0"
   },
   "build": {
     "appId": "com.senscript.app",

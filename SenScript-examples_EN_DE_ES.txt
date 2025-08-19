@@ -1,0 +1,24 @@
+
+
+Today we explore quantum superposition and entanglement, examining how particles can exist in multiple states simultaneously. Professor Leif asks: What is the significance of the Heisenberg uncertainty principle? How does entanglement challenge locality? Let’s write wavefunctions and analyze interference patterns. Test questions: Define superposition. Explain entanglement. Derive uncertainty relation
+
+
+Heute behandeln wir Quanten­superposition und Verschränkung, wie Teilchen gleichzeitig in mehreren Zuständen existieren können. Professor Leif fragt: Was bedeutet die Heisenbergsche Unschärferelation? Wie stellt Verschränkung lokale Kausalität infrage? Schreiben wir Wellenfunktionen und analysieren Interferenzmuster. Testfragen: Definiere Superposition. Erkläre Verschränkung. 
+
+Hoy exploramos la superposición cuántica y el entrelazamiento, analizando cómo las partículas pueden existir en múltiples estados simultáneamente. El profesor Leif pregunta: ¿Cuál es el significado del principio de incertidumbre de Heisenberg? ¿Cómo desafía el entrelazamiento la localidad? Escribamos funciones de onda y analicemos patrones de interferencia. Preguntas de prueba: Define superposición. Explica entrelazamiento. Deriva 
+
+Was ist Quantenphysik? Quantenphysik ist die Wissenschaft die erklärt wie Teilchen 
+  auf atomarer Ebene funktionieren und bedeutet dass Teilchen gleichzeitig verschiedene
+   Zustände haben können."
+
+  Dann schauen wir was im Console Log passiert. Du solltest die detaillierte Logging
+  sehen können die ich hinzugefügt habe - alle Schritte der Worthiness Check, API
+  Calls, etc.
+
+  Öffne die Browser Developer Console (F12) und schau was dort geloggt wird wenn du
+  sprichst.
+
+
+
+# Environment variables should be in .env file
+# Copy .env.example to .env and add your keys

@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "name": "senscript",
+  "builds": [
+    {
+      "src": "web-app/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "web-app/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "web-app/server.js"
+    }
+  ],
+  "env": {
+    "PORT": "3000"
+  }
+}

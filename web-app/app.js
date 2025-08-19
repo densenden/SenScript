@@ -11,9 +11,25 @@ class SenScript {
         this.currentInterim = '';
         this.pendingSentence = '';  // Accumulate blocks into sentences
         this.cards = [];
+        this.fullTranscriptLog = [];  // Keep full transcript for download
         this.isLight = false;
-        this.currentLang = 'de-DE';
+        // Auto-detect browser language or default to English
+        this.currentLang = navigator.language || 'en-US';
+        console.log('[Language] Auto-detected language:', this.currentLang);
         this.lastSentenceProcessed = 0;  // Timestamp of last sentence processing
+        this.sessionId = `session_${Date.now()}`;
+        this.audioContext = null;
+        this.audioAnalyser = null;
+        this.audioSource = null;
+        this.silenceTimer = null;
+        this.audioLevel = 0;
+        this.processingCard = false;
+        this.apiSettings = {
+            apiKeys: {},
+            selectedModel: 'auto',
+            useFallback: true
+        };
+        this.startTime = Date.now();
         
         this.init();
     }
@@ -32,7 +48,8 @@ class SenScript {
             themeBtn: document.getElementById('themeBtn'),
             themeCircle: document.getElementById('themeCircle'),
             exportBtn: document.getElementById('exportBtn'),
-            audioSource: document.getElementById('audioSource'),
+            exportTranscriptBtn: document.getElementById('exportTranscriptBtn'),
+            audioSourceSwitch: document.getElementById('audioSourceSwitch'),
             langCode: document.getElementById('langCodeTranscript'),
             langConf: document.getElementById('langConfTranscript'),
             logo: document.getElementById('logo'),
@@ -43,7 +60,23 @@ class SenScript {
             speechStatus: document.getElementById('speechStatus'),
             aiStatus: document.getElementById('aiStatus'),
             micStatus: document.getElementById('micStatus'),
-            audioStatus: document.getElementById('audioStatus')
+            audioStatus: document.getElementById('audioStatus'),
+            waveform: document.getElementById('waveform'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            settingsModal: document.getElementById('settingsModal'),
+            settingsClose: document.getElementById('settingsClose'),
+            modelGrid: document.getElementById('modelGrid'),
+            openaiKey: document.getElementById('openaiKey'),
+            anthropicKey: document.getElementById('anthropicKey'),
+            deepseekKey: document.getElementById('deepseekKey'),
+            useFallback: document.getElementById('useFallback'),
+            saveSettings: document.getElementById('saveSettings'),
+            totalCalls: document.getElementById('totalCalls'),
+            totalTokens: document.getElementById('totalTokens'),
+            cardsGenerated: document.getElementById('cardsGenerated'),
+            avgResponseTime: document.getElementById('avgResponseTime'),
+            transcriptVisualizer: document.getElementById('transcriptVisualizer'),
+            transcriptVisualizerBars: document.getElementById('transcriptVisualizerBars')
         };
         
         // Add event listeners
@@ -57,17 +90,63 @@ class SenScript {
             this.toggleTheme();
         };
         
+        // Mobile theme button
+        const mobileThemeBtn = document.getElementById('mobileThemeBtn');
+        if (mobileThemeBtn) {
+            mobileThemeBtn.onclick = () => {
+                console.log('[UI] Mobile theme button clicked');
+                this.toggleTheme();
+            };
+        }
+        
+        // Mobile settings button
+        const mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
+        if (mobileSettingsBtn) {
+            mobileSettingsBtn.onclick = () => {
+                console.log('[UI] Mobile settings button clicked');
+                this.showSettings();
+            };
+        }
+        
         this.els.exportBtn.onclick = () => {
             this.exportCards();
         };
         
-        this.els.audioSource.onchange = () => {
-            console.log('[UI] Audio source changed');
-            this.handleSourceChange();
+        this.els.exportTranscriptBtn.onclick = () => {
+            this.exportTranscript();
         };
+        
+        // Initialize toggle switch
+        this.currentAudioSource = 'microphone';
+        this.setupAudioSourceToggle();
+        
+        this.els.settingsBtn.onclick = () => {
+            this.openSettings();
+        };
+        
+        this.els.settingsClose.onclick = () => {
+            this.closeSettings();
+        };
+        
+        this.els.saveSettings.onclick = () => {
+            this.saveSettings();
+        };
+        
+        // Close modal when clicking outside
+        this.els.settingsModal.onclick = (e) => {
+            if (e.target === this.els.settingsModal) {
+                this.closeSettings();
+            }
+        };
+        
+        // Local duplicate prevention for API efficiency
+        this.recentTexts = new Set(); // Track recent texts to avoid duplicates
+        this.DUPLICATE_TIMEOUT = 10000; // Clear duplicates after 10 seconds
         
         this.setupSpeechRecognition();
         this.checkMicrophone();
+        this.setupAudioVisualization();
+        this.loadSettings();
         
         console.log('[SenScript] Ready!');
     }
@@ -86,10 +165,20 @@ class SenScript {
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
-        this.recognition.lang = this.currentLang;
+        
+        // Start with English for better universal support - will auto-switch later
+        this.recognition.lang = 'en-US';
+        
+        console.log(`🎤 [SETUP] Recognition language set to: ${this.recognition.lang} (will auto-detect)`);
+        console.log(`🎤 [SETUP] Current system language: ${this.currentLang}`);
+        console.log(`🌐 [SETUP] Browser language: ${navigator.language}`);
+        console.log(`🌐 [SETUP] Browser languages: ${navigator.languages?.join(', ') || 'N/A'}`);
         
         this.recognition.onstart = () => {
-            console.log('[Speech] Started');
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`\n🎤 [${timestamp}] [SPEECH-START] Speech recognition started with language: ${this.recognition.lang}`);
+            console.log(`🔴 [${timestamp}] [STATUS] Recording: TRUE`);
+            console.log(`🌍 [${timestamp}] [LANG-INFO] System language: ${this.currentLang}, Recognition language: ${this.recognition.lang}`);
             this.isRecording = true;
             this.updateRecordingUI();
         };
@@ -100,18 +189,47 @@ class SenScript {
         
         this.recognition.onerror = (event) => {
             console.error('[Speech] Error:', event.error);
+            
+            // Handle specific errors
+            if (event.error === 'not-allowed') {
+                console.error('[Speech] Microphone access denied');
+                this.setStatus('speech', 'red');
+                this.shouldBeRecording = false;
+                this.updateRecordingUI();
+            } else if (event.error === 'no-speech') {
+                console.log('[Speech] No speech detected - will restart');
+                // This is normal, let onend handle restart
+            } else if (event.error === 'aborted') {
+                console.log('[Speech] Recognition aborted by user');
+                this.shouldBeRecording = false;
+                this.updateRecordingUI();
+            }
         };
         
         this.recognition.onend = () => {
-            console.log('[Speech] Ended');
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`\n🔇 [${timestamp}] [SPEECH-END] Speech recognition ended`);
+            console.log(`⚪ [${timestamp}] [STATUS] Recording: FALSE`);
+            console.log(`🔄 [${timestamp}] [CHECK] shouldBeRecording: ${this.shouldBeRecording}`);
+            
             this.isRecording = false;
             this.updateRecordingUI();
             
+            // Only restart if we should still be recording
             if (this.shouldBeRecording) {
+                console.log(`🔄 [${timestamp}] [RESTART] Auto-restarting recognition in 100ms...`);
                 setTimeout(() => {
-                    console.log('[Speech] Restarting...');
-                    this.recognition.start();
+                    try {
+                        this.recognition.start();
+                        console.log(`🎤 [${new Date().toLocaleTimeString()}] [RESTART-SUCCESS] Recognition restarted`);
+                    } catch (error) {
+                        console.error(`❌ [${new Date().toLocaleTimeString()}] [RESTART-FAILED] Restart failed:`, error);
+                        this.shouldBeRecording = false;
+                        this.updateRecordingUI();
+                    }
                 }, 100);
+            } else {
+                console.log(`🛑 [${timestamp}] [STOPPED] SenScript stopped - not restarting\n`);
             }
         };
         
@@ -120,18 +238,27 @@ class SenScript {
     }
     
     handleSpeechResult(event) {
+        const timestamp = new Date().toLocaleTimeString();
         let final = '';
         let interim = '';
+        
+        // Enhanced logging to debug English problem
+        console.log(`🎤 [SPEECH-EVENT] Processing ${event.results.length} results, resultIndex: ${event.resultIndex}`);
+        console.log(`🎤 [SPEECH-LANG] Current recognition language: ${this.recognition?.lang || 'undefined'}`);
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
             const text = result[0].transcript;
+            const confidence = result[0].confidence;
+            
+            console.log(`📝 [RESULT-${i}] Text: "${text}" | Final: ${result.isFinal} | Confidence: ${confidence?.toFixed(2) || 'N/A'}`);
             
             if (result.isFinal) {
                 final += text + ' ';
-                console.log('[Speech] Final:', text);
+                console.log(`✅ [FINAL] "${text}" (Lang: ${this.currentLang})`);
             } else {
                 interim += text;
+                console.log(`⏳ [INTERIM] "${text}"`);
             }
         }
         
@@ -141,13 +268,50 @@ class SenScript {
             this.transcript += final;
             this.addTranscriptLine(final.trim());
             
-            // Check for sentence boundaries
+            // Check for sentence boundaries immediately
             this.processPendingSentence();
         }
         
-        // Update interim display
+        // REAL-TIME SPLITTING: Check interim results for early processing  
+        if (interim.trim()) {
+            const fullCurrentText = this.pendingSentence + interim;
+            
+            // Check if we should process NOW based on current interim + pending
+            if (this.shouldProcessNow(fullCurrentText)) {
+                // SOFORT visuell splitten während dem Sprechen
+                if (this.pendingSentence.trim()) {
+                    console.log(`🔥 [${timestamp}] [LIVE-SPLIT] INTERIM TRIGGERED SPLIT: "${this.pendingSentence.substring(0, 40)}..."`);
+                    console.log(`🎯 [${timestamp}] [LIVE-SPLIT] Current pending length: ${this.pendingSentence.length}, interim: ${interim.length}`);
+                    
+                    // ZUERST: Segment zum UI hinzufügen (bevor processPendingSentence es löscht)
+                    this.addSplitSegmentToUI(this.pendingSentence.trim());
+                    
+                    // CRITICAL: Clear interim text after split so split segments remain visible!
+                    console.log(`✂️ [${timestamp}] [LIVE-SPLIT] Clearing interim to show split segments`);
+                    interim = ''; // Clear interim so UI shows split segments, not ongoing block
+                }
+                
+                // DANN: Normale Verarbeitung (wird pendingSentence zurücksetzen)
+                this.processPendingSentence();
+            } else {
+                console.log(`⏳ [${timestamp}] [INTERIM-WAIT] Not ready to split yet: pending=${this.pendingSentence.length}, interim=${interim.length}`);
+            }
+        }
+        
+        // Update interim display (simplified - no complex processing during interim)
         this.currentInterim = interim;
-        this.updateAnimatedTranscript();
+        
+        console.log(`📋 [${timestamp}] [INTERIM-DISPLAY] Set interim text: "${interim.substring(0, 30)}..." (length: ${interim.length})`);
+        console.log(`📊 [${timestamp}] [UI-STATE] Lines stored: ${this.transcriptLines.length}, pending: ${this.pendingSentence.length}`);
+        
+        // Throttle UI updates for better performance
+        if (!this.transcriptUpdatePending) {
+            this.transcriptUpdatePending = true;
+            requestAnimationFrame(() => {
+                this.updateAnimatedTranscript();
+                this.transcriptUpdatePending = false;
+            });
+        }
     }
     
     detectLanguageForText(text) {
@@ -263,43 +427,126 @@ class SenScript {
     }
 
     processPendingSentence() {
-        // Check for sentence boundaries
-        const sentenceEnders = /[.!?]\s+/;
-        const sentences = this.pendingSentence.split(sentenceEnders);
+        // Erweiterte Trennung nach mehreren Kriterien
+        let textToProcess = this.pendingSentence;
         
-        // Process complete sentences
-        if (sentences.length > 1) {
-            for (let i = 0; i < sentences.length - 1; i++) {
-                const sentence = sentences[i].trim();
-                if (sentence.length > 10) {
-                    console.log('[Sentence] Processing complete sentence:', sentence);
-                    this.processCompleteSentence(sentence);
+        // 1. Primäre Satzzeichen (harte Trennung)
+        const primaryBreaks = /([.!?])\s+/g;
+        let segments = this.splitByPattern(textToProcess, primaryBreaks);
+        
+        // 2. Sekundäre Trennzeichen - KONTINUIERLICHER für smooth processing
+        const secondaryBreaks = /([,;:])\s+/g;
+        segments = segments.flatMap(segment => {
+            if (segment.length > 45) { // Reduziert für kontinuierlichen Flow
+                return this.splitByPattern(segment, secondaryBreaks);
+            }
+            return [segment];
+        });
+        
+        // 3. Konjunktionen - nur bei wirklich langen Segmenten
+        const conjunctionBreaks = /\s+(aber|doch|jedoch|außerdem|zudem|darüber hinaus|weiterhin|and|but|however|furthermore|moreover|also)\s+/gi;
+        segments = segments.flatMap(segment => {
+            if (segment.length > 80) { // Erhöht von 50 auf 80 für bessere Qualität
+                return this.splitByPattern(segment, conjunctionBreaks);
+            }
+            return [segment];
+        });
+        
+        // 4. Thematische Übergänge - nur bei sehr langen Segmenten
+        const topicBreaks = /\s+(beginnen mit|schauen wir uns|betrachten wir|nun zu|jetzt|start with|let's look at|now)\s+/gi;
+        segments = segments.flatMap(segment => {
+            if (segment.length > 100) { // Zurück auf 100 für bessere Lesbarkeit
+                return this.splitByPattern(segment, topicBreaks);
+            }
+            return [segment];
+        });
+        
+        // Verarbeite alle Segmente außer dem letzten
+        if (segments.length > 1) {
+            for (let i = 0; i < segments.length - 1; i++) {
+                const segment = segments[i].trim();
+                if (segment.length > 15) {
+                    // SILENT processing - nur bei langen Segmenten UI-Update
+                    if (segment.length > 30) {
+                        this.addSplitSegmentToUI(segment);
+                    }
+                    
+                    // Verarbeiten für Karte
+                    this.processCompleteSentence(segment);
                 }
             }
-            // Keep the last incomplete part
-            this.pendingSentence = sentences[sentences.length - 1];
+            // Behalte den letzten unvollständigen Teil
+            this.pendingSentence = segments[segments.length - 1].trim();
         }
         
-        // Also process if pending sentence is getting long (fallback)
-        if (this.pendingSentence.length > 200) {
-            console.log('[Sentence] Processing long pending sentence:', this.pendingSentence.substring(0, 50) + '...');
-            this.processCompleteSentence(this.pendingSentence.trim());
-            this.pendingSentence = '';
+        // KONTINUIERLICHE Frühtrennung für smooth processing (VERY AGGRESSIVE)
+        if (this.pendingSentence.length > 60) { // Much more aggressive - prevent long buildup
+            console.log('[Segment] Kontinuierliche Früh-Trennung (>60 chars) - PREVENTING LONG SENTENCES');
+            const midPoint = Math.floor(this.pendingSentence.length / 2);
+            const spaceIndex = this.pendingSentence.indexOf(' ', midPoint);
+            
+            if (spaceIndex > -1) {
+                const firstHalf = this.pendingSentence.substring(0, spaceIndex).trim();
+                const secondHalf = this.pendingSentence.substring(spaceIndex).trim();
+                
+                if (firstHalf.length > 8) { // Lower threshold for more splitting
+                    // UI Update für Emergency Split
+                    this.addSplitSegmentToUI(firstHalf);
+                    
+                    // Verarbeiten für Karte
+                    this.processCompleteSentence(firstHalf);
+                }
+                this.pendingSentence = secondHalf;
+            } else {
+                // Kein Leerzeichen gefunden, verarbeite das ganze Segment
+                this.processCompleteSentence(this.pendingSentence.trim());
+                this.pendingSentence = '';
+            }
         }
     }
     
+    splitByPattern(text, pattern) {
+        const parts = text.split(pattern);
+        const result = [];
+        
+        for (let i = 0; i < parts.length; i += 2) {
+            let segment = parts[i];
+            if (i + 1 < parts.length) {
+                segment += parts[i + 1]; // Add back the separator
+            }
+            if (segment.trim()) {
+                result.push(segment.trim());
+            }
+        }
+        
+        return result.length > 0 ? result : [text];
+    }
+    
+    shouldProcessNow(text) {
+        // ULTRA-AGGRESSIVE processing to prevent long sentence buildup
+        return /[.!?]\s/.test(text) ||                              // Sentence endings
+               (/[,;:]\s/.test(text) && text.length > 25) ||          // Very early comma splits
+               (/\s+(aber|doch|jedoch|außerdem|zudem|and|but|however|also|so|das\s+bedeutet|sondern|entstehen|anders|sieht|nächsten|therefore|thus|while|because|since)\s/i.test(text) && text.length > 30) || // Much earlier keyword splits
+               text.length > 50;                                      // Much shorter threshold - prevent long buildup!
+    }
+    
     processCompleteSentence(sentence) {
+        const timestamp = new Date().toLocaleTimeString();
+        // SILENT processing for performance
         // Detect language for this specific sentence
         const detection = this.detectLanguageForText(sentence);
         
-        // Update global language for speech recognition if confidence is high
-        if (detection.confidence > 20 && detection.lang !== this.currentLang) {
-            console.log('[Language] Switching speech recognition to:', detection.lang);
+        // Update global language for speech recognition - WENIGER RESTRIKTIV für Englisch
+        if (detection.confidence > 10 && detection.lang !== this.currentLang) {
+            console.log(`🌍 [LANG-SWITCH] ${this.currentLang} → ${detection.lang} (${detection.confidence}%)`);
             this.currentLang = detection.lang;
-            this.recognition.lang = detection.lang;
+            if (this.recognition) {
+                this.recognition.lang = detection.lang;
+                console.log(`🎤 [SPEECH] Recognition language updated to: ${detection.lang}`);
+            }
         }
         
-        // Update UI display with flag
+        // Update UI display with flag - IMMER aktualisieren, auch bei niedriger Konfidenz
         const langCodes = {
             'de-DE': 'DE',
             'en-US': 'EN', 
@@ -307,24 +554,51 @@ class SenScript {
             'es-ES': 'ES',
             'it-IT': 'IT'
         };
-        this.els.langCode.textContent = `${detection.flag || ''} ${langCodes[detection.lang] || 'DE'}`;
+        
+        const displayLang = langCodes[detection.lang] || langCodes[this.currentLang] || 'DE';
+        const displayFlag = detection.flag || this.getLanguageFlag(this.currentLang) || '🇩🇪';
+        
+        // Aktualisiere BEIDE Sprachanzeigen: Karten UND Transcript
+        this.els.langCode.textContent = `${displayFlag} ${displayLang}`;
         this.els.langConf.textContent = detection.confidence > 0 ? `${detection.confidence.toFixed(0)}%` : '';
         
-        // Create card if sentence is worthy
-        if (this.isTextWorthyOfCard(sentence)) {
-            console.log('[Cards] Creating card for sentence:', sentence.substring(0, 50) + '...');
-            this.createCard(sentence, detection);
+        console.log(`🌍 [${timestamp}] [UI-UPDATE] Sprachanzeige aktualisiert: ${displayFlag} ${displayLang} (${detection.confidence}%)`);
+        
+        // Stelle sicher dass Recognition Language auch gesetzt ist
+        if (this.recognition && this.currentLang) {
+            this.recognition.lang = this.currentLang;
         }
+        
+        // Create card immediately if sentence is worthy - NO BATCHING for speed!
+        if (this.isTextWorthyOfCard(sentence)) {
+            console.log(`🎯 [${timestamp}] [WORTHY] Text passed worthiness check - creating card IMMEDIATELY...`);
+            this.createCard(sentence, detection);
+        } else {
+            console.log(`🚫 [${timestamp}] [NOT-WORTHY] Text failed worthiness check - no card created`);
+        }
+    }
+    
+    getLanguageFlag(langCode) {
+        const flags = {
+            'de-DE': '🇩🇪',
+            'en-US': '🇺🇸',
+            'fr-FR': '🇫🇷', 
+            'es-ES': '🇪🇸',
+            'it-IT': '🇮🇹'
+        };
+        return flags[langCode] || '🇩🇪';
     }
     
     detectLanguage(text) {
         const detection = this.detectLanguageForText(text);
         
-        // Update global language for speech recognition if confidence is high
-        if (detection.confidence > 20 && detection.lang !== this.currentLang) {
-            console.log('[Language] Switching speech recognition to:', detection.lang);
+        // Update global language for speech recognition if confidence is high  
+        if (detection.confidence > 15 && detection.lang !== this.currentLang) {
+            console.log('[Language] Switching speech recognition from', this.currentLang, 'to:', detection.lang);
             this.currentLang = detection.lang;
-            this.recognition.lang = detection.lang;
+            if (this.recognition) {
+                this.recognition.lang = detection.lang;
+            }
         }
         
         // Update UI display with flag
@@ -343,151 +617,371 @@ class SenScript {
     
     isTextWorthyOfCard(text) {
         const trimmed = text.trim().toLowerCase();
+        const timestamp = new Date().toLocaleTimeString();
         
-        // Too short or empty
-        if (trimmed.length < 15) {
-            console.log('[Filter] Text too short:', trimmed);
+        console.log(`🔍 [WORTHY-CHECK] "${text.substring(0, 40)}..." (${trimmed.length} chars)`);
+        
+        // Duplicate check - simplified
+        const textHash = trimmed.substring(0, 30);
+        if (this.recentTexts.has(textHash)) {
+            console.log(`🚫 [DUPLICATE] Similar text already processed`);
             return false;
         }
         
-        // Incomplete sentences or fragments
-        const incompletePatterns = [
-            /^(eine|ein|der|die|das|und|oder|aber|ich|wir|du|sie|er|es)\s+(deutsche|englische|italienische|französische)\s+(oder|und)\s+(eine?|der|die|das)?$/,
-            /^(a|an|the|and|or|but|i|we|you|they|he|she|it)\s+\w+\s+(or|and)\s+(a|an|the)?$/,
-            /^(ja|nein|ok|okay|hmm|äh|eh|well|yes|no|um|uh|mhm|ähem)$/i,
-            /^\w{1,4}$/,  // Very short words
-            /^[^a-zA-ZäöüÄÖÜß]*$/,  // No actual letters
-            /^(heute|morgen|gestern|now|today|tomorrow|yesterday)\s*$/i  // Time references only
-        ];
+        this.recentTexts.add(textHash);
+        setTimeout(() => {
+            this.recentTexts.delete(textHash);
+        }, 5000);
         
-        for (const pattern of incompletePatterns) {
-            if (pattern.test(trimmed)) {
-                console.log('[Filter] Incomplete/trivial text detected:', trimmed);
-                return false;
-            }
+        // TESTING MODE: Very relaxed filters
+        // Only reject if too short
+        if (trimmed.length < 10) {
+            console.log(`❌ Too short: ${trimmed.length} chars`);
+            return false;
         }
         
-        // Check for specific content types that deserve cards
-        const questionPatterns = [
-            /\b(was bedeutet|what does|wie funktioniert|how does|warum|why|wie|how|wann|when|wo|where|wer|who|welche|which)\b/i,
-            /\?\s*$/,  // Ends with question mark
-            /(fragt|asks|frage|question):/i  // Someone asks
+        // Only reject pure fillers
+        if (/^(ja|nein|ok|okay|hmm|äh|eh|um|uh)$/i.test(trimmed)) {
+            console.log(`❌ Pure filler word`);
+            return false;
+        }
+        
+        console.log(`✅ [WORTHY-PASS] Text accepted for card generation!`);
+        return true; // Accept almost everything for testing
+    }
+    
+    /* BACKUP OF ORIGINAL FUNCTION - Currently disabled for testing
+        // BROAD educational value patterns - keep general!
+        const educationalChecks = [
+            { 
+                name: 'Explanatory content', 
+                test: (/\b(bedeutet|means|ist|is|sind|are|works|funktioniert|erklärt|explains|heißt|called)\b/i.test(trimmed) && 
+                      trimmed.length > 40)
+            },
+            { 
+                name: 'Question-answer patterns', 
+                test: (/\b(was\s+ist|what\s+is|wie\s+funktioniert|how\s+does|warum|why|wann|when|wo|where)\b/i.test(trimmed) && 
+                      trimmed.length > 30)
+            },
+            { 
+                name: 'Process/procedure descriptions', 
+                test: (/\b(möglichkeit|possibility|verfahren|procedure|prozess|process|schritte|steps|methode|method|weg|way)\b/i.test(trimmed) && 
+                      trimmed.length > 50)
+            },
+            { 
+                name: 'Informational content', 
+                test: (/\b(konkret|specifically|also|so|das\s+heißt|that\s+means|hierfür|for\s+this|über|about|durch|through|via)\b/i.test(trimmed) && 
+                      trimmed.length > 60)
+            },
+            {
+                name: 'Definitional content',
+                test: (/\b(definition|defined|bezieht\s+sich|refers\s+to|nennt\s+man|called|bezeichnet|known\s+as)\b/i.test(trimmed) && 
+                      trimmed.length > 40)
+            },
+            {
+                name: 'Factual statements',
+                test: (trimmed.length > 70 && 
+                      /\b(kannst|can|solltest|should|gibt\s+es|there\s+are|werden|will\s+be|haben|have|müssen|must)\b/i.test(trimmed))
+            }
         ];
         
-        const technicalPatterns = [
-            /\b(quanten|quantum|superposition|verschränkung|entanglement|heisenberg|wellenfunktion|wave function|interferenz|interference|teilchen|particle|unschärfe|uncertainty)\b/i,
-            /\b(technologie|technology|software|algorithm|framework|methode|method|prozess|process|system|strategie|strategy|business|marketing)\b/i,
-            /\b(professor|doktor|dr\.|phd|wissenschaft|science|forschung|research|studie|study|experiment|analyse|analysis)\b/i
-        ];
+        console.log(`🔬 [${timestamp}] [EDUCATIONAL-CHECKS] Testing educational value:`);
         
-        const definitionPatterns = [
-            /\b(definiere|define|erkläre|explain|bedeutet|means|ist\s+(ein|eine|der|die|das)|is\s+(a|an|the))\b/i,
-            /\b(bezeichnet|refers\s+to|nennt\s+man|called|heißt|named)\b/i
-        ];
-        
-        const conceptPatterns = [
-            /\b(behandeln|discuss|besprechen|talk\s+about|analysieren|analyze|untersuchen|examine|betrachten|consider)\b/i,
-            /.+[,;].+/,  // Complex sentences with multiple clauses
-            /.{50,}/     // Long descriptive content
-        ];
-        
-        // Check for questions first
-        for (const pattern of questionPatterns) {
-            if (pattern.test(trimmed)) {
-                console.log('[Filter] Question detected:', trimmed.substring(0, 50) + '...');
+        for (const check of educationalChecks) {
+            const result = check.test;
+            console.log(`  ${result ? '✅' : '❌'} ${check.name}: ${result}`);
+            if (result) {
+                console.log(`🎯 [${timestamp}] [WORTHINESS-PASS] Educational content accepted: "${check.name}"`);
+                console.log(`📄 Accepted text: "${trimmed.substring(0, 80)}..."`);
                 return true;
             }
         }
         
-        // Check for technical terms
-        for (const pattern of technicalPatterns) {
-            if (pattern.test(trimmed)) {
-                console.log('[Filter] Technical content detected:', trimmed.substring(0, 50) + '...');
-                return true;
-            }
-        }
-        
-        // Check for definitions
-        for (const pattern of definitionPatterns) {
-            if (pattern.test(trimmed)) {
-                console.log('[Filter] Definition detected:', trimmed.substring(0, 50) + '...');
-                return true;
-            }
-        }
-        
-        // Check for complex concepts
-        for (const pattern of conceptPatterns) {
-            if (pattern.test(trimmed)) {
-                console.log('[Filter] Concept detected:', trimmed.substring(0, 50) + '...');
-                return true;
-            }
-        }
-        
-        console.log('[Filter] Text not worthy of card:', trimmed.substring(0, 50) + '...');
+        console.log(`❌ [${timestamp}] [WORTHINESS-FAIL] Content lacks clear educational value`);
+        console.log(`🚫 No educational patterns matched`);
+        console.log(`📝 Rejected text: "${trimmed.substring(0, 60)}..."\n`);
         return false;
     }
     
+    hasStrongEducationalSignals(text) {
+        const trimmed = text.trim().toLowerCase();
+        
+        // Only create fallback cards for content with very strong educational signals
+        return /\b(definition|definition|equation|formel|theorem|law|gesetz|principle|prinzip|theory|theorie)\b/i.test(trimmed) ||
+               /\b\d+([.,]\d+)?\s*(years?|jahre?|billion|milliarden?|percent|prozent)\b/i.test(trimmed) ||
+               (/\b(quantum|quanten|physics|physik|chemistry|chemie|biology|biologie|mathematics|mathematik)\b/i.test(trimmed) && 
+                trimmed.length > 40);
+    }
+    
+    setupAudioVisualization() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.audioAnalyser = this.audioContext.createAnalyser();
+            this.audioAnalyser.fftSize = 256;
+            this.audioAnalyser.smoothingTimeConstant = 0.8;
+            
+            console.log('[Audio] Visualization setup complete');
+        } catch (error) {
+            console.error('[Audio] Failed to setup visualization:', error);
+        }
+    }
+    
+    async connectAudioSource(stream) {
+        if (!this.audioContext || !this.audioAnalyser) return;
+        
+        try {
+            // Disconnect previous source if exists
+            if (this.audioSource) {
+                this.audioSource.disconnect();
+            }
+            
+            // Connect new source
+            this.audioSource = this.audioContext.createMediaStreamSource(stream);
+            this.audioSource.connect(this.audioAnalyser);
+            
+            // Start monitoring audio levels
+            this.monitorAudioLevels();
+            
+            console.log('[Audio] Source connected for visualization');
+        } catch (error) {
+            console.error('[Audio] Failed to connect source:', error);
+        }
+    }
+    
+    monitorAudioLevels() {
+        if (!this.audioAnalyser) return;
+        
+        const bufferLength = this.audioAnalyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        const checkLevel = () => {
+            if (!this.isRecording) return;
+            
+            this.audioAnalyser.getByteFrequencyData(dataArray);
+            
+            // Calculate average level
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
+            }
+            this.audioLevel = sum / bufferLength;
+            
+            // Update waveform visualization
+            this.updateWaveform(this.audioLevel);
+            
+            // Detect silence (low audio level for extended period)
+            if (this.audioLevel < 10) {
+                if (!this.silenceTimer) {
+                    this.silenceTimer = setTimeout(() => {
+                        this.handleSilence();
+                    }, 2000); // 2 seconds of silence
+                }
+            } else {
+                if (this.silenceTimer) {
+                    clearTimeout(this.silenceTimer);
+                    this.silenceTimer = null;
+                }
+            }
+            
+            requestAnimationFrame(checkLevel);
+        };
+        
+        checkLevel();
+    }
+    
+    updateWaveform(level) {
+        this.updateTranscriptVisualizer(level);
+    }
+    
+    updateTranscriptVisualizer(level) {
+        if (!this.els.transcriptVisualizerBars) return;
+        
+        // Show visualizer when mic is open (recording) - more generous conditions
+        const shouldShow = this.isRecording;
+        
+        if (shouldShow) {
+            this.showTranscriptVisualizer();
+            
+            const normalizedLevel = Math.min(1, level / 50);
+            const bars = this.els.transcriptVisualizerBars.children;
+            
+            // Create bars if they don't exist
+            if (bars.length === 0) {
+                for (let i = 0; i < 20; i++) {  // Fewer bars for background
+                    const bar = document.createElement('div');
+                    bar.className = 'transcript-visualizer-bar';
+                    this.els.transcriptVisualizerBars.appendChild(bar);
+                }
+            }
+            
+            // Update existing bars with animation
+            Array.from(bars).forEach((bar, index) => {
+                const intensity = Math.random() * normalizedLevel * 60 + 8;  // More visible bars
+                bar.style.height = `${intensity}px`;
+            });
+        } else {
+            this.hideTranscriptVisualizer();
+        }
+    }
+    
+    showTranscriptVisualizer() {
+        // Disabled - visualizer causes performance issues
+        return;
+    }
+    
+    hideTranscriptVisualizer() {
+        // Disabled - visualizer causes performance issues  
+        return;
+    }
+    
+    handleSilence() {
+        console.log('[Audio] Silence detected');
+        
+        // Process any pending sentences when silence is detected
+        if (this.pendingSentence.trim().length > 10) {
+            this.processCompleteSentence(this.pendingSentence.trim());
+            this.pendingSentence = '';
+        }
+        
+        // Don't update UI for silence - let the visualizer handle this
+    }
+    
+    async loadSettings() {
+        try {
+            // Load saved API keys from localStorage
+            const savedSettings = localStorage.getItem('senscript_settings');
+            if (savedSettings) {
+                this.apiSettings = JSON.parse(savedSettings);
+                await this.updateServerSettings();
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to load:', error);
+        }
+    }
+    
+    async updateServerSettings() {
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: this.sessionId,
+                    ...this.apiSettings
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                console.log('[Settings] Updated on server');
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to update server:', error);
+        }
+    }
+    
     async createCard(text, detection = null) {
-        console.log('[Cards] Evaluating text for card creation:', text);
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`\n🔄 [${timestamp}] [CARD-START] Evaluating text for card creation:`);
+        console.log(`📝 FULL TEXT: "${text}"`);
+        console.log(`📏 Length: ${text.length} chars`);
         
         // Pre-filter: Check if text is worthy of a card
         if (!this.isTextWorthyOfCard(text)) {
-            console.log('[Cards] Text filtered out - no card created');
+            console.log(`❌ [${timestamp}] [CARD-FILTERED] Text filtered out - no card created`);
+            console.log(`🚫 Reason: Failed worthiness check\n`);
             return;
         }
         
         // Use provided detection or detect language for this text
         const textLanguage = detection || this.detectLanguageForText(text);
-        console.log(`[Cards] Creating AI-powered card in ${textLanguage.lang} ${textLanguage.flag || ''} (${textLanguage.confidence}% confidence)`);
+        console.log(`🌍 [${timestamp}] [CARD-LANG] Detected language: ${textLanguage.lang} ${textLanguage.flag || ''} (${textLanguage.confidence}% confidence)`);
+        console.log(`🤖 [${timestamp}] [CARD-AI] Starting AI card generation...`);
+        
+        // Log the query being sent
+        const queryPayload = {
+            sessionId: this.sessionId,
+            transcript: text,
+            language: textLanguage.lang,
+            textConfidence: textLanguage.confidence,
+            languageFlag: textLanguage.flag
+        };
+        console.log(`📤 [${timestamp}] [API-QUERY] Sending to /api/generate-card:`);
+        console.log(JSON.stringify(queryPayload, null, 2));
         
         // Set AI status to processing
         this.setStatus('ai', 'yellow');
         
         try {
+            const startTime = Date.now();
+            
             // Call OpenAI API via our server with text-specific language
             const response = await fetch('/api/generate-card', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    transcript: text,
-                    language: textLanguage.lang,
-                    textConfidence: textLanguage.confidence,
-                    languageFlag: textLanguage.flag
-                })
+                body: JSON.stringify(queryPayload)
             });
             
             const result = await response.json();
+            const responseTime = Date.now() - startTime;
             
-            if (result.success) {
-                // Create card from AI response
+            console.log(`📥 [${timestamp}] [API-RESPONSE] Response received in ${responseTime}ms:`);
+            console.log(JSON.stringify(result, null, 2));
+            
+            if (result.success && !result.skip) {
+                console.log(`🎯 [${timestamp}] [CARD-PARSE] Parsing AI response...`);
+                console.log(`📋 Raw card data:`, result.card);
+                
+                // Create card from AI response with null checking
                 const card = {
                     id: Date.now(),
-                    category: result.card.category,
-                    front: result.card.front,
-                    back: result.card.back,
-                    confidence: result.card.confidence || 0,
+                    category: result.card?.category || 'Card',
+                    front: result.card?.front || 'No question',
+                    back: result.card?.back || 'No answer',
+                    confidence: result.card?.confidence || 0,
                     source: 'AI',
                     language: textLanguage.lang,
                     flag: textLanguage.flag,
                     time: new Date().toLocaleTimeString()
                 };
                 
-                this.cards.push(card);
+                console.log(`📊 [${timestamp}] [CARD-OBJECT] Final card object created:`);
+                console.log(JSON.stringify(card, null, 2));
+                
+                this.cards.unshift(card); // Add to beginning for latest on top
                 this.renderCard(card);
                 this.updateCardCount();
                 this.els.exportBtn.disabled = false;
                 this.setStatus('ai', 'green');
                 
-                console.log('[Cards] AI card created:', card.category, `(${card.confidence}% confidence)`);
+                console.log(`✅ [${timestamp}] [CARD-SUCCESS] AI card created and rendered!`);
+                console.log(`🏷️  Category: ${card.category}`);
+                console.log(`🎯 Confidence: ${card.confidence}%`);
+                console.log(`📄 Front: "${card.front}"`);
+                console.log(`📋 Back: "${card.back}"`);
+                console.log(`🎉 Total cards: ${this.cards.length}\n`);
             } else {
-                console.warn('[Cards] AI generation failed, using fallback');
-                this.createFallbackCard(text, textLanguage);
+                console.log(`⚠️  [${timestamp}] [CARD-SKIPPED] AI generation failed or skipped`);
+                console.log(`🚫 Reason: ${result.skip ? 'Content skipped by AI' : 'API failure'}`);
+                if (result.reason) {
+                    console.log(`💭 AI Reason: ${result.reason}`);
+                }
+                console.log('');
+                this.setStatus('ai', 'yellow');
             }
         } catch (error) {
-            console.error('[Cards] Error calling AI API:', error);
-            this.createFallbackCard(text, textLanguage);
+            console.error(`💥 [${timestamp}] [API-ERROR] Error calling AI API:`, error);
+            console.error(`🔍 Error details:`, error.message);
+            
+            // Only create fallback for truly educational content
+            if (this.hasStrongEducationalSignals(text)) {
+                console.log(`🔄 [${timestamp}] [FALLBACK] Creating fallback card due to API error...`);
+                this.createFallbackCard(text, textLanguage);
+            } else {
+                console.log(`🚫 [${timestamp}] [NO-FALLBACK] API error but content not educational enough for fallback`);
+                this.setStatus('ai', 'red');
+            }
         }
     }
     
@@ -496,20 +990,29 @@ class SenScript {
         
         const textLanguage = detection || this.detectLanguageForText(text);
         const words = text.toLowerCase().split(' ');
-        let category = 'Fact';
+        let category = 'Concept';
         let front = '';
-        let back = text;
+        let back = '';
         
-        // Simple pattern detection (fallback)
+        // Improved fallback: Only create cards for educational content
         if (words.some(w => ['was', 'wie', 'wann', 'wo', 'wer', 'what', 'how', 'when', 'where', 'who'].includes(w))) {
+            // Extract question topic
+            const questionWords = text.split(' ').slice(0, 6).join(' ');
             category = 'Question';
-            front = textLanguage.lang === 'de-DE' ? 'Frage aus Gespräch' : 'Question from conversation';
-        } else if (words.some(w => ['ist', 'sind', 'bedeutet', 'is', 'are', 'means'].includes(w))) {
+            front = textLanguage.lang === 'de-DE' ? `Frage: ${questionWords}...` : `Question: ${questionWords}...`;
+            back = textLanguage.lang === 'de-DE' ? 'Antwort wurde nicht bereitgestellt\nWeitere Recherche erforderlich' : 'Answer not provided in conversation\nFurther research needed';
+        } else if (words.some(w => ['ist', 'sind', 'bedeutet', 'is', 'are', 'means', 'called'].includes(w))) {
+            // Extract definition
+            const defStart = text.indexOf(words.find(w => ['ist', 'sind', 'bedeutet', 'is', 'are', 'means', 'called'].includes(w)));
+            const definition = text.substring(defStart).split('.')[0];
             category = 'Definition';
-            front = textLanguage.lang === 'de-DE' ? 'Definition' : 'Definition';
+            front = textLanguage.lang === 'de-DE' ? 'Was wurde definiert?' : 'What was defined?';
+            back = definition.length > 100 ? definition.substring(0, 100) + '...' : definition;
         } else {
-            category = 'Concept';
-            front = textLanguage.lang === 'de-DE' ? 'Konzept' : 'Concept';
+            // Skip trivial fallback cards - they're not useful
+            console.log('[Cards] Skipping fallback - content not educational enough');
+            this.setStatus('ai', 'yellow');
+            return;
         }
         
         const card = {
@@ -517,14 +1020,14 @@ class SenScript {
             category,
             front,
             back,
-            confidence: 50,
+            confidence: 30, // Lower confidence for fallback
             source: 'Fallback',
             language: textLanguage.lang,
             flag: textLanguage.flag,
             time: new Date().toLocaleTimeString()
         };
         
-        this.cards.push(card);
+        this.cards.unshift(card); // Add to beginning for latest on top
         this.renderCard(card);
         this.updateCardCount();
         this.els.exportBtn.disabled = false;
@@ -545,9 +1048,9 @@ class SenScript {
         const languageFlag = card.flag ? ` ${card.flag}` : '';
         
         cardEl.innerHTML = `
-            <div class="card-header">${card.category}${languageFlag} • ${card.time}${sourceCircle}${confidenceText}</div>
-            <div class="card-front">${card.front}</div>
-            <div class="card-back">${card.back}</div>
+            <div class="card-header">${card.category || 'Card'}${languageFlag} • ${card.time}${sourceCircle}${confidenceText}</div>
+            <div class="card-front">${card.front || 'No question'}</div>
+            <div class="card-back">${card.back || 'No answer'}</div>
         `;
         
         // Push existing cards down before adding new one
@@ -583,68 +1086,203 @@ class SenScript {
         this.els.cardCount.textContent = `${this.cards.length} cards`;
     }
     
-    addTranscriptLine(text) {
-        const lineData = {
-            id: Date.now(),
-            text: text,
-            timestamp: new Date()
-        };
+    addSplitSegmentToUI(segment) {
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`📱 [${timestamp}] [LIVE-UI-ADD] Adding segment to UI immediately: "${segment.substring(0, 50)}..."`);        
         
-        this.transcriptLines.push(lineData);
+        // Füge Split-Segment SOFORT als separate Zeile hinzu für smooth UI
+        this.addTranscriptLine(segment);
         
-        // Keep max 4 lines for smooth animation
-        if (this.transcriptLines.length > 4) {
-            this.transcriptLines.shift();
+        // SOFORTIGES UI Update für smooth splitting
+        this.updateAnimatedTranscript();
+        
+        console.log(`✅ [${timestamp}] [LIVE-UI-UPDATED] UI updated with ${this.transcriptLines.length} total lines`);
+    }
+    
+    updateAnimatedTranscriptImmediate() {
+        // Sofortige UI-Aktualisierung ohne requestAnimationFrame Verzögerung
+        const parts = [];
+        const maxLinesShown = 6;
+        
+        // Zeige die letzten Linien mit Fade-Effekten
+        const startIndex = Math.max(0, this.transcriptLines.length - maxLinesShown);
+        const visibleLines = this.transcriptLines.slice(startIndex);
+        
+        visibleLines.forEach((line, index) => {
+            const age = visibleLines.length - 1 - index;
+            let className = 'transcript-line';
+            
+            if (age === 0) className += ' current';
+            else if (age === 1) className += ' previous';
+            else if (age >= 2) className += ' old';
+            
+            parts.push(`<div class="${className}">${line}</div>`);
+        });
+        
+        // Zeige aktuellen Interim Text falls vorhanden
+        if (this.currentInterim) {
+            parts.push(`<div class="transcript-line transcript-interim">${this.currentInterim}</div>`);
         }
         
-        console.log('[Transcript] Added line:', text);
+        this.els.transcript.innerHTML = parts.join('');
+        
+        // Auto-scroll zu neuem Inhalt
+        setTimeout(() => {
+            this.els.transcript.scrollTop = this.els.transcript.scrollHeight;
+        }, 10);
+        
+        console.log(`🔄 [UI-IMMEDIATE] UI sofort aktualisiert mit ${parts.length} Zeilen`);
+    }
+    
+    addTranscriptLine(text) {
+        // Split long text into multiple lines for better display
+        const maxLineLength = 60; // Shorter lines for better wrapping
+        const lines = this.splitTextForDisplay(text, maxLineLength);
+        
+        lines.forEach(line => {
+            const lineData = {
+                id: Date.now() + Math.random(),
+                text: line,
+                timestamp: new Date()
+            };
+            
+            this.transcriptLines.push(lineData);
+        });
+        
+        // CONTINUOUS CLEANUP: Keep only last 6 lines for performance
+        const maxLines = 6;
+        if (this.transcriptLines.length > maxLines) {
+            this.transcriptLines = this.transcriptLines.slice(-maxLines);
+            console.log(`🧹 [CLEANUP] Trimmed transcript lines to ${maxLines} for performance`);
+        }
+        
+        // Add to full transcript log for download
+        this.fullTranscriptLog.push({
+            text: text,
+            timestamp: new Date().toISOString(),
+            time: new Date().toLocaleTimeString(),
+            type: 'final'
+        });
+        
+        // Enable transcript export button when we have content
+        if (this.els.exportTranscriptBtn) {
+            this.els.exportTranscriptBtn.disabled = false;
+        }
+        
+        // Keep max 4 lines for continuous processing with smooth fade-out
+        while (this.transcriptLines.length > 4) {
+            this.transcriptLines.shift(); // Remove oldest line
+        }
+        
+        console.log('[Transcript] Added', lines.length, 'line(s):', text.substring(0, 50) + '...');
+    }
+    
+    splitTextForDisplay(text, maxLength) {
+        if (text.length <= maxLength) {
+            return [text];
+        }
+        
+        const lines = [];
+        let remaining = text;
+        
+        while (remaining.length > maxLength) {
+            // Suche nach einem guten Trennpunkt (Leerzeichen, Komma, etc.)
+            let splitIndex = maxLength;
+            const searchStart = Math.max(0, maxLength - 20);
+            
+            for (let i = maxLength; i >= searchStart; i--) {
+                const char = remaining[i];
+                if (char === ' ' || char === ',' || char === ';' || char === ':') {
+                    splitIndex = i;
+                    break;
+                }
+            }
+            
+            lines.push(remaining.substring(0, splitIndex).trim());
+            remaining = remaining.substring(splitIndex).trim();
+        }
+        
+        if (remaining.length > 0) {
+            lines.push(remaining);
+        }
+        
+        return lines;
     }
     
     updateAnimatedTranscript() {
-        if (!this.isRecording && this.transcriptLines.length === 0) {
-            this.els.transcript.innerHTML = '<div class="transcript-line current">Click "Start" to begin...</div>';
+        if (!this.els.transcript) {
+            console.error('[Transcript] Element not found');
             return;
         }
         
-        let html = '';
-        
-        // Render stored lines with different states
-        this.transcriptLines.forEach((line, index) => {
-            const isLast = index === this.transcriptLines.length - 1;
-            const isPrevious = index === this.transcriptLines.length - 2;
-            
-            let className = 'transcript-line';
-            if (isLast && !this.currentInterim) {
-                className += ' current';
-            } else if (isPrevious) {
-                className += ' previous';
-            } else {
-                className += ' old';
-            }
-            
-            const animatedText = this.animateTextLetters(line.text);
-            html += `<div class="${className}">${animatedText}</div>`;
-        });
-        
-        // Add interim text with sound wave animation
-        if (this.currentInterim.trim()) {
-            const animatedInterim = this.animateTextLetters(this.currentInterim, true);
-            html += `<div class="transcript-line current transcript-interim">${animatedInterim}</div>`;
+        // Show recording status only when not recording
+        if (!this.isRecording && this.transcriptLines.length === 0 && !this.shouldBeRecording) {
+            this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
+            this.hideTranscriptVisualizer();
+            return;
         }
         
-        this.els.transcript.innerHTML = html;
+        // Build content more efficiently
+        const parts = [];
+        
+        // Add stored lines with PROGRESSIVE FADE-OUT (oldest → newest) - CHAT STYLE
+        this.transcriptLines.forEach((line, index) => {
+            const age = this.transcriptLines.length - 1 - index; // 0=newest, 1=previous, etc.
+            
+            let className = 'transcript-line';
+            if (age >= 3) {
+                className += ' fadeout'; // Oldest lines - fast unsichtbar (at top)
+            } else if (age === 2) {
+                className += ' old'; // 2 steps back - viel kleiner  
+            } else if (age === 1) {
+                className += ' previous'; // 1 step back - kleiner
+            } else if (age === 0 && !this.currentInterim) {
+                className += ' current'; // Newest line - sehr deutlich (at bottom)
+            }
+            
+            parts.push(`<div class="${className}">${line.text}</div>`);
+        });
+        
+        // Add interim text (with animation only if short)
+        if (this.currentInterim.trim()) {
+            const animatedInterim = this.animateTextLetters(this.currentInterim, true);
+            parts.push(`<div class="transcript-line current transcript-interim">${animatedInterim}</div>`);
+        }
+        
+        // Show recording status if no content
+        if (parts.length === 0 && this.isRecording) {
+            parts.push('<div class="transcript-line current">Listening...</div>');
+        }
+        
+        this.els.transcript.innerHTML = parts.join('');
+        
+        // Auto-scroll to bottom when new content is added
+        setTimeout(() => {
+            this.els.transcript.scrollTop = this.els.transcript.scrollHeight;
+        }, 50);
+        
+        // Control visualizer visibility: show when recording
+        if (this.isRecording) {
+            this.showTranscriptVisualizer();
+        } else {
+            this.hideTranscriptVisualizer();
+        }
     }
     
     animateTextLetters(text, isInterim = false) {
-        return text.split('').map((char, index) => {
-            if (char === ' ') return ' ';
-            
-            const delay = (index * 0.05).toFixed(2);
-            const className = isInterim ? 'transcript-letter' : '';
-            const style = isInterim ? `--delay: ${delay}s` : '';
-            
-            return `<span class="${className}" style="${style}">${char}</span>`;
-        }).join('');
+        // Simplified animation for better performance
+        if (isInterim && text.length < 100) {
+            // Only animate short interim text
+            return text.split('').map((char, index) => {
+                if (char === ' ') return ' ';
+                
+                const delay = (index * 0.02).toFixed(2); // Faster animation
+                return `<span class="transcript-letter" style="--delay: ${delay}s">${char}</span>`;
+            }).join('');
+        }
+        
+        // No animation for long text or final text
+        return text;
     }
     
     updateTranscript(text) {
@@ -653,26 +1291,28 @@ class SenScript {
     }
     
     toggleRecording() {
-        console.log('[Control] Toggle recording. Current:', this.isRecording);
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`\n🎛️  [${timestamp}] [TOGGLE] Recording toggle clicked`);
+        console.log(`📊 [${timestamp}] [STATE] isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
         
-        if (this.isRecording) {
+        if (this.isRecording || this.shouldBeRecording) {
+            console.log(`🛑 [${timestamp}] [ACTION] Stopping recording...`);
             this.stopRecording();
         } else {
+            console.log(`▶️  [${timestamp}] [ACTION] Starting recording...`);
             this.startRecording();
         }
     }
     
     startRecording() {
-        console.log('[Control] Starting...');
+        console.log('[Control] Starting...', 'Source:', this.currentAudioSource);
         
         if (!this.recognition) {
             console.error('[Control] No recognition available');
             return;
         }
         
-        const source = this.els.audioSource.value;
-        
-        if (source === 'system') {
+        if (this.currentAudioSource === 'system') {
             this.startSystemAudio();
         } else {
             this.startMicrophone();
@@ -683,64 +1323,179 @@ class SenScript {
         console.log('[Audio] Starting microphone...');
         
         try {
+            // Start speech recognition FIRST (this was working before)
             this.shouldBeRecording = true;
-            this.recognition.start();
+            
+            if (this.recognition && !this.isRecording) {
+                this.recognition.start();
+                console.log('[Audio] Speech recognition started');
+            }
+            
+            // Get microphone stream for visualization (secondary)
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                await this.connectAudioSource(stream);
+            } catch (vizError) {
+                console.warn('[Audio] Visualization failed, but speech recognition should work:', vizError);
+            }
+            
         } catch (error) {
             console.error('[Audio] Microphone error:', error);
+            this.setStatus('mic', 'red');
+            this.shouldBeRecording = false;
+            this.updateRecordingUI();
         }
     }
     
     async startSystemAudio() {
-        console.log('[Audio] Starting system audio...');
+        console.log('[Audio] Starting system/device audio...');
         
         try {
+            // Try to get screen share with audio (this can capture tab audio)
             const stream = await navigator.mediaDevices.getDisplayMedia({
-                audio: true,
-                video: false
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    suppressLocalAudioPlayback: false
+                },
+                video: {
+                    width: 1,
+                    height: 1,
+                    frameRate: 1
+                }
             });
             
             console.log('[Audio] Got system audio stream');
             this.systemStream = stream;
             
+            // Connect to visualizer
+            await this.connectAudioSource(stream);
+            
+            // For system audio, we need to create a speech recognition from the audio context
             this.shouldBeRecording = true;
-            this.recognition.start();
+            
+            // Since Web Speech API doesn't work with custom streams,
+            // we'll need to simultaneously capture microphone for speech recognition
+            // while using system audio for visualization only
+            try {
+                if (this.recognition && !this.isRecording) {
+                    // Start speech recognition on microphone in parallel
+                    const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.recognition.start();
+                    console.log('[Audio] Started parallel microphone for speech recognition');
+                }
+            } catch (micError) {
+                console.warn('[Audio] Could not start microphone for speech recognition:', micError);
+                // Continue with system audio only (visualization only)
+            }
+            
+            this.setStatus('audio', 'green');
+            
         } catch (error) {
             console.error('[Audio] System audio error:', error);
+            
+            // Show user instruction for system audio
+            if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
+                console.log('[Audio] System audio not available - user needs to share screen/tab with audio');
+                alert('To capture device output:\n1. Click "Share" when prompted\n2. Choose "Chrome Tab" or "Entire Screen"\n3. Check "Share audio" checkbox\n4. Click Share');
+            }
+            
+            this.setStatus('audio', 'red');
             // Fallback to microphone
             await this.startMicrophone();
         }
     }
     
     stopRecording() {
-        console.log('[Control] Stopping...');
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`\n🛑 [${timestamp}] [STOP] Stopping recording process...`);
         
         this.shouldBeRecording = false;
+        console.log(`🔴 [${timestamp}] [FLAG] shouldBeRecording set to FALSE`);
         
         if (this.recognition && this.isRecording) {
+            console.log(`🎤 [${timestamp}] [STOP] Stopping speech recognition...`);
             this.recognition.stop();
         }
         
         if (this.systemStream) {
+            console.log(`🔊 [${timestamp}] [STOP] Stopping system audio stream...`);
             this.systemStream.getTracks().forEach(track => track.stop());
             this.systemStream = null;
         }
+        
+        if (this.audioSource) {
+            console.log(`🎧 [${timestamp}] [STOP] Disconnecting audio source...`);
+            this.audioSource.disconnect();
+            this.audioSource = null;
+        }
+        
+        console.log(`✅ [${timestamp}] [STOP-COMPLETE] All recording processes stopped\n`);
     }
     
     updateRecordingUI() {
         if (this.isRecording) {
             this.els.recordDot.classList.add('pulse');
-            this.els.recordText.textContent = 'Stop';
+            this.els.recordText.textContent = 'Listening...';
+            
+            // Mobile record button: circle to square when recording
+            const mobileRecordButton = document.querySelector('.app-header .record-button');
+            if (mobileRecordButton) {
+                mobileRecordButton.classList.add('recording');
+            }
         } else {
             this.els.recordDot.classList.remove('pulse');
             this.els.recordText.textContent = 'Start';
+            
+            // Mobile record button: back to circle when stopped
+            const mobileRecordButton = document.querySelector('.app-header .record-button');
+            if (mobileRecordButton) {
+                mobileRecordButton.classList.remove('recording');
+            }
         }
     }
     
+    setupAudioSourceToggle() {
+        const toggleOptions = this.els.audioSourceSwitch.querySelectorAll('.toggle-option');
+        
+        toggleOptions.forEach(option => {
+            option.onclick = () => {
+                const newSource = option.dataset.value;
+                if (newSource !== this.currentAudioSource) {
+                    console.log('[UI] Switching audio source to:', newSource);
+                    this.currentAudioSource = newSource;
+                    this.updateToggleUI();
+                    
+                    // Simple restart if recording
+                    if (this.shouldBeRecording) {
+                        this.stopRecording();
+                        setTimeout(() => this.startRecording(), 100);
+                    }
+                }
+            };
+        });
+        
+        console.log('[UI] Audio source toggle initialized');
+    }
+    
+    updateToggleUI() {
+        const toggleOptions = this.els.audioSourceSwitch.querySelectorAll('.toggle-option');
+        
+        toggleOptions.forEach(option => {
+            if (option.dataset.value === this.currentAudioSource) {
+                option.classList.add('active');
+            } else {
+                option.classList.remove('active');
+            }
+        });
+        
+        console.log('[UI] Toggle updated for:', this.currentAudioSource);
+    }
+    
     handleSourceChange() {
-        if (this.isRecording) {
-            this.stopRecording();
-            setTimeout(() => this.startRecording(), 100);
-        }
+        // Legacy function - now handled by toggle switch
+        this.updateToggleUI();
     }
     
     toggleTheme() {
@@ -760,6 +1515,13 @@ class SenScript {
             this.els.logo.src = 'assets/images/logo-black.svg';
             this.els.themeCircle.classList.remove('dark');
             this.els.themeCircle.classList.add('light');
+            
+            // Update mobile theme circle
+            const mobileThemeCircle = document.getElementById('mobileThemeCircle');
+            if (mobileThemeCircle) {
+                mobileThemeCircle.classList.remove('dark');
+                mobileThemeCircle.classList.add('light');
+            }
         } else {
             screens.forEach(screen => {
                 if (screen) {
@@ -770,6 +1532,20 @@ class SenScript {
             this.els.logo.src = 'assets/images/logo-white.svg';
             this.els.themeCircle.classList.remove('light');
             this.els.themeCircle.classList.add('dark');
+            
+            // Update mobile theme circle
+            const mobileThemeCircle = document.getElementById('mobileThemeCircle');
+            if (mobileThemeCircle) {
+                mobileThemeCircle.classList.remove('light');
+                mobileThemeCircle.classList.add('dark');
+            }
+        }
+        
+        // Apply theme to body for inversion effects
+        if (this.isLight) {
+            document.body.classList.add('light');
+        } else {
+            document.body.classList.remove('light');
         }
         
         console.log('[Theme] Switched to:', this.isLight ? 'light' : 'dark');
@@ -794,6 +1570,129 @@ class SenScript {
         }
     }
     
+    async openSettings() {
+        console.log('[Settings] Opening settings modal');
+        
+        // Load available models
+        await this.loadAvailableModels();
+        
+        // Load current settings
+        this.els.openaiKey.value = this.apiSettings.apiKeys.openai || '';
+        this.els.anthropicKey.value = this.apiSettings.apiKeys.anthropic || '';
+        this.els.deepseekKey.value = this.apiSettings.apiKeys.deepseek || '';
+        this.els.useFallback.checked = this.apiSettings.useFallback;
+        
+        // Load usage stats
+        await this.loadUsageStats();
+        
+        this.els.settingsModal.style.display = 'flex';
+    }
+    
+    closeSettings() {
+        this.els.settingsModal.style.display = 'none';
+    }
+    
+    async loadAvailableModels() {
+        try {
+            const response = await fetch('/api/models');
+            const models = await response.json();
+            
+            let html = '';
+            
+            // Add auto-select option
+            html += `
+                <div class="model-button ${this.apiSettings.selectedModel === 'auto' ? 'selected' : ''}" data-model="auto">
+                    <div class="model-name">🚀 Auto (Fastest)</div>
+                    <div class="model-cost">Race all APIs</div>
+                </div>
+            `;
+            
+            // Add provider models
+            Object.entries(models).forEach(([provider, modelList]) => {
+                modelList.forEach(model => {
+                    const modelId = `${provider}:${model.id}`;
+                    const isSelected = this.apiSettings.selectedModel === modelId;
+                    
+                    html += `
+                        <div class="model-button ${isSelected ? 'selected' : ''}" data-model="${modelId}">
+                            <div class="model-name">${model.name}</div>
+                            <div class="model-cost">${model.cost}</div>
+                        </div>
+                    `;
+                });
+            });
+            
+            this.els.modelGrid.innerHTML = html;
+            
+            // Add click handlers
+            this.els.modelGrid.querySelectorAll('.model-button').forEach(btn => {
+                btn.onclick = () => {
+                    // Remove selected from all
+                    this.els.modelGrid.querySelectorAll('.model-button').forEach(b => 
+                        b.classList.remove('selected')
+                    );
+                    // Add selected to clicked
+                    btn.classList.add('selected');
+                    this.apiSettings.selectedModel = btn.dataset.model;
+                };
+            });
+            
+        } catch (error) {
+            console.error('[Settings] Failed to load models:', error);
+        }
+    }
+    
+    async loadUsageStats() {
+        try {
+            const response = await fetch(`/api/usage?sessionId=${this.sessionId}`);
+            const stats = await response.json();
+            
+            this.els.totalCalls.textContent = stats.global?.totalCalls || 0;
+            this.els.totalTokens.textContent = stats.global?.totalTokens || 0;
+            this.els.cardsGenerated.textContent = this.cards.length;
+            
+            // Calculate average response time
+            if (stats.global?.byProvider) {
+                const avgTimes = Object.values(stats.global.byProvider)
+                    .map(p => p.avgResponseTime)
+                    .filter(t => t > 0);
+                    
+                if (avgTimes.length > 0) {
+                    const avgResponse = avgTimes.reduce((a, b) => a + b, 0) / avgTimes.length;
+                    this.els.avgResponseTime.textContent = Math.round(avgResponse) + 'ms';
+                }
+            }
+            
+        } catch (error) {
+            console.error('[Settings] Failed to load usage stats:', error);
+        }
+    }
+    
+    async saveSettings() {
+        console.log('[Settings] Saving settings...');
+        
+        this.apiSettings.apiKeys = {
+            openai: this.els.openaiKey.value.trim(),
+            anthropic: this.els.anthropicKey.value.trim(),
+            deepseek: this.els.deepseekKey.value.trim()
+        };
+        this.apiSettings.useFallback = this.els.useFallback.checked;
+        
+        // Save to localStorage
+        localStorage.setItem('senscript_settings', JSON.stringify(this.apiSettings));
+        
+        // Update server
+        await this.updateServerSettings();
+        
+        this.closeSettings();
+        
+        // Show success message
+        this.els.saveSettings.textContent = '✅ Saved!';
+        setTimeout(() => {
+            this.els.saveSettings.textContent = '💾 Save Settings';
+        }, 2000);
+    }
+    
     exportCards() {
         if (this.cards.length === 0) return;
         
@@ -807,11 +1706,37 @@ class SenScript {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `senscript-${Date.now()}.json`;
+        a.download = `senscript-cards-${Date.now()}.json`;
         a.click();
         URL.revokeObjectURL(url);
         
         console.log('[Export] Exported', this.cards.length, 'cards');
+    }
+    
+    exportTranscript() {
+        if (this.fullTranscriptLog.length === 0) {
+            console.log('[Export] No transcript content to export');
+            return;
+        }
+        
+        const data = {
+            transcript: this.fullTranscriptLog,
+            exported: new Date().toISOString(),
+            totalLines: this.fullTranscriptLog.length,
+            sessionId: this.sessionId,
+            language: this.currentLang,
+            duration: Math.round((Date.now() - this.startTime) / 1000) + ' seconds'
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `senscript-transcript-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        console.log('[Export] Exported', this.fullTranscriptLog.length, 'transcript lines');
     }
 }
 
