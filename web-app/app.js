@@ -665,58 +665,7 @@ class SenScript {
         return true; // Accept almost everything for testing
     }
     
-    /* BACKUP OF ORIGINAL FUNCTION - Currently disabled for testing
-        // BROAD educational value patterns - keep general!
-        const educationalChecks = [
-            { 
-                name: 'Explanatory content', 
-                test: (/\b(bedeutet|means|ist|is|sind|are|works|funktioniert|erklärt|explains|heißt|called)\b/i.test(trimmed) && 
-                      trimmed.length > 40)
-            },
-            { 
-                name: 'Question-answer patterns', 
-                test: (/\b(was\s+ist|what\s+is|wie\s+funktioniert|how\s+does|warum|why|wann|when|wo|where)\b/i.test(trimmed) && 
-                      trimmed.length > 30)
-            },
-            { 
-                name: 'Process/procedure descriptions', 
-                test: (/\b(möglichkeit|possibility|verfahren|procedure|prozess|process|schritte|steps|methode|method|weg|way)\b/i.test(trimmed) && 
-                      trimmed.length > 50)
-            },
-            { 
-                name: 'Informational content', 
-                test: (/\b(konkret|specifically|also|so|das\s+heißt|that\s+means|hierfür|for\s+this|über|about|durch|through|via)\b/i.test(trimmed) && 
-                      trimmed.length > 60)
-            },
-            {
-                name: 'Definitional content',
-                test: (/\b(definition|defined|bezieht\s+sich|refers\s+to|nennt\s+man|called|bezeichnet|known\s+as)\b/i.test(trimmed) && 
-                      trimmed.length > 40)
-            },
-            {
-                name: 'Factual statements',
-                test: (trimmed.length > 70 && 
-                      /\b(kannst|can|solltest|should|gibt\s+es|there\s+are|werden|will\s+be|haben|have|müssen|must)\b/i.test(trimmed))
-            }
-        ];
-        
-        console.log(`🔬 [${timestamp}] [EDUCATIONAL-CHECKS] Testing educational value:`);
-        
-        for (const check of educationalChecks) {
-            const result = check.test;
-            console.log(`  ${result ? '✅' : '❌'} ${check.name}: ${result}`);
-            if (result) {
-                console.log(`🎯 [${timestamp}] [WORTHINESS-PASS] Educational content accepted: "${check.name}"`);
-                console.log(`📄 Accepted text: "${trimmed.substring(0, 80)}..."`);
-                return true;
-            }
-        }
-        
-        console.log(`❌ [${timestamp}] [WORTHINESS-FAIL] Content lacks clear educational value`);
-        console.log(`🚫 No educational patterns matched`);
-        console.log(`📝 Rejected text: "${trimmed.substring(0, 60)}..."\n`);
-        return false;
-    }
+    // REMOVED: Backup of original function for cleaner code
     
     hasStrongEducationalSignals(text) {
         const trimmed = text.trim().toLowerCase();

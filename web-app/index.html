@@ -136,14 +136,15 @@
             content: url('assets/images/logo-white.svg') !important;
         }
         
-        /* Super Tiny Header - One Line All Elements with Glass Design */
+        /* Mobile Navbar 1.25x Larger - One Line All Elements with Glass Design */
         .app-header .mobile-header-content {
-            padding: 8px 16px;
+            padding: 10px 20px; /* Increased from 8px 16px */
             border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 15px; /* Increased from 12px */
+            height: 55px; /* 1.25x of 44px */
         }
         
         .app-header .logo-section {
@@ -153,12 +154,12 @@
         }
         
         .app-header .logo-section img {
-            width: 24px;
-            height: 24px;
+            width: 30px; /* 1.25x of 24px */
+            height: 30px; /* 1.25x of 24px */
         }
         
         .app-header .logo-text h1 {
-            font-size: 14px;
+            font-size: 18px; /* 1.25x of 14px */
             margin: 0;
         }
         
@@ -176,8 +177,8 @@
         }
         
         .app-header .record-button {
-            width: 40px;
-            height: 40px;
+            width: 50px; /* 1.25x of 40px */
+            height: 50px; /* 1.25x of 40px */
             padding: 0;
             margin: 0;
             border-radius: 50%; /* Perfect circle by default */
@@ -993,11 +994,15 @@
         }
         
         .status-dot {
-            width: 12px;
-            height: 12px;
+            width: 15px; /* 1.25x of 12px */
+            height: 15px; /* 1.25x of 12px */
             border-radius: 50%;
             display: inline-block;
-            margin-left: 4px;
+            margin: 0; /* Remove margin to center properly */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Perfect centering */
         }
         
         .theme-circle {
