@@ -9,9 +9,11 @@ class SenScript {
         this.transcript = '';
         this.transcriptLines = [];
         this.currentInterim = '';
+        this.pendingSentence = '';  // Accumulate blocks into sentences
         this.cards = [];
         this.isLight = false;
         this.currentLang = 'de-DE';
+        this.lastSentenceProcessed = 0;  // Timestamp of last sentence processing
         
         this.init();
     }
@@ -31,8 +33,8 @@ class SenScript {
             themeCircle: document.getElementById('themeCircle'),
             exportBtn: document.getElementById('exportBtn'),
             audioSource: document.getElementById('audioSource'),
-            langCode: document.getElementById('langCode'),
-            langConf: document.getElementById('langConf'),
+            langCode: document.getElementById('langCodeTranscript'),
+            langConf: document.getElementById('langConfTranscript'),
             logo: document.getElementById('logo'),
             screen1: document.getElementById('screen1'),
             screen2: document.getElementById('screen2'),
@@ -134,16 +136,13 @@ class SenScript {
         }
         
         if (final.trim()) {
+            // Add to pending sentence accumulation
+            this.pendingSentence += final;
             this.transcript += final;
             this.addTranscriptLine(final.trim());
-            this.detectLanguage(final);
             
-            // Create card if enough words
-            const words = final.trim().split(' ');
-            if (words.length >= 3) {
-                console.log('[Cards] Creating card for:', final.trim());
-                this.createCard(final.trim());
-            }
+            // Check for sentence boundaries
+            this.processPendingSentence();
         }
         
         // Update interim display
@@ -151,42 +150,202 @@ class SenScript {
         this.updateAnimatedTranscript();
     }
     
-    detectLanguage(text) {
+    detectLanguageForText(text) {
         const lower = text.toLowerCase();
         
-        // Simple German detection
-        const germanWords = /\b(der|die|das|und|ist|sind|ich|wir|ein|eine|zu|von|mit|auf|nicht|auch|kann|aber)\b/g;
+        // Enhanced German detection patterns
+        const germanWords = /\b(der|die|das|und|ist|sind|ich|wir|ein|eine|zu|von|mit|auf|nicht|auch|kann|aber|wie|was|wann|wo|wer|warum|welche|dass|wenn|oder|haben|haben|werden|wurde|könnte|sollte|müssen|können|durch|über|unter|zwischen|während|gegen|ohne|seit|bis|bei|nach|vor|um|für|als|wenn|weil|obwohl|damit|sodass)\b/g;
         const germanCount = (lower.match(germanWords) || []).length;
         
-        // Simple English detection
-        const englishWords = /\b(the|and|is|are|was|were|have|has|can|will|to|of|in|for|with|that|this)\b/g;
+        // Enhanced English detection patterns
+        const englishWords = /\b(the|and|is|are|was|were|have|has|can|will|to|of|in|for|with|that|this|what|how|when|where|who|why|which|would|should|could|must|might|about|after|before|during|through|over|under|between|while|against|without|since|until|from|into|onto|upon|within|toward|across|among|beside|beyond|inside|outside|around)\b/g;
         const englishCount = (lower.match(englishWords) || []).length;
+        
+        // French detection patterns
+        const frenchWords = /\b(le|la|les|de|du|des|et|est|sont|avec|pour|dans|sur|par|un|une|ce|cette|ces|que|qui|quoi|où|quand|comment|pourquoi|mais|ou|donc|car|ni|être|avoir|faire|aller|venir|voir|savoir|pouvoir|vouloir|dire|prendre|donner|mettre|partir|passer|rester|devenir|tenir|porter|montrer|laisser|suivre|penser|croire|paraître|connaître|comprendre|entendre|sortir|sentir|servir|vivre|mourir)\b/g;
+        const frenchCount = (lower.match(frenchWords) || []).length;
+        
+        // Spanish detection patterns
+        const spanishWords = /\b(el|la|los|las|de|del|y|es|son|con|para|en|por|un|una|este|esta|estos|estas|que|quien|qué|dónde|cuándo|cómo|por qué|pero|o|así|porque|ni|ser|estar|haber|tener|hacer|ir|venir|ver|saber|poder|querer|decir|tomar|dar|poner|salir|pasar|quedar|llegar|llevar|seguir|pensar|creer|parecer|conocer|entender|oir|sentir|servir|vivir|morir)\b/g;
+        const spanishCount = (lower.match(spanishWords) || []).length;
+        
+        // Italian detection patterns
+        const italianWords = /\b(il|la|lo|gli|le|di|del|della|dello|dei|delle|e|è|sono|con|per|in|su|da|un|una|questo|questa|questi|queste|che|chi|cosa|dove|quando|come|perché|ma|o|così|perché|né|essere|avere|fare|andare|venire|vedere|sapere|potere|volere|dire|prendere|dare|mettere|partire|passare|restare|diventare|tenere|portare|mostrare|lasciare|seguire|pensare|credere|sembrare|conoscere|capire|sentire|servire|vivere|morire)\b/g;
+        const italianCount = (lower.match(italianWords) || []).length;
+        
+        // German-specific patterns
+        const germanPatterns = [
+            /\b\w+ung\b/g,  // German endings like -ung
+            /\b\w+heit\b/g, // German endings like -heit
+            /\b\w+keit\b/g, // German endings like -keit
+            /\b\w+schaft\b/g, // German endings like -schaft
+            /ä|ö|ü|ß/g      // German umlauts
+        ];
+        
+        // French-specific patterns
+        const frenchPatterns = [
+            /\b\w+tion\b/g,  // French endings like -tion
+            /\b\w+ment\b/g,  // French endings like -ment
+            /\b\w+eur\b/g,   // French endings like -eur
+            /à|é|è|ê|ë|ç|ù|û|ü|ô|ö|î|ï|ÿ/g  // French accents
+        ];
+        
+        // Spanish-specific patterns
+        const spanishPatterns = [
+            /\b\w+ción\b/g,  // Spanish endings like -ción
+            /\b\w+dad\b/g,   // Spanish endings like -dad
+            /\b\w+mente\b/g, // Spanish endings like -mente
+            /ñ|á|é|í|ó|ú|ü/g  // Spanish accents and ñ
+        ];
+        
+        // Italian-specific patterns
+        const italianPatterns = [
+            /\b\w+zione\b/g, // Italian endings like -zione
+            /\b\w+mente\b/g, // Italian endings like -mente
+            /\b\w+tore\b/g,  // Italian endings like -tore
+            /à|è|é|ì|í|ò|ó|ù|ú/g  // Italian accents
+        ];
+        
+        let germanPatternCount = 0;
+        germanPatterns.forEach(pattern => {
+            germanPatternCount += (lower.match(pattern) || []).length;
+        });
+        
+        let frenchPatternCount = 0;
+        frenchPatterns.forEach(pattern => {
+            frenchPatternCount += (lower.match(pattern) || []).length;
+        });
+        
+        let spanishPatternCount = 0;
+        spanishPatterns.forEach(pattern => {
+            spanishPatternCount += (lower.match(pattern) || []).length;
+        });
+        
+        let italianPatternCount = 0;
+        italianPatterns.forEach(pattern => {
+            italianPatternCount += (lower.match(pattern) || []).length;
+        });
         
         const totalWords = lower.split(/\s+/).length;
         
-        if (totalWords > 0) {
-            const germanConf = (germanCount / totalWords) * 100;
-            const englishConf = (englishCount / totalWords) * 100;
-            
-            const newLang = germanConf > englishConf ? 'de-DE' : 'en-US';
-            const conf = Math.max(germanConf, englishConf);
-            
-            if (conf > 10 && newLang !== this.currentLang) {
-                console.log('[Language] Switching to:', newLang);
-                this.currentLang = newLang;
-                this.recognition.lang = newLang;
+        if (totalWords === 0) return { lang: 'de-DE', confidence: 0, flag: '🇩🇪' };
+        
+        const germanScore = ((germanCount + germanPatternCount) / totalWords) * 100;
+        const englishScore = (englishCount / totalWords) * 100;
+        const frenchScore = ((frenchCount + frenchPatternCount) / totalWords) * 100;
+        const spanishScore = ((spanishCount + spanishPatternCount) / totalWords) * 100;
+        const italianScore = ((italianCount + italianPatternCount) / totalWords) * 100;
+        
+        const scores = {
+            'de-DE': { score: germanScore, flag: '🇩🇪' },
+            'en-US': { score: englishScore, flag: '🇺🇸' },
+            'fr-FR': { score: frenchScore, flag: '🇫🇷' },
+            'es-ES': { score: spanishScore, flag: '🇪🇸' },
+            'it-IT': { score: italianScore, flag: '🇮🇹' }
+        };
+        
+        // Find language with highest score
+        let detectedLang = 'de-DE';
+        let maxScore = germanScore;
+        let flag = '🇩🇪';
+        
+        for (const [lang, data] of Object.entries(scores)) {
+            if (data.score > maxScore) {
+                maxScore = data.score;
+                detectedLang = lang;
+                flag = data.flag;
             }
-            
-            this.els.langCode.textContent = newLang === 'de-DE' ? 'DE' : 'EN';
-            this.els.langConf.textContent = conf > 0 ? `${conf.toFixed(0)}%` : '';
         }
+        
+        console.log(`[Language] Text: "${text.substring(0, 30)}..." - ${detectedLang} ${flag} (${maxScore.toFixed(0)}%)`);
+        
+        return { lang: detectedLang, confidence: maxScore, flag: flag };
+    }
+
+    processPendingSentence() {
+        // Check for sentence boundaries
+        const sentenceEnders = /[.!?]\s+/;
+        const sentences = this.pendingSentence.split(sentenceEnders);
+        
+        // Process complete sentences
+        if (sentences.length > 1) {
+            for (let i = 0; i < sentences.length - 1; i++) {
+                const sentence = sentences[i].trim();
+                if (sentence.length > 10) {
+                    console.log('[Sentence] Processing complete sentence:', sentence);
+                    this.processCompleteSentence(sentence);
+                }
+            }
+            // Keep the last incomplete part
+            this.pendingSentence = sentences[sentences.length - 1];
+        }
+        
+        // Also process if pending sentence is getting long (fallback)
+        if (this.pendingSentence.length > 200) {
+            console.log('[Sentence] Processing long pending sentence:', this.pendingSentence.substring(0, 50) + '...');
+            this.processCompleteSentence(this.pendingSentence.trim());
+            this.pendingSentence = '';
+        }
+    }
+    
+    processCompleteSentence(sentence) {
+        // Detect language for this specific sentence
+        const detection = this.detectLanguageForText(sentence);
+        
+        // Update global language for speech recognition if confidence is high
+        if (detection.confidence > 20 && detection.lang !== this.currentLang) {
+            console.log('[Language] Switching speech recognition to:', detection.lang);
+            this.currentLang = detection.lang;
+            this.recognition.lang = detection.lang;
+        }
+        
+        // Update UI display with flag
+        const langCodes = {
+            'de-DE': 'DE',
+            'en-US': 'EN', 
+            'fr-FR': 'FR',
+            'es-ES': 'ES',
+            'it-IT': 'IT'
+        };
+        this.els.langCode.textContent = `${detection.flag || ''} ${langCodes[detection.lang] || 'DE'}`;
+        this.els.langConf.textContent = detection.confidence > 0 ? `${detection.confidence.toFixed(0)}%` : '';
+        
+        // Create card if sentence is worthy
+        if (this.isTextWorthyOfCard(sentence)) {
+            console.log('[Cards] Creating card for sentence:', sentence.substring(0, 50) + '...');
+            this.createCard(sentence, detection);
+        }
+    }
+    
+    detectLanguage(text) {
+        const detection = this.detectLanguageForText(text);
+        
+        // Update global language for speech recognition if confidence is high
+        if (detection.confidence > 20 && detection.lang !== this.currentLang) {
+            console.log('[Language] Switching speech recognition to:', detection.lang);
+            this.currentLang = detection.lang;
+            this.recognition.lang = detection.lang;
+        }
+        
+        // Update UI display with flag
+        const langCodes = {
+            'de-DE': 'DE',
+            'en-US': 'EN', 
+            'fr-FR': 'FR',
+            'es-ES': 'ES',
+            'it-IT': 'IT'
+        };
+        this.els.langCode.textContent = `${detection.flag || ''} ${langCodes[detection.lang] || 'DE'}`;
+        this.els.langConf.textContent = detection.confidence > 0 ? `${detection.confidence.toFixed(0)}%` : '';
+        
+        return detection;
     }
     
     isTextWorthyOfCard(text) {
         const trimmed = text.trim().toLowerCase();
         
         // Too short or empty
-        if (trimmed.length < 10) {
+        if (trimmed.length < 15) {
             console.log('[Filter] Text too short:', trimmed);
             return false;
         }
@@ -195,9 +354,10 @@ class SenScript {
         const incompletePatterns = [
             /^(eine|ein|der|die|das|und|oder|aber|ich|wir|du|sie|er|es)\s+(deutsche|englische|italienische|französische)\s+(oder|und)\s+(eine?|der|die|das)?$/,
             /^(a|an|the|and|or|but|i|we|you|they|he|she|it)\s+\w+\s+(or|and)\s+(a|an|the)?$/,
-            /^(ja|nein|ok|okay|hmm|äh|eh|well|yes|no|um|uh)$/,
-            /^\w{1,3}$/,  // Very short words
-            /^[^a-zA-ZäöüÄÖÜß]*$/  // No actual letters
+            /^(ja|nein|ok|okay|hmm|äh|eh|well|yes|no|um|uh|mhm|ähem)$/i,
+            /^\w{1,4}$/,  // Very short words
+            /^[^a-zA-ZäöüÄÖÜß]*$/,  // No actual letters
+            /^(heute|morgen|gestern|now|today|tomorrow|yesterday)\s*$/i  // Time references only
         ];
         
         for (const pattern of incompletePatterns) {
@@ -207,32 +367,67 @@ class SenScript {
             }
         }
         
-        // Check for question words, technical terms, or explanatory content
-        const worthyPatterns = [
-            // Questions
-            /\b(was|wie|wann|wo|wer|warum|welche|what|how|when|where|who|why|which|explain|define)\b/i,
-            // Technical/business terms
-            /\b(technologie|software|business|marketing|strategie|prozess|system|methode|technology|process|strategy|method|algorithm|framework)\b/i,
-            // Explanatory content
-            /\b(bedeutet|heißt|ist|sind|funktioniert|works|means|refers|indicates|involves|includes)\b/i,
-            // Complex sentences with multiple clauses
-            /.+[,;].+/,
-            // Long descriptive content
-            /.{30,}/
+        // Check for specific content types that deserve cards
+        const questionPatterns = [
+            /\b(was bedeutet|what does|wie funktioniert|how does|warum|why|wie|how|wann|when|wo|where|wer|who|welche|which)\b/i,
+            /\?\s*$/,  // Ends with question mark
+            /(fragt|asks|frage|question):/i  // Someone asks
         ];
         
-        for (const pattern of worthyPatterns) {
+        const technicalPatterns = [
+            /\b(quanten|quantum|superposition|verschränkung|entanglement|heisenberg|wellenfunktion|wave function|interferenz|interference|teilchen|particle|unschärfe|uncertainty)\b/i,
+            /\b(technologie|technology|software|algorithm|framework|methode|method|prozess|process|system|strategie|strategy|business|marketing)\b/i,
+            /\b(professor|doktor|dr\.|phd|wissenschaft|science|forschung|research|studie|study|experiment|analyse|analysis)\b/i
+        ];
+        
+        const definitionPatterns = [
+            /\b(definiere|define|erkläre|explain|bedeutet|means|ist\s+(ein|eine|der|die|das)|is\s+(a|an|the))\b/i,
+            /\b(bezeichnet|refers\s+to|nennt\s+man|called|heißt|named)\b/i
+        ];
+        
+        const conceptPatterns = [
+            /\b(behandeln|discuss|besprechen|talk\s+about|analysieren|analyze|untersuchen|examine|betrachten|consider)\b/i,
+            /.+[,;].+/,  // Complex sentences with multiple clauses
+            /.{50,}/     // Long descriptive content
+        ];
+        
+        // Check for questions first
+        for (const pattern of questionPatterns) {
             if (pattern.test(trimmed)) {
-                console.log('[Filter] Worthy content detected:', trimmed.substring(0, 50) + '...');
+                console.log('[Filter] Question detected:', trimmed.substring(0, 50) + '...');
                 return true;
             }
         }
         
-        console.log('[Filter] Text not worthy of card:', trimmed);
+        // Check for technical terms
+        for (const pattern of technicalPatterns) {
+            if (pattern.test(trimmed)) {
+                console.log('[Filter] Technical content detected:', trimmed.substring(0, 50) + '...');
+                return true;
+            }
+        }
+        
+        // Check for definitions
+        for (const pattern of definitionPatterns) {
+            if (pattern.test(trimmed)) {
+                console.log('[Filter] Definition detected:', trimmed.substring(0, 50) + '...');
+                return true;
+            }
+        }
+        
+        // Check for complex concepts
+        for (const pattern of conceptPatterns) {
+            if (pattern.test(trimmed)) {
+                console.log('[Filter] Concept detected:', trimmed.substring(0, 50) + '...');
+                return true;
+            }
+        }
+        
+        console.log('[Filter] Text not worthy of card:', trimmed.substring(0, 50) + '...');
         return false;
     }
     
-    async createCard(text) {
+    async createCard(text, detection = null) {
         console.log('[Cards] Evaluating text for card creation:', text);
         
         // Pre-filter: Check if text is worthy of a card
@@ -241,13 +436,15 @@ class SenScript {
             return;
         }
         
-        console.log('[Cards] Creating AI-powered card for worthy content');
+        // Use provided detection or detect language for this text
+        const textLanguage = detection || this.detectLanguageForText(text);
+        console.log(`[Cards] Creating AI-powered card in ${textLanguage.lang} ${textLanguage.flag || ''} (${textLanguage.confidence}% confidence)`);
         
         // Set AI status to processing
         this.setStatus('ai', 'yellow');
         
         try {
-            // Call OpenAI API via our server
+            // Call OpenAI API via our server with text-specific language
             const response = await fetch('/api/generate-card', {
                 method: 'POST',
                 headers: {
@@ -255,7 +452,9 @@ class SenScript {
                 },
                 body: JSON.stringify({
                     transcript: text,
-                    language: this.currentLang
+                    language: textLanguage.lang,
+                    textConfidence: textLanguage.confidence,
+                    languageFlag: textLanguage.flag
                 })
             });
             
@@ -270,6 +469,8 @@ class SenScript {
                     back: result.card.back,
                     confidence: result.card.confidence || 0,
                     source: 'AI',
+                    language: textLanguage.lang,
+                    flag: textLanguage.flag,
                     time: new Date().toLocaleTimeString()
                 };
                 
@@ -282,17 +483,18 @@ class SenScript {
                 console.log('[Cards] AI card created:', card.category, `(${card.confidence}% confidence)`);
             } else {
                 console.warn('[Cards] AI generation failed, using fallback');
-                this.createFallbackCard(text);
+                this.createFallbackCard(text, textLanguage);
             }
         } catch (error) {
             console.error('[Cards] Error calling AI API:', error);
-            this.createFallbackCard(text);
+            this.createFallbackCard(text, textLanguage);
         }
     }
     
-    createFallbackCard(text) {
+    createFallbackCard(text, detection = null) {
         console.log('[Cards] Creating fallback card for:', text);
         
+        const textLanguage = detection || this.detectLanguageForText(text);
         const words = text.toLowerCase().split(' ');
         let category = 'Fact';
         let front = '';
@@ -301,13 +503,13 @@ class SenScript {
         // Simple pattern detection (fallback)
         if (words.some(w => ['was', 'wie', 'wann', 'wo', 'wer', 'what', 'how', 'when', 'where', 'who'].includes(w))) {
             category = 'Question';
-            front = this.currentLang === 'de-DE' ? 'Frage aus Gespräch' : 'Question from conversation';
+            front = textLanguage.lang === 'de-DE' ? 'Frage aus Gespräch' : 'Question from conversation';
         } else if (words.some(w => ['ist', 'sind', 'bedeutet', 'is', 'are', 'means'].includes(w))) {
             category = 'Definition';
-            front = this.currentLang === 'de-DE' ? 'Definition' : 'Definition';
+            front = textLanguage.lang === 'de-DE' ? 'Definition' : 'Definition';
         } else {
             category = 'Concept';
-            front = this.currentLang === 'de-DE' ? 'Konzept' : 'Concept';
+            front = textLanguage.lang === 'de-DE' ? 'Konzept' : 'Concept';
         }
         
         const card = {
@@ -317,6 +519,8 @@ class SenScript {
             back,
             confidence: 50,
             source: 'Fallback',
+            language: textLanguage.lang,
+            flag: textLanguage.flag,
             time: new Date().toLocaleTimeString()
         };
         
@@ -333,14 +537,15 @@ class SenScript {
         const cardEl = document.createElement('div');
         cardEl.className = 'card new-card';
         
-        // Add confidence indicator and source
+        // Add confidence indicator, source, and language flag
         const sourceCircle = card.source === 'AI' ? 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
         const confidenceText = card.confidence ? ` ${card.confidence}%` : '';
+        const languageFlag = card.flag ? ` ${card.flag}` : '';
         
         cardEl.innerHTML = `
-            <div class="card-header">${card.category} • ${card.time}${sourceCircle}${confidenceText}</div>
+            <div class="card-header">${card.category}${languageFlag} • ${card.time}${sourceCircle}${confidenceText}</div>
             <div class="card-front">${card.front}</div>
             <div class="card-back">${card.back}</div>
         `;

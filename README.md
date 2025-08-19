@@ -11,6 +11,32 @@
 - **👻 Transparent Popup** - Floating overlay that works over any application
 - **🎧 Perfect Audio Integration** - Direct mic access with zero compatibility issues
 
+## 🧠 How It Works
+
+### Architecture Overview
+SenScript is a real-time meeting assistant that captures speech and generates educational flashcards:
+
+1. **Speech Capture** (app.js)
+   - Uses Web Speech API for continuous speech recognition
+   - Detects language automatically (DE, EN, FR, ES, IT)
+   - Accumulates speech into complete sentences
+
+2. **Intelligent Filtering** (app.js)
+   - Filters out trivial content (greetings, filler words)
+   - Detects worthy content: questions, definitions, technical terms, concepts
+   - Only processes meaningful sentences (>15 chars with substance)
+
+3. **AI Card Generation** (server.js)
+   - Each sentence triggers an OpenAI API call
+   - Analyzes content type (Question, Definition, Concept, Fact)
+   - Generates educational flashcard in detected language
+   - Fallback to simple cards if API fails
+
+4. **Real-time Display**
+   - Shows animated transcript with wave effect
+   - Displays cards with confidence scores
+   - Maximum 8 cards visible (older cards removed from view)
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -143,8 +169,80 @@ npm run package:store
 Create a `.env` file in the root directory:
 
 ```env
+# Required
 OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional - Cost Optimization
+OPENAI_MODEL=gpt-3.5-turbo           # Default model (cheapest)
+OPENAI_MAX_TOKENS=200                 # Limit response length (default: 200)
+OPENAI_TEMPERATURE=0.7                # Response creativity (default: 0.7)
+PORT=3002                             # Server port (default: 3002)
 ```
+
+## 💰 API Cost Optimization
+
+### Current Cost Issues
+⚠️ **Each sentence generates a new API call** - This is expensive!
+- Every worthy sentence triggers a separate OpenAI API request
+- Each request includes the full prompt (~1500 tokens) + transcript
+- No conversation context is maintained between calls
+- Using GPT-3.5-turbo: ~$0.001 per card generated
+
+### Cost Reduction Strategies
+
+#### 1. **Batch Processing** (Recommended)
+Instead of calling API for each sentence, batch multiple sentences:
+```javascript
+// Collect sentences for 30 seconds, then process together
+const batchedSentences = [];
+// Send one API call with multiple sentences
+// Generate multiple cards in one response
+```
+
+#### 2. **Use Cheaper Models**
+```env
+OPENAI_MODEL=gpt-3.5-turbo          # Current: ~$0.001/card
+OPENAI_MODEL=gpt-4o-mini            # Alternative: Cheaper, good quality
+```
+
+#### 3. **Reduce Token Usage**
+```env
+OPENAI_MAX_TOKENS=150                # Reduce from 200 to 150
+OPENAI_TEMPERATURE=0.5               # Less creative = shorter responses
+```
+
+#### 4. **Implement Caching**
+- Cache similar questions/concepts
+- Reuse responses for repeated content
+- Store common technical terms locally
+
+#### 5. **Smart Filtering**
+Enhance the `isTextWorthyOfCard()` function to be more selective:
+- Increase minimum text length requirement
+- Add duplicate detection
+- Filter out more non-educational content
+
+#### 6. **Conversation Context** (Advanced)
+Maintain a conversation thread:
+```javascript
+// Instead of new calls, use conversation history
+const conversation = [
+  {role: "system", content: "You are a meeting assistant..."},
+  {role: "user", content: "Previous context..."},
+  {role: "assistant", content: "Previous response..."},
+  {role: "user", content: "New sentence to process..."}
+];
+```
+
+#### 7. **Local Processing First**
+- Use local NLP for initial categorization
+- Only send to OpenAI if confidence is low
+- Implement rule-based card generation for common patterns
+
+### Estimated Savings
+- **Current**: ~$0.001 per sentence → $0.60 per hour (10 cards/min)
+- **Optimized**: ~$0.0002 per sentence → $0.12 per hour (80% reduction)
+- **With Batching**: ~$0.00005 per sentence → $0.03 per hour (95% reduction)
 
 ### App Settings
 

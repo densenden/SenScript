@@ -18,32 +18,52 @@ const mimeTypes = {
 };
 
 // OpenAI API integration
-async function generateFlashcard(transcript, language) {
-    const prompt = `You are an intelligent assistant for business meetings. Analyze this conversation transcript and create a comprehensive learning flashcard.
+async function generateFlashcard(transcript, language, languageFlag) {
+    const languageNames = {
+        'de-DE': 'German',
+        'en-US': 'English',
+        'fr-FR': 'French', 
+        'es-ES': 'Spanish',
+        'it-IT': 'Italian'
+    };
+    
+    const languageName = languageNames[language] || 'German';
+    
+    const prompt = `You are an intelligent assistant for online meetings and conversations. Create an educational flashcard from this transcript snippet to help the user understand key concepts and excel in their meeting.
 
 Transcript: "${transcript}"
+Detected Language: ${languageName} ${languageFlag || ''}
 
 CRITICAL LANGUAGE INSTRUCTION: 
-- Detect the language of the input transcript
-- Respond ONLY in that exact same language 
-- If input is in German, respond in German
-- If input is in English, respond in English
-- DO NOT translate to any other language
-- DO NOT change the language of the input
+- Respond EXCLUSIVELY in ${languageName} 
+- Match the exact language of the input transcript
+- DO NOT translate or switch languages
+- Maintain the same linguistic style and terminology
 
-Instructions:
-- For questions: Provide thorough answers with context, facts, and practical insights
-- For definitions: Explain concepts with examples and related information  
-- For factual information: Expand with additional context and connections
-- Explain any technical terms or business concepts mentioned
-- Make responses informative and actionable for business/professional contexts
-- Keep the front brief but make the back rich with valuable information
+CONTENT ANALYSIS:
+1. Identify the primary content type:
+   - Question: Direct questions or requests for explanation
+   - Definition: Technical terms, concepts, or explanations
+   - Concept: Complex ideas, theories, or processes
+   - Fact: Statements, data, or specific information
 
-Return only valid JSON in this format:
+2. Create educational content:
+   - For QUESTIONS: Provide comprehensive, accurate answers with context
+   - For DEFINITIONS: Explain terms clearly with examples and applications
+   - For CONCEPTS: Break down complex ideas into understandable parts
+   - For FACTS: Expand with related information and implications
+
+3. Academic/Professional Focus:
+   - Include relevant technical details
+   - Add practical applications
+   - Mention related concepts
+   - Provide context for understanding
+
+Return only valid JSON:
 {
   "category": "Question|Definition|Concept|Fact",
-  "front": "Brief question or term (same language as input)",
-  "back": "Comprehensive answer with facts, context, and practical insights (same language as input)", 
+  "front": "Clear, concise question or term (in ${languageName})",
+  "back": "Detailed, educational explanation with examples and context (in ${languageName})", 
   "confidence": 85
 }`;
 
@@ -123,11 +143,11 @@ const server = http.createServer(async (req, res) => {
 
         req.on('end', async () => {
             try {
-                const { transcript, language } = JSON.parse(body);
+                const { transcript, language, languageFlag } = JSON.parse(body);
                 
-                console.log('[API] Generating card for:', transcript.substring(0, 50) + '...');
+                console.log('[API] Generating card for:', transcript.substring(0, 50) + '...', 'Language:', language, languageFlag || '');
                 
-                const cardData = await generateFlashcard(transcript, language);
+                const cardData = await generateFlashcard(transcript, language, languageFlag);
                 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({

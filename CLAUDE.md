@@ -49,18 +49,37 @@ Standalone Web App
 └──────────────────────────────┘
 ```
 
-## Integration Strategy
+## Universal Audio Capture Strategy
 
-### Conference Detection
-- **Teams**: Detect `teams.microsoft.com` URLs and inject content script
-- **Zoom**: Detect `zoom.us` web client and activate overlay
-- **Slack**: Detect Slack Huddles and provide recording option
-- **Google Meet**: Integrate directly with `meet.google.com`
-- **Generic**: Work with any tab that has microphone access
+### Revolutionary Concept: No App-Specific Integrations Needed!
+Instead of building integrations for Teams, Zoom, Slack, etc., we use **universal audio capture**:
+
+**Two Audio Sources:**
+- **🎤 Microphone Input**: Capture your voice (current implementation)  
+- **🔊 System Audio**: Capture computer's audio output (all apps at once)
+
+**Why This Is Game-Changing:**
+- ✅ **Works with ANY app**: Teams, Zoom, Slack, Discord, WhatsApp, phone calls
+- ✅ **No integrations needed**: Zero development for each platform
+- ✅ **Future-proof**: Works with new apps automatically
+- ✅ **Desktop & mobile**: Same concept works everywhere
+- ✅ **Privacy-first**: No app-specific permissions or API access needed
+
+### Implementation Approaches
+
+**Browser-Based (Current):**
+- Web Speech API for microphone input
+- Chrome extension with tab audio capture
+- Works with web-based conferencing
+
+**Desktop App (Future):**
+- System-level audio routing (like OBS or Loopback)
+- Capture system audio + microphone simultaneously
+- Works with ANY desktop application
 
 ### Audio Processing Pipeline
-1. **Microphone Access**: Request permissions via Chrome Extension API
-2. **Speech Recognition**: Use browser's native `webkitSpeechRecognition`
+1. **Universal Capture**: System audio OR microphone input
+2. **Speech Recognition**: Browser `webkitSpeechRecognition` or Whisper API
 3. **Real-time Processing**: Stream transcript to AI analysis
 4. **Card Generation**: OpenAI API creates educational flashcards
 5. **Export**: Save in Anki, CSV, JSON formats

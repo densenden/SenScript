@@ -83,7 +83,7 @@
         .logo-section {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 12px;
             padding: 20px;
             margin-bottom: 16px;
@@ -287,7 +287,35 @@
         }
         
         .light .features-list ul {
-            color: rgba(31, 41, 55, 0.8);
+            color: #1f2937;
+        }
+        
+        /* Universal light mode text fixes - FORCE black text */
+        .glass-light,
+        .glass-light *,
+        .glass-light h1,
+        .glass-light h2, 
+        .glass-light h3,
+        .glass-light h4,
+        .glass-light p,
+        .glass-light span,
+        .glass-light div,
+        .glass-light li,
+        .glass-light ul,
+        .glass-light button,
+        .glass-light label,
+        .glass-light .features-list ul,
+        .glass-light .features-list li,
+        .glass-light .features-list h4 {
+            color: #1f2937 !important;
+        }
+        
+        /* Keep specific elements with their own colors */
+        .glass-light .status-dot,
+        .glass-light .record-dot,
+        .glass-light .theme-circle::before,
+        .glass-light .theme-circle::after {
+            color: transparent !important;
         }
         
         .features-list li {
@@ -328,15 +356,39 @@
             min-height: 200px;
         }
         
+        .transcript-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
         .transcript-title {
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 16px;
             opacity: 0.9;
+            margin: 0;
         }
         
         .light .transcript-title {
             color: #1f2937;
+        }
+        
+        .language-indicator {
+            font-weight: 600;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .light .language-indicator {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.1);
         }
         
         .transcript-content {
@@ -706,10 +758,6 @@
             </div>
             
             <div class="status-bar">
-                <div class="language-info">
-                    <span id="langCode">DE</span>
-                    <span id="langConf"></span>
-                </div>
                 <button id="themeBtn" class="theme-toggle glass-button">
                     <span id="themeCircle" class="theme-circle dark"></span>
                     Theme
@@ -759,7 +807,13 @@
         <!-- Screen 2: Live Transcript -->
         <div class="screen-2 glass-dark" id="screen2">
             <div class="transcript-container">
-                <h2 class="transcript-title">Live Transcript</h2>
+                <div class="transcript-header">
+                    <h2 class="transcript-title">Live Transcript</h2>
+                    <div class="language-indicator">
+                        <span id="langCodeTranscript">DE</span>
+                        <span id="langConfTranscript"></span>
+                    </div>
+                </div>
                 <div id="transcript" class="transcript-content">
                     Click "Start Listening" to begin transcription...
                 </div>
