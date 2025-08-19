@@ -309,7 +309,7 @@ class SenScript {
         if (!this.transcriptUpdatePending) {
             this.transcriptUpdatePending = true;
             setTimeout(() => {
-                this.updateAnimatedTranscript();
+                this.updateTranscriptDisplay();
                 this.transcriptUpdatePending = false;
             }, 50); // Faster than requestAnimationFrame for smoother text flow
         }
@@ -524,19 +524,15 @@ class SenScript {
     }
     
     shouldProcessNow(text) {
-        // GOAL: CARD CREATION SPEED - Ultra-aggressive processing
+        // STABLE APPROACH: Simple, reliable splitting
         const hasEndPunctuation = /[.!?]\s/.test(text);
-        const hasCommaWithLength = /[,;:]\s/.test(text) && text.length > 25;
-        const hasConjunctionWithLength = /\s+(aber|doch|jedoch|außerdem|zudem|and|but|however|also|so|das\s+bedeutet|sondern|entstehen|anders|sieht|nächsten|therefore|thus|while|because|since)\s/i.test(text) && text.length > 30;
-        const tooLong = text.length > 50;
+        const tooLong = text.length > 40; // Shorter threshold
         
-        const shouldProcess = hasEndPunctuation || hasCommaWithLength || hasConjunctionWithLength || tooLong;
+        const shouldProcess = hasEndPunctuation || tooLong;
         
         if (shouldProcess) {
-            const reason = hasEndPunctuation ? 'end-punctuation' : 
-                          hasCommaWithLength ? 'comma+length' :
-                          hasConjunctionWithLength ? 'conjunction+length' : 'too-long';
-            console.log(`🎯 [SHOULD-PROCESS] YES - Reason: ${reason}, length: ${text.length}`);
+            const reason = hasEndPunctuation ? 'sentence-end' : 'too-long';
+            console.log(`🎯 [SPLIT] ${reason} at ${text.length} chars`);
         }
         
         return shouldProcess;
@@ -628,36 +624,20 @@ class SenScript {
     }
     
     isTextWorthyOfCard(text) {
+        // STABLE APPROACH: Simple, reliable filtering
         const trimmed = text.trim().toLowerCase();
-        const timestamp = new Date().toLocaleTimeString();
         
-        console.log(`🔍 [WORTHY-CHECK] "${text.substring(0, 40)}..." (${trimmed.length} chars)`);
+        console.log(`🔍 [WORTHY] "${text.substring(0, 40)}..." (${trimmed.length} chars)`);
         
-        // Duplicate check - speed optimized
-        const textHash = trimmed.substring(0, 40);
-        if (!this.recentTexts) {
-            this.recentTexts = new Set();
-        }
-        
-        if (this.recentTexts.has(textHash)) {
-            console.log(`🚫 [DUPLICATE] Similar text already processed`);
+        // Simple length check
+        if (trimmed.length < 20) {
+            console.log(`❌ Too short`);
             return false;
         }
         
-        this.recentTexts.add(textHash);
-        setTimeout(() => {
-            this.recentTexts.delete(textHash);
-        }, 8000); // Faster cleanup for speed
-        
-        // GOAL: CARD CREATION SPEED - Optimized minimum length
-        if (trimmed.length < 15) {
-            console.log(`❌ Too short: ${trimmed.length} chars`);
-            return false;
-        }
-        
-        // Only reject pure fillers
-        if (/^(ja|nein|ok|okay|hmm|äh|eh|um|uh)$/i.test(trimmed)) {
-            console.log(`❌ Pure filler word`);
+        // Simple filler check
+        if (/^(ja|nein|ok|okay|hmm|äh|eh|um|uh|yes|no|well|the|and|but|that|this)$/i.test(trimmed)) {
+            console.log(`❌ Filler word`);
             return false;
         }
         
@@ -1099,55 +1079,57 @@ class SenScript {
     }
     
     addTranscriptLine(text) {
-        // GOAL: CARD CREATION SPEED - Optimize UI display
-        const maxLineLength = 80; // From config
-        
-        // Prevent exact duplicate detection (less aggressive)
-        const lastLine = this.transcriptLines.slice(-1)[0];
-        if (lastLine && lastLine.text === text.trim()) {
-            console.log('🚫 [UI] Prevented exact duplicate line:', text.substring(0, 30));
-            return; // Skip only exact duplicates
-        }
-        
-        // Cut off long sentences for display (speed optimization)
-        const displayText = text.length > maxLineLength ? 
-            text.substring(0, maxLineLength) + '...' : text;
+        // STABLE APPROACH: Simple, clean display
+        const displayText = text.length > 60 ? text.substring(0, 60) + '...' : text;
             
         const lineData = {
             id: Date.now() + Math.random(),
             text: displayText,
-            originalText: text, // Keep original for processing
             timestamp: new Date()
         };
         
         this.transcriptLines.push(lineData);
         
-        // CONTINUOUS CLEANUP: Keep only recent lines for performance (speed optimization)  
-        const maxLines = 6; // Consistent with display logic
-        if (this.transcriptLines.length > maxLines) {
-            this.transcriptLines = this.transcriptLines.slice(-maxLines);
-            console.log(`🧹 [CLEANUP] Trimmed transcript lines to ${maxLines} for performance`);
+        // Keep only 3 lines: latest + 2 fading
+        if (this.transcriptLines.length > 3) {
+            this.transcriptLines = this.transcriptLines.slice(-3);
         }
         
-        // Add to full transcript log for download
-        this.fullTranscriptLog.push({
-            text: text,
-            timestamp: new Date().toISOString(),
-            time: new Date().toLocaleTimeString(),
-            type: 'final'
+        console.log(`📝 [DISPLAY] Added: "${displayText}"`);
+        this.updateTranscriptDisplay();
+    }
+    
+    updateTranscriptDisplay() {
+        if (!this.els.transcript) return;
+        
+        // Show recording status when not recording
+        if (!this.isRecording && this.transcriptLines.length === 0) {
+            this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
+            return;
+        }
+        
+        const parts = [];
+        
+        // Simple display: latest + 2 fading
+        this.transcriptLines.forEach((line, index) => {
+            const age = this.transcriptLines.length - 1 - index; 
+            
+            let className = 'transcript-line';
+            if (age === 2) className += ' fadeout';      // Oldest
+            else if (age === 1) className += ' previous'; // Middle 
+            else className += ' current';                 // Latest
+            
+            parts.push(`<div class="${className}">${line.text}</div>`);
         });
         
-        // Enable transcript export button when we have content
-        if (this.els.exportTranscriptBtn) {
-            this.els.exportTranscriptBtn.disabled = false;
+        // Add interim text if speaking
+        if (this.currentInterim && this.isRecording) {
+            const interimDisplay = this.currentInterim.length > 60 ? 
+                this.currentInterim.substring(0, 60) + '...' : this.currentInterim;
+            parts.push(`<div class="transcript-line interim">${interimDisplay}</div>`);
         }
         
-        // Keep max 4 lines for continuous processing with smooth fade-out
-        while (this.transcriptLines.length > 4) {
-            this.transcriptLines.shift(); // Remove oldest line
-        }
-        
-        console.log('[Transcript] Added', lines.length, 'line(s):', text.substring(0, 50) + '...');
+        this.els.transcript.innerHTML = parts.join('');
     }
     
     splitTextForDisplay(text, maxLength) {
