@@ -2,6 +2,8 @@
 
 Real-time conversation assistant that runs in Chrome browser with continuous speech recognition and AI-powered flashcard generation.
 
+**🎯 GOAL NUMBER 1: CARD CREATION SPEED**
+
 ## Quick Start
 
 ```bash

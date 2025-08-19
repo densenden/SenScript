@@ -3,9 +3,9 @@
 ## **🎯 GOAL NUMBER 1: CARD CREATION SPEED**
 **Every optimization in this pipeline prioritizes maximum speed in generating educational flashcards from speech.**
 
-## Übersicht der Verarbeitung
+## Processing Overview
 
-SenScript verarbeitet gesprochene Sprache in Echtzeit durch eine mehrstufige Pipeline, die Text intelligent splittet, filtert und AI-Karten erstellt. **Alle Parameter sind auf maximale Geschwindigkeit der Kartenerstellung optimiert.** Hier ist der genaue Ablauf:
+SenScript processes spoken language in real-time through a multi-stage pipeline that intelligently splits, filters, and creates AI cards. **All parameters are optimized for maximum card creation speed.** Here is the exact workflow:
 
 ---
 

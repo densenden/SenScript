@@ -14,9 +14,9 @@ class SenScript {
         this.cards = [];
         this.fullTranscriptLog = [];  // Keep full transcript for download
         this.isLight = false;
-        // Auto-detect browser language or default to English
-        this.currentLang = navigator.language || 'en-US';
-        console.log('[Language] Auto-detected language:', this.currentLang);
+        // Start with browser default for better compatibility
+        this.currentLang = navigator.language || 'de-DE';
+        console.log('[Language] Starting language:', this.currentLang, '(will detect per segment)');
         this.lastSentenceProcessed = 0;  // Timestamp of last sentence processing
         this.sessionId = `session_${Date.now()}`;
         this.audioContext = null;
@@ -167,8 +167,8 @@ class SenScript {
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
         
-        // Start with English for better universal support - will auto-switch later
-        this.recognition.lang = 'en-US';
+        // Start with detected language
+        this.recognition.lang = this.currentLang;
         
         console.log(`🎤 [SETUP] Recognition language set to: ${this.recognition.lang} (will auto-detect)`);
         console.log(`🎤 [SETUP] Current system language: ${this.currentLang}`);
@@ -180,6 +180,7 @@ class SenScript {
             console.log(`\n🎤 [${timestamp}] [SPEECH-START] Speech recognition started with language: ${this.recognition.lang}`);
             console.log(`🔴 [${timestamp}] [STATUS] Recording: TRUE`);
             console.log(`🌍 [${timestamp}] [LANG-INFO] System language: ${this.currentLang}, Recognition language: ${this.recognition.lang}`);
+            console.log(`🎙️ [${timestamp}] [DEBUG] Transcript should start appearing now...`);
             this.isRecording = true;
             this.updateRecordingUI();
         };
@@ -304,15 +305,11 @@ class SenScript {
         
         console.log(`📋 [${timestamp}] [INTERIM-DISPLAY] Set interim text: "${interim.substring(0, 30)}..." (length: ${interim.length})`);
         console.log(`📊 [${timestamp}] [UI-STATE] Lines stored: ${this.transcriptLines.length}, pending: ${this.pendingSentence.length}`);
+        console.log(`🔍 [${timestamp}] [DEBUG] isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
         
-        // Throttle UI updates for smooth performance - reduced frequency
-        if (!this.transcriptUpdatePending) {
-            this.transcriptUpdatePending = true;
-            setTimeout(() => {
-                this.updateTranscriptDisplay();
-                this.transcriptUpdatePending = false;
-            }, 50); // Faster than requestAnimationFrame for smoother text flow
-        }
+        // IMMEDIATE UI update for live transcript feeling
+        console.log(`🔄 [${timestamp}] [UI-FORCE-UPDATE] Forcing UI update with interim: "${interim}"`);
+        this.updateAnimatedTranscript();
     }
     
     detectLanguageForText(text) {
@@ -544,14 +541,16 @@ class SenScript {
         // Detect language for this specific sentence
         const detection = this.detectLanguageForText(sentence);
         
-        // Update global language for speech recognition - WENIGER RESTRIKTIV für Englisch
-        if (detection.confidence > 10 && detection.lang !== this.currentLang) {
-            console.log(`🌍 [LANG-SWITCH] ${this.currentLang} → ${detection.lang} (${detection.confidence}%)`);
+        // DYNAMIC LANGUAGE SWITCHING: Update per segment with LOW threshold
+        if (detection.confidence > 5 && detection.lang !== this.currentLang) {
+            console.log(`🔄 [LANG-SWITCH] ${this.currentLang} → ${detection.lang} (${detection.confidence}% confidence)`);
             this.currentLang = detection.lang;
             if (this.recognition) {
                 this.recognition.lang = detection.lang;
-                console.log(`🎤 [SPEECH] Recognition language updated to: ${detection.lang}`);
+                console.log(`🎤 [SPEECH-UPDATE] Recognition language switched to: ${detection.lang}`);
             }
+        } else if (detection.confidence > 0) {
+            console.log(`🌍 [LANG-KEEP] Staying with ${this.currentLang} (detected: ${detection.lang} at ${detection.confidence}%)`);
         }
         
         // Update UI display with flag - IMMER aktualisieren, auch bei niedriger Konfidenz
@@ -600,12 +599,13 @@ class SenScript {
     detectLanguage(text) {
         const detection = this.detectLanguageForText(text);
         
-        // Update global language for speech recognition if confidence is high  
-        if (detection.confidence > 15 && detection.lang !== this.currentLang) {
-            console.log('[Language] Switching speech recognition from', this.currentLang, 'to:', detection.lang);
+        // SEGMENT-LEVEL LANGUAGE SWITCHING with very low threshold  
+        if (detection.confidence > 3 && detection.lang !== this.currentLang) {
+            console.log(`🔄 [SEGMENT-SWITCH] ${this.currentLang} → ${detection.lang} (${detection.confidence}% confidence)`);
             this.currentLang = detection.lang;
             if (this.recognition) {
                 this.recognition.lang = detection.lang;
+                console.log(`🎤 [RECOGNITION-UPDATE] Speech API switched to: ${detection.lang}`);
             }
         }
         
@@ -938,20 +938,56 @@ class SenScript {
         let front = '';
         let back = '';
         
-        // Improved fallback: Only create cards for educational content
-        if (words.some(w => ['was', 'wie', 'wann', 'wo', 'wer', 'what', 'how', 'when', 'where', 'who'].includes(w))) {
-            // Extract question topic
-            const questionWords = text.split(' ').slice(0, 6).join(' ');
-            category = 'Question';
-            front = textLanguage.lang === 'de-DE' ? `Frage: ${questionWords}...` : `Question: ${questionWords}...`;
-            back = textLanguage.lang === 'de-DE' ? 'Antwort wurde nicht bereitgestellt\nWeitere Recherche erforderlich' : 'Answer not provided in conversation\nFurther research needed';
-        } else if (words.some(w => ['ist', 'sind', 'bedeutet', 'is', 'are', 'means', 'called'].includes(w))) {
-            // Extract definition
-            const defStart = text.indexOf(words.find(w => ['ist', 'sind', 'bedeutet', 'is', 'are', 'means', 'called'].includes(w)));
-            const definition = text.substring(defStart).split('.')[0];
-            category = 'Definition';
-            front = textLanguage.lang === 'de-DE' ? 'Was wurde definiert?' : 'What was defined?';
-            back = definition.length > 100 ? definition.substring(0, 100) + '...' : definition;
+        // BETTER FALLBACK: Create more meaningful educational cards from any content
+        if (text.length > 30) {
+            // Extract key concepts and create educational flashcards
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+            
+            if (sentences.length >= 2) {
+                // Multi-sentence: first sentence as question, rest as answer
+                category = 'Concept';
+                front = sentences[0].trim().length > 80 ? 
+                    sentences[0].trim().substring(0, 80) + '...' : sentences[0].trim();
+                back = sentences.slice(1).join('. ').trim();
+                if (back.length > 150) back = back.substring(0, 150) + '...';
+            } else if (words.some(w => ['ist', 'sind', 'bedeutet', 'is', 'are', 'means', 'called', 'heißt', 'nennt'].includes(w))) {
+                // Single sentence with definition words
+                const defIndex = text.toLowerCase().search(/(ist|sind|bedeutet|is|are|means|called|heißt|nennt)/);
+                if (defIndex > 5) {
+                    category = 'Definition';
+                    front = text.substring(0, defIndex).trim();
+                    back = text.substring(defIndex).trim();
+                    if (back.length > 120) back = back.substring(0, 120) + '...';
+                } else {
+                    category = 'Fact';
+                    front = textLanguage.lang === 'de-DE' ? 'Was wurde erklärt?' : 'What was explained?';
+                    back = text.length > 120 ? text.substring(0, 120) + '...' : text;
+                }
+            } else if (words.some(w => ['weil', 'da', 'denn', 'because', 'since', 'as', 'therefore', 'deshalb', 'daher'].includes(w))) {
+                // Causal relationship
+                category = 'Explanation';
+                const causeIndex = text.toLowerCase().search(/(weil|da|denn|because|since|as|therefore|deshalb|daher)/);
+                if (causeIndex > 0) {
+                    front = text.substring(0, causeIndex).trim();
+                    back = text.substring(causeIndex).trim();
+                } else {
+                    front = textLanguage.lang === 'de-DE' ? 'Erklärung:' : 'Explanation:';
+                    back = text.length > 120 ? text.substring(0, 120) + '...' : text;
+                }
+            } else {
+                // Any meaningful content becomes a fact card
+                category = 'Fact';
+                const words_list = text.split(' ');
+                if (words_list.length > 8) {
+                    // Split roughly in half for question/answer
+                    const midPoint = Math.floor(words_list.length / 2);
+                    front = words_list.slice(0, midPoint).join(' ');
+                    back = words_list.slice(midPoint).join(' ');
+                } else {
+                    front = textLanguage.lang === 'de-DE' ? 'Wichtige Information:' : 'Key Information:';
+                    back = text;
+                }
+            }
         } else {
             // Skip trivial fallback cards - they're not useful
             console.log('[Cards] Skipping fallback - content not educational enough');
@@ -1063,8 +1099,8 @@ class SenScript {
             parts.push(`<div class="${className}">${line}</div>`);
         });
         
-        // Zeige aktuellen Interim Text falls vorhanden
-        if (this.currentInterim) {
+        // Zeige aktuellen Interim Text falls vorhanden (auch wenn noch nicht isRecording)
+        if (this.currentInterim && (this.isRecording || this.shouldBeRecording)) {
             parts.push(`<div class="transcript-line transcript-interim">${this.currentInterim}</div>`);
         }
         
@@ -1079,8 +1115,18 @@ class SenScript {
     }
     
     addTranscriptLine(text) {
-        // STABLE APPROACH: Simple, clean display
-        const displayText = text.length > 60 ? text.substring(0, 60) + '...' : text;
+        // STABLE APPROACH: Simple, clean display  
+        const displayText = text.length > 80 ? text.substring(0, 80) + '...' : text;
+        
+        // Prevent duplicate lines - check if the last line is very similar
+        if (this.transcriptLines.length > 0) {
+            const lastLine = this.transcriptLines[this.transcriptLines.length - 1];
+            const similarity = this.calculateTextSimilarity(lastLine.text, displayText);
+            if (similarity > 0.8) { // If 80% similar, skip adding
+                console.log(`🔄 [DUPLICATE] Skipping similar line: "${displayText}"`);
+                return;
+            }
+        }
             
         const lineData = {
             id: Date.now() + Math.random(),
@@ -1090,21 +1136,41 @@ class SenScript {
         
         this.transcriptLines.push(lineData);
         
-        // Keep only 3 lines: latest + 2 fading
-        if (this.transcriptLines.length > 3) {
-            this.transcriptLines = this.transcriptLines.slice(-3);
+        // Keep only 5 lines for better transcript history
+        if (this.transcriptLines.length > 5) {
+            this.transcriptLines = this.transcriptLines.slice(-5);
         }
         
         console.log(`📝 [DISPLAY] Added: "${displayText}"`);
-        this.updateTranscriptDisplay();
+        // Use the same method as speech result handler for consistency
+        this.updateAnimatedTranscript();
+    }
+    
+    calculateTextSimilarity(text1, text2) {
+        // Simple similarity calculation based on common words
+        const words1 = text1.toLowerCase().split(' ').filter(w => w.length > 2);
+        const words2 = text2.toLowerCase().split(' ').filter(w => w.length > 2);
+        
+        if (words1.length === 0 || words2.length === 0) return 0;
+        
+        const commonWords = words1.filter(word => words2.includes(word));
+        const totalWords = Math.max(words1.length, words2.length);
+        
+        return commonWords.length / totalWords;
     }
     
     updateTranscriptDisplay() {
         if (!this.els.transcript) return;
         
-        // Show recording status when not recording
-        if (!this.isRecording && this.transcriptLines.length === 0) {
+        // Show recording status only when NOT attempting to record
+        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0) {
             this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
+            return;
+        }
+        
+        // Show listening status when recording started but no text yet
+        if ((this.isRecording || this.shouldBeRecording) && this.transcriptLines.length === 0) {
+            this.els.transcript.innerHTML = `<div class="transcript-line current listening">🎤 Listening... speak now</div>`;
             return;
         }
         
@@ -1165,48 +1231,61 @@ class SenScript {
     }
     
     updateAnimatedTranscript() {
+        console.log(`🎨 [UI-UPDATE] updateAnimatedTranscript called - interim: "${this.currentInterim}", isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
+        
         if (!this.els.transcript) {
             console.error('[Transcript] Element not found');
             return;
         }
         
-        // Show recording status only when not recording
-        if (!this.isRecording && this.transcriptLines.length === 0 && !this.shouldBeRecording) {
+        // Show recording status only when NOT attempting to record
+        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0) {
             this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
             this.hideTranscriptVisualizer();
+            return;
+        }
+        
+        // Show listening status when recording started but no text yet
+        if ((this.isRecording || this.shouldBeRecording) && this.transcriptLines.length === 0) {
+            this.els.transcript.innerHTML = `<div class="transcript-line current listening">🎤 Listening... speak now</div>`;
+            this.showTranscriptVisualizer();
             return;
         }
         
         // Build content more efficiently
         const parts = [];
         
-        // Add stored lines with PROGRESSIVE FADE-OUT (oldest → newest) - CHAT STYLE
-        this.transcriptLines.forEach((line, index) => {
-            const age = this.transcriptLines.length - 1 - index; // 0=newest, 1=previous, etc.
-            
+        // REVERSE ORDER: Show only last 3 lines in correct order (oldest at top, newest at bottom)
+        const visibleLines = this.transcriptLines.slice(-3); // Get last 3 lines
+        
+        visibleLines.forEach((line, index) => {
             let className = 'transcript-line';
-            if (age >= 3) {
-                className += ' fadeout'; // Oldest lines - fast unsichtbar (at top)
-            } else if (age === 2) {
-                className += ' old'; // 2 steps back - viel kleiner  
-            } else if (age === 1) {
-                className += ' previous'; // 1 step back - kleiner
-            } else if (age === 0 && !this.currentInterim) {
-                className += ' current'; // Newest line - sehr deutlich (at bottom)
+            
+            if (index === 0) {
+                className += ' previous'; // Top line = oldest of the 3 (smaller)
+            } else if (index === 1) {
+                className += ' old'; // Middle line = middle age (medium)
+            } else if (index === 2 && !this.currentInterim) {
+                className += ' current'; // Bottom line = newest (biggest)
             }
             
             parts.push(`<div class="${className}">${line.text}</div>`);
         });
         
-        // Add interim text (with animation only if short)
-        if (this.currentInterim.trim()) {
+        // Add interim text (with animation only if short) - show when recording OR should be recording
+        if (this.currentInterim.trim() && (this.isRecording || this.shouldBeRecording)) {
+            console.log(`✅ [INTERIM-DISPLAY] Adding interim text to UI: "${this.currentInterim.substring(0, 40)}..."`);
             const animatedInterim = this.animateTextLetters(this.currentInterim, true);
             parts.push(`<div class="transcript-line current transcript-interim">${animatedInterim}</div>`);
+        } else {
+            if (this.currentInterim.trim()) {
+                console.log(`❌ [INTERIM-SKIP] Interim text exists but not displayed - isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
+            }
         }
         
         // Show recording status if no content
-        if (parts.length === 0 && this.isRecording) {
-            parts.push('<div class="transcript-line current">Listening...</div>');
+        if (parts.length === 0 && (this.isRecording || this.shouldBeRecording)) {
+            parts.push('<div class="transcript-line current">🎤 Listening... speak now</div>');
         }
         
         this.els.transcript.innerHTML = parts.join('');
@@ -1249,6 +1328,7 @@ class SenScript {
         const timestamp = new Date().toLocaleTimeString();
         console.log(`\n🎛️  [${timestamp}] [TOGGLE] Recording toggle clicked`);
         console.log(`📊 [${timestamp}] [STATE] isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
+        console.log(`🔍 [${timestamp}] [DEBUG] Recognition exists: ${!!this.recognition}, Language: ${this.recognition?.lang || 'undefined'}`);
         
         if (this.isRecording || this.shouldBeRecording) {
             console.log(`🛑 [${timestamp}] [ACTION] Stopping recording...`);

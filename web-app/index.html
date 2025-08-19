@@ -80,16 +80,16 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            padding: 0; /* Remove padding for full app experience */
+            padding: 0 0 120px 0; /* Bottom padding for round navbar + overlap space */
             gap: 0; /* Remove gaps for seamless app feel */
         }
         
-        /* Mobile Portrait: Move navbar to bottom (below cards) */
+        /* Mobile Portrait: Move navbar to bottom with overlap space */
         .app-header {
             order: 3; /* Move to bottom after cards */
             flex: 0 0 auto;
             position: fixed;
-            bottom: 16px;
+            bottom: 40px; /* Move up a bit more - navbar is gorgeous! */
             left: 16px;
             right: 16px;
             top: auto;
@@ -136,35 +136,75 @@
             content: url('assets/images/logo-white.svg') !important;
         }
         
-        /* Mobile Navbar 1.25x Larger - One Line All Elements with Glass Design */
+        /* Mobile Navbar - Round Design (height = 2x radius) */
         .app-header .mobile-header-content {
-            padding: 10px 20px; /* Increased from 8px 16px */
-            border-radius: 24px;
+            padding: 0 80px 0 80px; /* Equal padding with space for absolute positioned elements */
+            border-radius: 35px; /* Half of height for perfect circle */
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 15px; /* Increased from 12px */
-            height: 55px; /* 1.25x of 44px */
+            justify-content: center; /* Center the content */
+            height: 70px; /* Height = 2x radius (35px) for round shape */
+            position: relative; /* For absolute positioned elements */
         }
         
+        /* Logo and text positioned absolutely on the left */
         .app-header .logo-section {
-            padding: 0;
-            margin: 0;
-            flex: 0 0 auto;
+            position: absolute;
+            left: 15px; /* 5% further left (was 20px, now 15px) */
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 4px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2); /* More visible circle background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15); /* More visible border */
         }
         
         .app-header .logo-section img {
-            width: 30px; /* 1.25x of 24px */
-            height: 30px; /* 1.25x of 24px */
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        
+        .app-header .logo-text {
+            position: absolute;
+            left: 73px; /* Adjusted for logo's new position (was 78px, now 73px) */
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Status bar positioned absolutely on the right */
+        .app-header .status-bar {
+            position: absolute;
+            right: 20px; /* Fixed position from right edge */
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0;
+            margin: 0;
+            flex: 0 0 auto;
+            gap: 8px;
+            display: flex; /* Force display on mobile */
+        }
+        
+        /* Hide LLM button on mobile */
+        .app-header #settingsBtn {
+            display: none !important;
         }
         
         .app-header .logo-text h1 {
-            font-size: 18px; /* 1.25x of 14px */
+            font-size: 14px; /* Smaller to prevent layout blow */
             margin: 0;
+            font-weight: 500; /* Medium weight for better visibility */
         }
         
         .app-header .logo-text p {
-            display: none; /* Hide subtitle in tiny header */
+            display: none; /* Hide subtitle in mobile */
         }
         
         .app-header .controls-section {
@@ -177,31 +217,45 @@
         }
         
         .app-header .record-button {
-            width: 50px; /* 1.25x of 40px */
-            height: 50px; /* 1.25x of 40px */
+            width: 80px; /* Much larger for overlap effect */
+            height: 80px;
             padding: 0;
             margin: 0;
-            border-radius: 50%; /* Perfect circle by default */
+            border-radius: 50%; /* Perfect circle */
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: border-radius 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; /* Absolute positioning for perfect centering */
+            z-index: 10; /* Above navbar */
+            left: 50%; /* Center horizontally */
+            top: 50%; /* Center vertically */
+            transform: translateX(-50%) translateY(-50%); /* Perfect centering with navbar */
+            
+            /* Enhanced glass morphism with more blur and refraction */
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 
+                       0 4px 12px rgba(0, 0, 0, 0.1),
+                       inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
         
-        /* Recording state: circle becomes square with flashing animation */
+        /* Recording state: clean square transformation */
         .app-header .record-button.recording {
-            border-radius: 8px; /* Square when recording */
-            animation: recordingFlash 1.5s infinite;
+            border-radius: 16px; /* Rounded square when recording */
+            animation: recordingPulse 2s ease-in-out infinite;
+            /* Keep same transform as normal state - stay centered */
+            transform: translateX(-50%) translateY(-50%);
         }
         
-        @keyframes recordingFlash {
+        @keyframes recordingPulse {
             0%, 100% { 
-                opacity: 0.7;
-                transform: scale(1);
+                opacity: 0.9;
             }
             50% { 
                 opacity: 1;
-                transform: scale(1.05);
             }
         }
         
@@ -229,6 +283,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            
+            /* GLASS MORPHISM for mobile buttons */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px) saturate(150%);
+            -webkit-backdrop-filter: blur(10px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .app-header .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
         }
         
         .app-header .theme-toggle span:not(.theme-circle):not(.status-dot) {
@@ -314,13 +380,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 16px;
-            padding: 0;
+            gap: 20px; /* More space between mobile status items */
+            padding: 0 8px; /* Side padding to use full width better */
+            width: 100%; /* Use full available width */
         }
         
         .app-footer .info-card {
-            flex: 0 0 auto;
+            flex: 1; /* Use equal width for each card */
             text-align: center;
+            min-width: 0; /* Allow shrinking */
             padding: 0;
             background: transparent;
             border-radius: 0;
@@ -439,7 +507,14 @@
         
         /* Mobile record button: red dot becomes square when recording */
         .app-header .record-button.recording .record-dot {
-            border-radius: 3px; /* Square red dot when recording */
+            border-radius: 4px; /* Larger square red dot when recording */
+            width: 20px; /* Bigger dot for bigger button */
+            height: 20px;
+        }
+        
+        .app-header .record-button .record-dot {
+            width: 20px; /* Bigger dot for bigger button */
+            height: 20px;
         }
         
         /* Active state - red blinking */
@@ -515,7 +590,7 @@
         .status-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px; /* More space between grid items */
         }
         
         .status-item {
@@ -994,15 +1069,12 @@
         }
         
         .status-dot {
-            width: 15px; /* 1.25x of 12px */
-            height: 15px; /* 1.25x of 12px */
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             display: inline-block;
-            margin: 0; /* Remove margin to center properly */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%); /* Perfect centering */
+            flex-shrink: 0; /* Prevent squashing */
+            margin: 0;
         }
         
         .theme-circle {
@@ -1127,8 +1199,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 0 12px;
+            padding: 0 16px; /* Increased padding without icons */
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
             background: transparent;
@@ -1146,6 +1217,51 @@
         .toggle-icon {
             font-size: 20px;
             transition: all 0.3s ease;
+            position: relative; /* CRITICAL: For absolute positioning of status-dot */
+            display: inline-block; /* Ensure proper positioning context */
+        }
+        
+        /* Status Button (LLM button) specific styling */
+        .status-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            background: transparent;
+            margin: 0;
+            position: relative; /* For status-dot positioning */
+        }
+        
+        .status-button .status-dot {
+            position: static; /* Override absolute positioning for inline layout */
+            transform: none; /* Remove centering transform */
+            margin-right: 6px; /* Space between dot and text */
+            margin-left: 0;
+        }
+        
+        /* Status item containers - override absolute positioning */
+        .status-item .status-dot,
+        .info-card .status-dot {
+            position: static;
+            transform: none;
+            margin-left: auto;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0; /* Maintain circle shape */
+        }
+        
+        .status-item,
+        .info-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px; /* More padding for better spacing */
+            margin: 4px 0; /* Vertical spacing between items */
+            width: 100%; /* Use full available width */
         }
         
         .toggle-text {
@@ -1160,39 +1276,37 @@
             color: rgba(31, 41, 55, 0.6);
         }
         
-        /* Active state - Background highlighting */
+        /* Active state - Dark theme colors */
         .toggle-option.active {
-            background: rgba(16, 185, 129, 0.15);
+            background: rgba(59, 130, 246, 0.2); /* Dark blue background */
             border: none;
-            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.2);
-        }
-        
-        .toggle-option.active .toggle-icon .status-dot {
-            background: #10b981 !important;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.3);
         }
         
         .toggle-option.active .toggle-text {
-            color: #10b981;
+            color: #3b82f6; /* Dark blue text */
             font-weight: 700;
         }
         
-        /* Inactive state - GREY DIMMED */
+        /* Inactive state - Muted */
         .toggle-option:not(.active) {
-            opacity: 0.5;
-        }
-        
-        .toggle-option:not(.active) .toggle-icon .status-dot {
-            background: #6b7280 !important;
-            box-shadow: none;
+            opacity: 0.6;
         }
         
         .toggle-option:not(.active) .toggle-text {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .light .toggle-option:not(.active) .toggle-text {
-            color: rgba(31, 41, 55, 0.4);
+            color: rgba(31, 41, 55, 0.5);
+        }
+        
+        .light .toggle-option.active {
+            background: rgba(59, 130, 246, 0.15);
+        }
+        
+        .light .toggle-option.active .toggle-text {
+            color: #1d4ed8; /* Darker blue for light mode */
         }
         
         /* Hover effects */
@@ -1539,53 +1653,116 @@
                 font-size: 12px !important;
             }
             
-            /* Landscape: Bottom navbar - logo+record+status in one line */
+            /* Landscape: Same ROUND navbar design with more space */
             .app-header {
                 order: 3 !important;
                 position: fixed !important;
-                bottom: 8px !important;
-                left: 8px !important;
-                right: 8px !important;
+                bottom: 16px !important;
+                left: 20px !important;
+                right: 20px !important;
                 top: auto !important;
                 margin: 0 !important;
                 z-index: 100 !important;
             }
             
             .app-header .mobile-header-content {
-                padding: 6px 16px !important;
-                border-radius: 22px !important;
-                height: 44px !important;
+                padding: 0 100px 0 100px !important; /* Equal padding with space for absolute positioned elements */
+                border-radius: 40px !important; /* Height = 2x radius for perfect round */
+                height: 80px !important; /* Bigger for landscape */
                 display: flex !important;
                 align-items: center !important;
-                justify-content: space-between !important;
-                gap: 12px !important;
+                justify-content: center !important; /* Center the content */
             }
             
-            /* Logo section - compact */
+            /* Logo section - absolute positioning for landscape */
             .app-header .logo-section {
-                flex: 0 0 auto !important;
+                position: absolute !important;
+                left: 20px !important; /* 5% further left (was 25px, now 20px) */
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                width: 58px !important; /* Bigger circle for landscape */
+                height: 58px !important;
+                border-radius: 50% !important;
+                background: rgba(255, 255, 255, 0.2) !important; /* More visible circle */
                 display: flex !important;
                 align-items: center !important;
-                gap: 6px !important;
+                justify-content: center !important;
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15) !important; /* More visible border */
+                padding: 4px !important;
             }
             
             .app-header .logo-section img {
-                width: 18px !important;
-                height: 18px !important;
+                width: 30px !important; /* Properly sized for landscape circle */
+                height: 30px !important;
+                border-radius: 50% !important;
+            }
+            
+            .app-header .logo-text {
+                position: absolute !important;
+                left: 88px !important; /* Adjusted for logo's new position (was 93px, now 88px) */
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
+            /* Status bar positioned absolutely on the right for landscape */
+            .app-header .status-bar {
+                position: absolute !important;
+                right: 25px !important; /* Fixed position from right edge */
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                flex: 0 0 auto !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
             }
             
             .app-header .logo-text h1 {
-                font-size: 11px !important;
+                font-size: 16px !important;
                 margin: 0 !important;
+                font-weight: 500 !important;
             }
             
-            /* Record button - same as portrait mobile */
+            /* Record button - LARGE for landscape overlap */
             .app-header .record-button {
-                width: 32px !important;
-                height: 32px !important;
+                width: 100px !important; /* Much bigger for landscape */
+                height: 100px !important;
                 padding: 0 !important;
                 border-radius: 50% !important;
-                flex: 0 0 auto !important;
+                position: absolute !important;
+                z-index: 10 !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translateX(-50%) translateY(-50%) !important; /* Perfect centering with navbar */
+                /* Enhanced glass morphism with more blur and refraction */
+                background: rgba(255, 255, 255, 0.12) !important;
+                backdrop-filter: blur(50px) saturate(200%) brightness(1.2) !important;
+                -webkit-backdrop-filter: blur(50px) saturate(200%) brightness(1.2) !important;
+                border: 1px solid rgba(255, 255, 255, 0.4) !important;
+                box-shadow: 0 16px 45px rgba(0, 0, 0, 0.2), 
+                           0 6px 16px rgba(0, 0, 0, 0.12),
+                           inset 0 2px 0 rgba(255, 255, 255, 0.25) !important;
+            }
+            
+            .app-header .record-button .record-dot {
+                width: 25px !important; /* Bigger dot for bigger button */
+                height: 25px !important;
+            }
+            
+            /* Recording state for landscape - square morphing animation */
+            .app-header .record-button.recording {
+                border-radius: 20px !important; /* Rounded square when recording (bigger than portrait) */
+                animation: recordingPulse 2s ease-in-out infinite !important;
+                /* Keep same transform as normal state - stay centered */
+                transform: translateX(-50%) translateY(-50%) !important;
+            }
+            
+            /* Recording state: red dot becomes square when recording (landscape) */
+            .app-header .record-button.recording .record-dot {
+                border-radius: 6px !important; /* Bigger square red dot for landscape */
+                width: 25px !important;
+                height: 25px !important;
             }
             
             /* Status section - compact horizontal */
@@ -1670,7 +1847,7 @@
                 backdrop-filter: blur(40px) saturate(180%);
                 -webkit-backdrop-filter: blur(40px) saturate(180%);
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                padding: 20px;
+                padding: 16px; /* Reduce padding for more button space */
             }
             
             body.light .screen-1 *,
@@ -1693,8 +1870,8 @@
                 align-items: center;
                 justify-content: flex-start;
                 gap: 12px;
-                padding: 20px;
-                margin-bottom: 16px;
+                padding: 16px; /* Reduce padding for more button space */
+                margin-bottom: 8px; /* Reduce margin */
             }
             
             .screen-1 .logo-section img {
@@ -1715,7 +1892,7 @@
             }
             
             .screen-1 .controls-section {
-                padding: 24px;
+                padding: 16px; /* Reduce padding for more button space */
                 flex-direction: column;
             }
             
@@ -1739,9 +1916,9 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 16px 24px;
+                padding: 12px 16px; /* Reduce padding */
                 font-size: 14px;
-                margin-bottom: 20px;
+                margin-bottom: 12px; /* Reduce margin */
                 gap: 16px;
             }
             
@@ -1752,6 +1929,18 @@
                 height: 44px;
                 border-radius: 12px;
                 white-space: normal;
+                
+                /* GLASS MORPHISM for desktop buttons */
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .screen-1 .theme-toggle:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-1px);
             }
             
             /* Show features on desktop */
@@ -1759,12 +1948,17 @@
                 display: block !important; /* Show on desktop */
             }
             
+            /* Hide mobile elements on desktop */
+            .mobile-only {
+                display: none !important; /* Hide on desktop */
+            }
+            
             .screen-1 .integrated-status {
                 display: flex !important;
                 flex: 1;
                 flex-direction: column;
-                gap: 20px;
-                padding: 0 24px 24px;
+                gap: 16px;
+                padding: 0 16px 16px; /* Reduce padding to match */
                 margin-top: auto;
             }
             
@@ -1774,13 +1968,13 @@
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 border-radius: 16px;
                 padding: 16px;
-                margin-bottom: 24px;
+                margin-bottom: 16px; /* Reduce margin */
             }
             
             .screen-1 .status-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                gap: 16px; /* Match general status-grid spacing */
                 margin-top: 16px;
             }
             
@@ -1792,13 +1986,29 @@
                 flex-direction: column;
                 min-height: 300px;
                 border-radius: 24px;
+                overflow: hidden; /* Prevent content overflow */
             }
             
             .screen-2 .transcript-container {
-                padding: 24px;
+                padding: 24px 24px 0 24px; /* No bottom padding to make room for button */
                 flex: 1;
                 display: flex;
                 flex-direction: column;
+                min-height: 0; /* Allow shrinking */
+            }
+            
+            /* Make transcript content scrollable */
+            .screen-2 .transcript-content {
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            
+            /* Fix export button positioning */
+            .screen-2 .desktop-only {
+                flex: 0 0 auto; /* Fixed size, no shrinking */
+                padding: 8px 16px 16px 16px !important; /* Reduced top padding */
+                margin: 0 !important;
             }
             
             /* Screen 3: Flashcards below transcript on right */
@@ -1876,11 +2086,9 @@
                         <div class="toggle-divider"></div>
                         <div class="toggle-labels">
                             <div class="toggle-option active" data-value="microphone">
-                                <div class="toggle-icon"><span class="status-dot green"></span></div>
                                 <div class="toggle-text">Microphone</div>
                             </div>
                             <div class="toggle-option" data-value="system">
-                                <div class="toggle-icon"><span class="status-dot yellow"></span></div>
                                 <div class="toggle-text">Device Output</div>
                             </div>
                         </div>
@@ -1898,7 +2106,7 @@
                     <span id="themeCircle" class="theme-circle dark"></span>
                     Theme
                 </button>
-                <button id="settingsBtn" class="theme-toggle glass-button">
+                <button id="settingsBtn" class="status-button glass-button">
                     <span class="status-dot yellow"></span>
                     LLM
                 </button>
@@ -1949,7 +2157,7 @@
                 </div>
                 
                 <div class="controls-section">
-                    <button class="record-button glass-button" onclick="document.getElementById('recordBtn').click()">
+                    <button class="record-button glass-button mobile-only" onclick="document.getElementById('recordBtn').click()">
                         <span class="record-dot"></span>
                         <span>Start</span>
                     </button>
@@ -1992,7 +2200,7 @@
             </div>
             
             <!-- Transcript Export Button - Hidden on mobile -->
-            <div class="desktop-only" style="padding: 24px; margin: 0;">
+            <div class="desktop-only" style="padding: 16px; margin: 0;">
                 <button id="exportTranscriptBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
                     Export Transcript
                 </button>
@@ -2013,7 +2221,7 @@
             </div>
             
             <!-- Cards Export Button - Hidden on mobile -->
-            <div class="desktop-only" style="padding: 24px; margin: 0;">
+            <div class="desktop-only" style="padding: 16px; margin: 0;">
                 <button id="exportBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
                     Export Cards
                 </button>
