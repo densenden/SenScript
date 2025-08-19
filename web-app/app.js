@@ -5,8 +5,8 @@ class SenScript {
         console.log('[SenScript] Initializing...');
         
         this.recognition = null;
-        this.isRecording = false;
-        this.shouldBeRecording = false;
+        this.isListening = false;
+        this.shouldBeListening = false;
         this.transcript = '';
         this.transcriptLines = [];
         this.currentInterim = '';
@@ -14,9 +14,16 @@ class SenScript {
         this.cards = [];
         this.fullTranscriptLog = [];  // Keep full transcript for download
         this.isLight = false;
-        // Start with browser default for better compatibility
-        this.currentLang = navigator.language || 'de-DE';
-        console.log('[Language] Starting language:', this.currentLang, '(will detect per segment)');
+        // Support for 12 major languages
+        this.supportedLanguages = [
+            'de-DE', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'pt-PT', 
+            'nl-NL', 'ru-RU', 'zh-CN', 'ja-JP', 'ko-KR', 'ar-SA'
+        ];
+        
+        // Start with auto-detection
+        this.currentLang = 'auto';
+        this.fallbackLang = navigator.language || 'de-DE';
+        console.log('[Language] Multi-language mode enabled, fallback:', this.fallbackLang);
         this.lastSentenceProcessed = 0;  // Timestamp of last sentence processing
         this.sessionId = `session_${Date.now()}`;
         this.audioContext = null;
@@ -41,6 +48,7 @@ class SenScript {
         // Get elements
         this.els = {
             recordBtn: document.getElementById('recordBtn'),
+            mobileRecordBtn: document.getElementById('mobileRecordBtn'),
             recordDot: document.getElementById('recordDot'),
             recordText: document.getElementById('recordText'),
             transcript: document.getElementById('transcript'),
@@ -76,15 +84,23 @@ class SenScript {
             totalTokens: document.getElementById('totalTokens'),
             cardsGenerated: document.getElementById('cardsGenerated'),
             avgResponseTime: document.getElementById('avgResponseTime'),
-            transcriptVisualizer: document.getElementById('transcriptVisualizer'),
-            transcriptVisualizerBars: document.getElementById('transcriptVisualizerBars')
+            micLevelDots: document.getElementById('micLevelDots'),
+            deviceLevelDots: document.getElementById('deviceLevelDots')
         };
         
         // Add event listeners
         this.els.recordBtn.onclick = () => {
-            console.log('[UI] Record button clicked');
-            this.toggleRecording();
+            console.log('[UI] Listen button clicked');
+            this.toggleListening();
         };
+        
+        // Mobile listen button  
+        if (this.els.mobileRecordBtn) {
+            this.els.mobileRecordBtn.onclick = () => {
+                console.log('[UI] Mobile listen button clicked');
+                this.toggleListening();
+            };
+        }
         
         this.els.themeBtn.onclick = () => {
             console.log('[UI] Theme button clicked');
@@ -100,14 +116,7 @@ class SenScript {
             };
         }
         
-        // Mobile settings button
-        const mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
-        if (mobileSettingsBtn) {
-            mobileSettingsBtn.onclick = () => {
-                console.log('[UI] Mobile settings button clicked');
-                this.showSettings();
-            };
-        }
+        // Mobile settings button - removed per user request
         
         this.els.exportBtn.onclick = () => {
             this.exportCards();
@@ -122,7 +131,7 @@ class SenScript {
         this.setupAudioSourceToggle();
         
         this.els.settingsBtn.onclick = () => {
-            this.openSettings();
+            this.showSettings();
         };
         
         this.els.settingsClose.onclick = () => {
@@ -147,7 +156,13 @@ class SenScript {
         this.setupSpeechRecognition();
         this.checkMicrophone();
         this.setupAudioVisualization();
+        this.setupLevelDots();
         this.loadSettings();
+        
+        // Ensure clean state after all setup
+        this.isListening = false;
+        this.shouldBeListening = false;
+        this.updateListeningUI();
         
         console.log('[SenScript] Ready!');
     }
@@ -167,22 +182,25 @@ class SenScript {
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
         
-        // Start with detected language
-        this.recognition.lang = this.currentLang;
+        // Start with fallback language for auto-detection
+        this.recognition.lang = this.fallbackLang;
+        this.recognition.maxAlternatives = 3; // Get more alternatives
         
-        console.log(`🎤 [SETUP] Recognition language set to: ${this.recognition.lang} (will auto-detect)`);
-        console.log(`🎤 [SETUP] Current system language: ${this.currentLang}`);
-        console.log(`🌐 [SETUP] Browser language: ${navigator.language}`);
+        console.log(`🎤 [SETUP] Multi-language recognition starting with: ${this.recognition.lang}`);
+        console.log(`🌐 [SETUP] Auto-detection mode: ${this.currentLang}`);
+        console.log(`🌐 [SETUP] Supported languages:`, this.supportedLanguages.slice(0, 6).join(', '), '...');
         console.log(`🌐 [SETUP] Browser languages: ${navigator.languages?.join(', ') || 'N/A'}`);
         
         this.recognition.onstart = () => {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`\n🎤 [${timestamp}] [SPEECH-START] Speech recognition started with language: ${this.recognition.lang}`);
-            console.log(`🔴 [${timestamp}] [STATUS] Recording: TRUE`);
+            console.log(`🔴 [${timestamp}] [STATUS] Listening: TRUE`);
             console.log(`🌍 [${timestamp}] [LANG-INFO] System language: ${this.currentLang}, Recognition language: ${this.recognition.lang}`);
             console.log(`🎙️ [${timestamp}] [DEBUG] Transcript should start appearing now...`);
-            this.isRecording = true;
-            this.updateRecordingUI();
+            this.isListening = true;
+            this.updateListeningUI();
+            // Force transcript UI update when speech recognition starts
+            this.updateAnimatedTranscript();
         };
         
         this.recognition.onresult = (event) => {
@@ -190,53 +208,116 @@ class SenScript {
         };
         
         this.recognition.onerror = (event) => {
-            console.error('[Speech] Error:', event.error);
+            const timestamp = new Date().toLocaleTimeString();
+            console.error(`❌ [${timestamp}] [SPEECH-ERROR] Error:`, event.error);
             
-            // Handle specific errors
+            // Handle specific errors - more robust recovery
             if (event.error === 'not-allowed') {
                 console.error('[Speech] Microphone access denied');
                 this.setStatus('speech', 'red');
-                this.shouldBeRecording = false;
-                this.updateRecordingUI();
+                this.shouldBeListening = false;
+                this.updateListeningUI();
             } else if (event.error === 'no-speech') {
-                console.log('[Speech] No speech detected - will restart');
-                // This is normal, let onend handle restart
+                console.log(`⚠️ [${timestamp}] [NO-SPEECH] No speech detected - this is normal, continuing to listen`);
+                // This is completely normal, don't change shouldBeListening
+                // The system will restart automatically in onend
             } else if (event.error === 'aborted') {
-                console.log('[Speech] Recognition aborted by user');
-                this.shouldBeRecording = false;
-                this.updateRecordingUI();
+                console.log(`⚠️ [${timestamp}] [ABORTED] Recognition aborted - checking if we should restart...`);
+                // Only stop if user explicitly stopped, otherwise keep trying
+                if (!this.shouldBeListening) {
+                    console.log(`🛑 [${timestamp}] [ABORTED-STOP] User stopped, not restarting`);
+                } else {
+                    console.log(`🔄 [${timestamp}] [ABORTED-CONTINUE] Still should be listening, will restart`);
+                }
+            } else if (event.error === 'network') {
+                console.warn(`🌐 [${timestamp}] [NETWORK-ERROR] Network issue - will retry with different language`);
+                // Network errors shouldn't stop us completely
+                this.tryNextLanguage();
+            } else if (event.error === 'service-not-allowed') {
+                console.warn(`🚫 [${timestamp}] [SERVICE-ERROR] Speech service issue - will retry`);
+                // Service errors are temporary, keep trying
+            } else {
+                console.warn(`⚠️ [${timestamp}] [UNKNOWN-ERROR] Unknown error "${event.error}" - staying robust, will retry`);
+                // For any other error, stay robust and keep trying
             }
         };
         
         this.recognition.onend = () => {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`\n🔇 [${timestamp}] [SPEECH-END] Speech recognition ended`);
-            console.log(`⚪ [${timestamp}] [STATUS] Recording: FALSE`);
-            console.log(`🔄 [${timestamp}] [CHECK] shouldBeRecording: ${this.shouldBeRecording}`);
+            console.log(`⚪ [${timestamp}] [STATUS] Listening: FALSE`);
+            console.log(`🔄 [${timestamp}] [CHECK] shouldBeListening: ${this.shouldBeListening}`);
             
-            this.isRecording = false;
-            this.updateRecordingUI();
+            this.isListening = false;
+            this.updateListeningUI();
             
             // Only restart if we should still be recording
-            if (this.shouldBeRecording) {
-                console.log(`🔄 [${timestamp}] [RESTART] Auto-restarting recognition in 100ms...`);
+            if (this.shouldBeListening) {
+                console.log(`🔄 [${timestamp}] [RESTART] Auto-restarting recognition in 150ms...`);
+                // Initialize retry counter if not exists
+                if (!this.restartAttempts) this.restartAttempts = 0;
+                
                 setTimeout(() => {
                     try {
+                        // Reset recognition state to prevent corruption
+                        this.currentInterim = '';
+                        
+                        // Try next language if multiple failed attempts or no success recently
+                        if (this.restartAttempts > 2 || this.transcriptLines.length === 0) {
+                            this.tryNextLanguage();
+                            this.restartAttempts = 0; // Reset counter after language change
+                        }
+                        
                         this.recognition.start();
-                        console.log(`🎤 [${new Date().toLocaleTimeString()}] [RESTART-SUCCESS] Recognition restarted`);
+                        this.restartAttempts++;
+                        console.log(`🎤 [${new Date().toLocaleTimeString()}] [RESTART-SUCCESS] Recognition restarted with ${this.recognition.lang} (attempt ${this.restartAttempts})`);
                     } catch (error) {
-                        console.error(`❌ [${new Date().toLocaleTimeString()}] [RESTART-FAILED] Restart failed:`, error);
-                        this.shouldBeRecording = false;
-                        this.updateRecordingUI();
+                        console.error(`❌ [${new Date().toLocaleTimeString()}] [RESTART-FAILED] Restart failed (attempt ${this.restartAttempts}):`, error);
+                        
+                        // Don't give up immediately - try a few more times with delays
+                        if (this.restartAttempts < 5) {
+                            console.log(`🔄 [${new Date().toLocaleTimeString()}] [RETRY] Will retry in ${this.restartAttempts * 500}ms...`);
+                            setTimeout(() => {
+                                if (this.shouldBeListening) {
+                                    this.recognition.onend(); // Recursive retry
+                                }
+                            }, this.restartAttempts * 500);
+                        } else {
+                            console.error(`💥 [${new Date().toLocaleTimeString()}] [GIVE-UP] Too many failed attempts, stopping`);
+                            this.shouldBeListening = false;
+                            this.updateListeningUI();
+                            this.restartAttempts = 0;
+                        }
                     }
-                }, 100);
+                }, 150);
             } else {
                 console.log(`🛑 [${timestamp}] [STOPPED] SenScript stopped - not restarting\n`);
+                this.restartAttempts = 0; // Reset counter when user stops
             }
         };
         
         this.setStatus('speech', 'green');
         console.log('[Speech] Ready');
+        
+        // Initialize language cycling for auto-detection
+        this.currentLanguageIndex = 0;
+        this.failedAttempts = 0;
+    }
+    
+    tryNextLanguage() {
+        // Cycle through supported languages for better detection
+        if (this.failedAttempts < this.supportedLanguages.length) {
+            this.currentLanguageIndex = (this.currentLanguageIndex + 1) % this.supportedLanguages.length;
+            const nextLang = this.supportedLanguages[this.currentLanguageIndex];
+            console.log(`🌐 [LANG-SWITCH] Trying language: ${nextLang} (attempt ${this.failedAttempts + 1})`);
+            this.recognition.lang = nextLang;
+            this.failedAttempts++;
+        } else {
+            // Reset to fallback language
+            console.log(`🌐 [LANG-RESET] Resetting to fallback: ${this.fallbackLang}`);
+            this.recognition.lang = this.fallbackLang;
+            this.failedAttempts = 0;
+        }
     }
     
     handleSpeechResult(event) {
@@ -305,7 +386,7 @@ class SenScript {
         
         console.log(`📋 [${timestamp}] [INTERIM-DISPLAY] Set interim text: "${interim.substring(0, 30)}..." (length: ${interim.length})`);
         console.log(`📊 [${timestamp}] [UI-STATE] Lines stored: ${this.transcriptLines.length}, pending: ${this.pendingSentence.length}`);
-        console.log(`🔍 [${timestamp}] [DEBUG] isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
+        console.log(`🔍 [${timestamp}] [DEBUG] isListening: ${this.isListening}, shouldBeListening: ${this.shouldBeListening}`);
         
         // IMMEDIATE UI update for live transcript feeling
         console.log(`🔄 [${timestamp}] [UI-FORCE-UPDATE] Forcing UI update with interim: "${interim}"`);
@@ -662,18 +743,36 @@ class SenScript {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             this.audioAnalyser = this.audioContext.createAnalyser();
             this.audioAnalyser.fftSize = 256;
-            this.audioAnalyser.smoothingTimeConstant = 0.8;
+            this.audioAnalyser.smoothingTimeConstant = 0.5; // More responsive
             
-            console.log('[Audio] Visualization setup complete');
+            console.log('[Audio] Visualization setup complete, context state:', this.audioContext.state);
         } catch (error) {
             console.error('[Audio] Failed to setup visualization:', error);
         }
+    }
+    
+    setupLevelDots() {
+        // Initialize level dots - they're already in HTML
+        this.currentActiveDots = this.currentAudioSource === 'microphone' ? 
+            this.els.micLevelDots : this.els.deviceLevelDots;
+        
+        // Enable dots UI immediately when audio source is selected
+        this.showLevelDots();
+        
+        // Don't start monitoring on app load - wait for user to select audio source
+        console.log('[Audio] Level dots UI initialized for:', this.currentAudioSource);
     }
     
     async connectAudioSource(stream) {
         if (!this.audioContext || !this.audioAnalyser) return;
         
         try {
+            // Resume audio context if suspended
+            if (this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+                console.log('[Audio] Context resumed');
+            }
+            
             // Disconnect previous source if exists
             if (this.audioSource) {
                 this.audioSource.disconnect();
@@ -682,24 +781,31 @@ class SenScript {
             // Connect new source
             this.audioSource = this.audioContext.createMediaStreamSource(stream);
             this.audioSource.connect(this.audioAnalyser);
+            console.log('[Audio] ✅ Audio source connected to analyser');
             
             // Start monitoring audio levels
             this.monitorAudioLevels();
+            console.log('[Audio] ✅ Audio monitoring started');
             
-            console.log('[Audio] Source connected for visualization');
+            console.log('[Audio] Source connected for visualization, context state:', this.audioContext.state);
         } catch (error) {
             console.error('[Audio] Failed to connect source:', error);
         }
     }
     
     monitorAudioLevels() {
-        if (!this.audioAnalyser) return;
+        if (!this.audioAnalyser) {
+            console.error('[Audio] No analyser for monitoring');
+            return;
+        }
         
         const bufferLength = this.audioAnalyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+        console.log('[Audio] ✅ Starting audio level monitoring, buffer size:', bufferLength);
         
         const checkLevel = () => {
-            if (!this.isRecording) return;
+            // Always monitor levels, not just when recording
+            if (!this.audioAnalyser) return;
             
             this.audioAnalyser.getByteFrequencyData(dataArray);
             
@@ -734,48 +840,125 @@ class SenScript {
     }
     
     updateWaveform(level) {
-        this.updateTranscriptVisualizer(level);
+        this.updateLevelDots(level);
     }
     
-    updateTranscriptVisualizer(level) {
-        if (!this.els.transcriptVisualizerBars) return;
+    updateLevelDots(level) {
+        if (!this.currentActiveDots) {
+            console.warn('[Audio] No active dots element found');
+            return;
+        }
         
-        // Show visualizer when mic is open (recording) - more generous conditions
-        const shouldShow = this.isRecording;
+        const normalizedLevel = Math.min(1, Math.max(0, level / 50)); // 0-1 range
+        const dots = this.currentActiveDots.querySelectorAll('.level-dot');
         
-        if (shouldShow) {
-            this.showTranscriptVisualizer();
+        if (dots.length > 0) {
+            // Calculate how many dots should be active (1-7 dots)
+            const activeDotCount = Math.ceil(normalizedLevel * 7);
             
-            const normalizedLevel = Math.min(1, level / 50);
-            const bars = this.els.transcriptVisualizerBars.children;
             
-            // Create bars if they don't exist
-            if (bars.length === 0) {
-                for (let i = 0; i < 20; i++) {  // Fewer bars for background
-                    const bar = document.createElement('div');
-                    bar.className = 'transcript-visualizer-bar';
-                    this.els.transcriptVisualizerBars.appendChild(bar);
+            // Update each dot based on audio level
+            Array.from(dots).forEach((dot, index) => {
+                if (index < activeDotCount && level > 2) { // Minimum threshold
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
                 }
-            }
-            
-            // Update existing bars with animation
-            Array.from(bars).forEach((bar, index) => {
-                const intensity = Math.random() * normalizedLevel * 60 + 8;  // More visible bars
-                bar.style.height = `${intensity}px`;
             });
         } else {
-            this.hideTranscriptVisualizer();
+            console.warn('[Audio] No level dots found in active dots container');
         }
     }
     
-    showTranscriptVisualizer() {
-        // Disabled - visualizer causes performance issues
-        return;
+    async startImmediateAudioMonitoring() {
+        // DEPRECATED: Don't start monitoring immediately on app load
+        // Wait for user to select audio source instead
+        console.log('[Audio] Waiting for user to select audio source...');
     }
     
-    hideTranscriptVisualizer() {
-        // Disabled - visualizer causes performance issues  
-        return;
+    async startAudioMonitoringOnly() {
+        // Start monitoring for the currently selected audio source
+        // This will trigger permission request if not already granted
+        console.log(`[Audio] Requesting ${this.currentAudioSource} permission and starting monitoring...`);
+        
+        try {
+            if (this.currentAudioSource === 'microphone') {
+                await this.startMicrophoneMonitoringOnly();
+            } else if (this.currentAudioSource === 'system') {
+                await this.startSystemAudioMonitoringOnly();
+            }
+            
+            console.log(`[Audio] ✅ Permission granted and monitoring active for ${this.currentAudioSource}`);
+            console.log('[Audio] 🎵 Level dots should now show real audio input!');
+        } catch (error) {
+            console.error(`[Audio] ❌ Permission denied or error for ${this.currentAudioSource}:`, error);
+            this.setStatus(this.currentAudioSource === 'microphone' ? 'mic' : 'audio', 'red');
+        }
+    }
+    
+    async startMicrophoneMonitoringOnly() {
+        // Request microphone permission and start level monitoring
+        console.log('[Audio] 🎤 Requesting microphone permission...');
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { 
+                    echoCancellation: false, 
+                    noiseSuppression: false,
+                    autoGainControl: false 
+                } 
+            });
+            await this.connectAudioSource(stream);
+            this.setStatus('mic', 'green');
+            console.log('[Audio] ✅ Microphone access granted - monitoring levels');
+        } catch (error) {
+            this.setStatus('mic', 'red');
+            console.error('[Audio] ❌ Microphone permission denied or error:', error);
+            throw error;
+        }
+    }
+    
+    async startSystemAudioMonitoringOnly() {
+        // For system/device audio, we still need mic for Web Speech API
+        console.log('[Audio] 🔊 Requesting microphone permission for device output mode...');
+        
+        try {
+            // Get mic for speech recognition AND visualization (since Web Speech API needs mic)
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { 
+                    echoCancellation: false, 
+                    noiseSuppression: false 
+                } 
+            });
+            await this.connectAudioSource(stream);
+            this.setStatus('audio', 'green');
+            console.log('[Audio] ✅ Device output mode ready (capturing system audio, using mic for speech recognition)');
+        } catch (error) {
+            this.setStatus('audio', 'red');
+            console.error('[Audio] ❌ Permission denied for device output mode:', error);
+            throw error;
+        }
+    }
+    
+    showLevelDots() {
+        // Update which level dots are active based on current audio source
+        this.currentActiveDots = this.currentAudioSource === 'microphone' ? 
+            this.els.micLevelDots : this.els.deviceLevelDots;
+        
+        console.log('[Audio] Level dots active for:', this.currentAudioSource);
+        console.log('[Audio] Active dots element:', this.currentActiveDots);
+        
+        if (this.currentActiveDots) {
+            const dots = this.currentActiveDots.querySelectorAll('.level-dot');
+            console.log('[Audio] Found', dots.length, 'level dots in container');
+        }
+    }
+    
+    hideLevelDots() {
+        if (this.currentActiveDots) {
+            const dots = this.currentActiveDots.querySelectorAll('.level-dot');
+            Array.from(dots).forEach(dot => dot.classList.remove('active'));
+        }
     }
     
     handleSilence() {
@@ -805,7 +988,7 @@ class SenScript {
     
     async updateServerSettings() {
         try {
-            const response = await fetch('/api/settings', {
+            const response = await fetch('http://localhost:3001/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -859,7 +1042,7 @@ class SenScript {
             const startTime = Date.now();
             
             // Call OpenAI API via our server with text-specific language
-            const response = await fetch('/api/generate-card', {
+            const response = await fetch('http://localhost:3001/api/generate-card', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1099,8 +1282,8 @@ class SenScript {
             parts.push(`<div class="${className}">${line}</div>`);
         });
         
-        // Zeige aktuellen Interim Text falls vorhanden (auch wenn noch nicht isRecording)
-        if (this.currentInterim && (this.isRecording || this.shouldBeRecording)) {
+        // Zeige aktuellen Interim Text falls vorhanden (auch wenn noch nicht isListening)
+        if (this.currentInterim && (this.isListening || this.shouldBeListening)) {
             parts.push(`<div class="transcript-line transcript-interim">${this.currentInterim}</div>`);
         }
         
@@ -1115,14 +1298,28 @@ class SenScript {
     }
     
     addTranscriptLine(text) {
+        // Clean and validate text first
+        const cleanText = this.cleanTranscriptText(text);
+        
+        if (!cleanText || cleanText.length < 2) {
+            console.log(`🚫 [FILTER] Text too short or empty: "${text}"`);
+            return;
+        }
+        
+        // Check for garbled/corrupted text patterns
+        if (this.isTextCorrupted(cleanText)) {
+            console.log(`🚫 [CORRUPTED] Skipping corrupted text: "${cleanText}"`);
+            return;
+        }
+        
         // STABLE APPROACH: Simple, clean display  
-        const displayText = text.length > 80 ? text.substring(0, 80) + '...' : text;
+        const displayText = cleanText.length > 80 ? cleanText.substring(0, 80) + '...' : cleanText;
         
         // Prevent duplicate lines - check if the last line is very similar
         if (this.transcriptLines.length > 0) {
             const lastLine = this.transcriptLines[this.transcriptLines.length - 1];
             const similarity = this.calculateTextSimilarity(lastLine.text, displayText);
-            if (similarity > 0.8) { // If 80% similar, skip adding
+            if (similarity > 0.75) { // Slightly lower threshold for better filtering
                 console.log(`🔄 [DUPLICATE] Skipping similar line: "${displayText}"`);
                 return;
             }
@@ -1146,6 +1343,57 @@ class SenScript {
         this.updateAnimatedTranscript();
     }
     
+    cleanTranscriptText(text) {
+        if (!text) return '';
+        
+        // Remove extra whitespace and clean up text
+        let cleaned = text.trim()
+            .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+            .replace(/[^\w\s\.,!?;:'"-]/g, ''); // Remove strange characters but keep punctuation
+        
+        return cleaned;
+    }
+    
+    isTextCorrupted(text) {
+        // Detect patterns that indicate corrupted/garbled speech recognition
+        const lowercaseText = text.toLowerCase();
+        
+        // Pattern 1: Too many repeated words
+        const words = lowercaseText.split(' ').filter(w => w.length > 2);
+        const uniqueWords = new Set(words);
+        const repetitionRatio = uniqueWords.size / Math.max(words.length, 1);
+        if (repetitionRatio < 0.6 && words.length > 4) {
+            console.log(`🔍 [CORRUPTION-CHECK] High repetition ratio: ${repetitionRatio.toFixed(2)}`);
+            return true;
+        }
+        
+        // Pattern 2: Nonsensical word combinations (common in speech recognition errors)
+        const corruptedPatterns = [
+            /\b(analyst get out|microphone is analyst|certain is to try)\b/,
+            /\b(does microphone is|get out as a certain)\b/,
+            /\b\w{1,2}\s+\w{1,2}\s+\w{1,2}\s+\w{1,2}\s+\w{1,2}\b/  // Too many short words in sequence
+        ];
+        
+        for (const pattern of corruptedPatterns) {
+            if (pattern.test(lowercaseText)) {
+                console.log(`🔍 [CORRUPTION-CHECK] Matched corrupted pattern: ${pattern}`);
+                return true;
+            }
+        }
+        
+        // Pattern 3: Very low ratio of real words to total words
+        const commonWords = /\b(the|and|is|are|was|were|have|has|can|will|to|of|in|for|with|that|this|what|how|when|where|who|why|which|would|should|could|must|might|about|after|before|during|through|over|under|between|while|against|without|since|until|from|into|onto|upon|within|toward|across|among|beside|beyond|inside|outside|around|der|die|das|und|ist|sind|ich|wir|ein|eine|zu|von|mit|auf|nicht|auch|kann|aber|wie|was|wann|wo|wer|warum|welche|dass|wenn|oder|haben|werden|wurde|könnte|sollte|müssen|können)\b/gi;
+        const commonWordMatches = (lowercaseText.match(commonWords) || []).length;
+        const commonWordRatio = commonWordMatches / Math.max(words.length, 1);
+        
+        if (commonWordRatio < 0.1 && words.length > 3) {
+            console.log(`🔍 [CORRUPTION-CHECK] Low common word ratio: ${commonWordRatio.toFixed(2)}`);
+            return true;
+        }
+        
+        return false;
+    }
+    
     calculateTextSimilarity(text1, text2) {
         // Simple similarity calculation based on common words
         const words1 = text1.toLowerCase().split(' ').filter(w => w.length > 2);
@@ -1163,14 +1411,14 @@ class SenScript {
         if (!this.els.transcript) return;
         
         // Show recording status only when NOT attempting to record
-        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0 && !this.currentInterim) {
+        if (!this.isListening && !this.shouldBeListening && this.transcriptLines.length === 0 && !this.currentInterim) {
             this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
             return;
         }
         
         // Show listening status when recording started but no text yet
-        if ((this.isRecording || this.shouldBeRecording) && this.transcriptLines.length === 0) {
-            this.els.transcript.innerHTML = `<div class="transcript-line current listening">🎤 Listening... speak now</div>`;
+        if ((this.isListening || this.shouldBeListening) && this.transcriptLines.length === 0) {
+            this.els.transcript.innerHTML = `<div class="transcript-line current listening">🎤 Listening... waiting for audio</div>`;
             return;
         }
         
@@ -1189,7 +1437,7 @@ class SenScript {
         });
         
         // Add interim text if speaking
-        if (this.currentInterim && this.isRecording) {
+        if (this.currentInterim && this.isListening) {
             const interimDisplay = this.currentInterim.length > 60 ? 
                 this.currentInterim.substring(0, 60) + '...' : this.currentInterim;
             parts.push(`<div class="transcript-line interim">${interimDisplay}</div>`);
@@ -1231,7 +1479,7 @@ class SenScript {
     }
     
     updateAnimatedTranscript() {
-        console.log(`🎨 [UI-UPDATE] updateAnimatedTranscript called - interim: "${this.currentInterim}", isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
+        console.log(`🎨 [UI-UPDATE] updateAnimatedTranscript called - interim: "${this.currentInterim}", isListening: ${this.isListening}, shouldBeListening: ${this.shouldBeListening}`);
         
         if (!this.els.transcript) {
             console.error('[Transcript] Element not found');
@@ -1239,68 +1487,94 @@ class SenScript {
         }
         
         // Show recording status only when completely inactive
-        if (!this.isRecording && !this.shouldBeRecording && this.transcriptLines.length === 0 && !this.currentInterim) {
+        if (!this.isListening && !this.shouldBeListening && this.transcriptLines.length === 0 && !this.currentInterim) {
             this.els.transcript.innerHTML = `<div class="transcript-line current">Click "Start" to begin...</div>`;
-            this.hideTranscriptVisualizer();
             return;
         }
         
         // Show listening status when recording started but no text yet
-        if ((this.isRecording || this.shouldBeRecording) && this.transcriptLines.length === 0) {
-            this.els.transcript.innerHTML = `<div class="transcript-line current listening">🎤 Listening... speak now</div>`;
-            this.showTranscriptVisualizer();
+        if ((this.isListening || this.shouldBeListening) && this.transcriptLines.length === 0 && !this.currentInterim.trim()) {
+            let listeningMessage;
+            if (this.currentAudioSource === 'system') {
+                listeningMessage = '🔊 Listening to device output... waiting for audio';
+            } else {
+                listeningMessage = '🎤 Listening to microphone... waiting for audio';
+            }
+            this.els.transcript.innerHTML = `<div class="transcript-line current listening">${listeningMessage}</div>`;
             return;
         }
         
         // Build content more efficiently
         const parts = [];
         
-        // REVERSE ORDER: Show only last 3 lines in correct order (oldest at top, newest at bottom)
+        // CORRECT ORDER: Show only last 3 lines with proper age styling
         const visibleLines = this.transcriptLines.slice(-3); // Get last 3 lines
         
         visibleLines.forEach((line, index) => {
             let className = 'transcript-line';
             
             if (index === 0) {
-                className += ' previous'; // Top line = oldest of the 3 (smaller)
+                className += ' old'; // Top line = oldest of the 3 (smallest)
             } else if (index === 1) {
-                className += ' old'; // Middle line = middle age (medium)
+                className += ' previous'; // Middle line = middle age (medium) - CORRECTED
             } else if (index === 2 && !this.currentInterim) {
-                className += ' current'; // Bottom line = newest (biggest)
+                className += ' current'; // Bottom line = newest (biggest) - CORRECTED
             }
             
             parts.push(`<div class="${className}">${line.text}</div>`);
         });
         
         // Add interim text (with animation only if short) - show when recording OR should be recording
-        if (this.currentInterim.trim() && (this.isRecording || this.shouldBeRecording)) {
+        if (this.currentInterim.trim() && (this.isListening || this.shouldBeListening)) {
             console.log(`✅ [INTERIM-DISPLAY] Adding interim text to UI: "${this.currentInterim.substring(0, 40)}..."`);
             const animatedInterim = this.animateTextLetters(this.currentInterim, true);
-            parts.push(`<div class="transcript-line current transcript-interim">${animatedInterim}</div>`);
+            parts.push(`<div class="transcript-line current interim">${animatedInterim}</div>`);
         } else {
             if (this.currentInterim.trim()) {
-                console.log(`❌ [INTERIM-SKIP] Interim text exists but not displayed - isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
+                console.log(`❌ [INTERIM-SKIP] Interim text exists but not displayed - isListening: ${this.isListening}, shouldBeListening: ${this.shouldBeListening}`);
             }
         }
         
         // Show recording status if no content
-        if (parts.length === 0 && (this.isRecording || this.shouldBeRecording)) {
-            parts.push('<div class="transcript-line current">🎤 Listening... speak now</div>');
+        if (parts.length === 0 && (this.isListening || this.shouldBeListening)) {
+            parts.push('<div class="transcript-line current">🎤 Listening... waiting for audio</div>');
         }
         
-        this.els.transcript.innerHTML = parts.join('');
+        // Store previous content to detect changes
+        const previousContent = this.els.transcript.innerHTML;
+        const newContent = parts.join('');
+        
+        // Update DOM
+        this.els.transcript.innerHTML = newContent;
+        
+        // Trigger push-up animation if content changed and we have lines
+        if (previousContent !== newContent && this.transcriptLines.length > 1) {
+            this.triggerPushUpAnimation();
+        }
         
         // Auto-scroll to bottom when new content is added
         setTimeout(() => {
             this.els.transcript.scrollTop = this.els.transcript.scrollHeight;
         }, 50);
         
-        // Control visualizer visibility: show when recording
-        if (this.isRecording) {
-            this.showTranscriptVisualizer();
-        } else {
-            this.hideTranscriptVisualizer();
-        }
+        // Level dots are always active when audio source is selected
+    }
+    
+    triggerPushUpAnimation() {
+        // Add push-up class to existing lines to animate them upward
+        const existingLines = this.els.transcript.querySelectorAll('.transcript-line:not(.current)');
+        existingLines.forEach(line => {
+            line.classList.add('push-up');
+        });
+        
+        // Remove animation classes after animation completes (reduced from 300ms to match animation)
+        setTimeout(() => {
+            existingLines.forEach(line => {
+                line.classList.remove('push-up');
+            });
+        }, 250);
+        
+        console.log('[Animation] Push-up animation triggered');
     }
     
     animateTextLetters(text, isInterim = false) {
@@ -1324,22 +1598,30 @@ class SenScript {
         this.updateAnimatedTranscript();
     }
     
-    toggleRecording() {
+    toggleListening() {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(`\n🎛️  [${timestamp}] [TOGGLE] Recording toggle clicked`);
-        console.log(`📊 [${timestamp}] [STATE] isRecording: ${this.isRecording}, shouldBeRecording: ${this.shouldBeRecording}`);
+        console.log(`\n🎛️  [${timestamp}] [TOGGLE] Listen toggle clicked`);
+        console.log(`🔍 [DEBUG] Audio setup check:`, {
+            hasAudioContext: !!this.audioContext,
+            audioContextState: this.audioContext?.state,
+            hasRecognition: !!this.recognition,
+            currentSource: this.currentAudioSource
+        });
+        console.log(`📊 [${timestamp}] [STATE] isListening: ${this.isListening}, shouldBeListening: ${this.shouldBeListening}`);
         console.log(`🔍 [${timestamp}] [DEBUG] Recognition exists: ${!!this.recognition}, Language: ${this.recognition?.lang || 'undefined'}`);
         
-        if (this.isRecording || this.shouldBeRecording) {
-            console.log(`🛑 [${timestamp}] [ACTION] Stopping recording...`);
-            this.stopRecording();
+        if (this.isListening || this.shouldBeListening) {
+            console.log(`🛑 [${timestamp}] [ACTION] Stopping listening...`);
+            console.log(`💡 [${timestamp}] [TIP] Click again to restart listening`);
+            this.stopListening();
         } else {
-            console.log(`▶️  [${timestamp}] [ACTION] Starting recording...`);
-            this.startRecording();
+            console.log(`▶️  [${timestamp}] [ACTION] Starting listening...`);
+            console.log(`🎤 [${timestamp}] [TIP] System will now continuously listen for speech`);
+            this.startListening();
         }
     }
     
-    startRecording() {
+    startListening() {
         console.log('[Control] Starting...', 'Source:', this.currentAudioSource);
         
         if (!this.recognition) {
@@ -1355,35 +1637,57 @@ class SenScript {
     }
     
     async startMicrophone() {
-        console.log('[Audio] Starting microphone...');
+        console.log('[Audio] 🎤 Starting microphone...');
+        console.log('[Audio] 🔍 State check:', {
+            hasRecognition: !!this.recognition,
+            isListening: this.isListening,
+            shouldBeListening: this.shouldBeListening,
+            hasAudioContext: !!this.audioContext
+        });
+        
+        // Show initialization state
+        this.setStatus('mic', 'yellow');
+        this.showInitializationMessage();
+        
+        // Enable level dots immediately for microphone
+        this.showLevelDots();
         
         try {
             // Start speech recognition FIRST (this was working before)
-            this.shouldBeRecording = true;
+            this.shouldBeListening = true;
             
-            if (this.recognition && !this.isRecording) {
+            if (this.recognition && !this.isListening) {
                 this.recognition.start();
-                console.log('[Audio] Speech recognition started');
+                console.log('[Audio] 🗣️ Speech recognition started successfully');
             }
             
             // Get microphone stream for visualization (secondary)
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 await this.connectAudioSource(stream);
+                this.setStatus('mic', 'green');
+                console.log('[Audio] Visualization connected successfully');
             } catch (vizError) {
                 console.warn('[Audio] Visualization failed, but speech recognition should work:', vizError);
+                // Still set mic to green if speech recognition works
+                if (this.isListening) {
+                    this.setStatus('mic', 'green');
+                }
             }
             
         } catch (error) {
             console.error('[Audio] Microphone error:', error);
             this.setStatus('mic', 'red');
-            this.shouldBeRecording = false;
-            this.updateRecordingUI();
+            this.shouldBeListening = false;
+            this.updateListeningUI();
         }
     }
     
     async startSystemAudio() {
         console.log('[Audio] Starting system/device audio...');
+        
+        // Enable level dots immediately for device output
+        this.showLevelDots();
         
         try {
             // Try to get screen share with audio (this can capture tab audio)
@@ -1408,15 +1712,14 @@ class SenScript {
             await this.connectAudioSource(stream);
             
             // For system audio, we need to create a speech recognition from the audio context
-            this.shouldBeRecording = true;
+            this.shouldBeListening = true;
             
             // Since Web Speech API doesn't work with custom streams,
             // we'll need to simultaneously capture microphone for speech recognition
             // while using system audio for visualization only
             try {
-                if (this.recognition && !this.isRecording) {
+                if (this.recognition && !this.isListening) {
                     // Start speech recognition on microphone in parallel
-                    const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     this.recognition.start();
                     console.log('[Audio] Started parallel microphone for speech recognition');
                 }
@@ -1442,14 +1745,14 @@ class SenScript {
         }
     }
     
-    stopRecording() {
+    stopListening() {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(`\n🛑 [${timestamp}] [STOP] Stopping recording process...`);
+        console.log(`\n🛑 [${timestamp}] [STOP] Stopping listening process...`);
         
-        this.shouldBeRecording = false;
-        console.log(`🔴 [${timestamp}] [FLAG] shouldBeRecording set to FALSE`);
+        this.shouldBeListening = false;
+        console.log(`🔴 [${timestamp}] [FLAG] shouldBeListening set to FALSE`);
         
-        if (this.recognition && this.isRecording) {
+        if (this.recognition && this.isListening) {
             console.log(`🎤 [${timestamp}] [STOP] Stopping speech recognition...`);
             this.recognition.stop();
         }
@@ -1469,10 +1772,21 @@ class SenScript {
         console.log(`✅ [${timestamp}] [STOP-COMPLETE] All recording processes stopped\n`);
     }
     
-    updateRecordingUI() {
-        if (this.isRecording) {
+    updateListeningUI() {
+        console.log(`[UI] Updating recording UI - isListening: ${this.isListening}, shouldBeListening: ${this.shouldBeListening}`);
+        
+        if (this.isListening) {
             this.els.recordDot.classList.add('pulse');
             this.els.recordText.textContent = 'Listening...';
+            
+            // Update mobile record button UI
+            if (this.els.mobileRecordBtn) {
+                const mobileDot = this.els.mobileRecordBtn.querySelector('.record-dot');
+                if (mobileDot) mobileDot.classList.add('pulse');
+                const mobileText = this.els.mobileRecordBtn.querySelector('span:not(.record-dot)');
+                if (mobileText) mobileText.textContent = 'Listening...';
+                this.els.mobileRecordBtn.classList.add('recording');
+            }
             
             // Mobile record button: circle to square when recording
             const mobileRecordButton = document.querySelector('.app-header .record-button');
@@ -1482,6 +1796,15 @@ class SenScript {
         } else {
             this.els.recordDot.classList.remove('pulse');
             this.els.recordText.textContent = 'Start';
+            
+            // Update mobile record button UI
+            if (this.els.mobileRecordBtn) {
+                const mobileDot = this.els.mobileRecordBtn.querySelector('.record-dot');
+                if (mobileDot) mobileDot.classList.remove('pulse');
+                const mobileText = this.els.mobileRecordBtn.querySelector('span:not(.record-dot)');
+                if (mobileText) mobileText.textContent = 'Start';
+                this.els.mobileRecordBtn.classList.remove('recording');
+            }
             
             // Mobile record button: back to circle when stopped
             const mobileRecordButton = document.querySelector('.app-header .record-button');
@@ -1502,10 +1825,23 @@ class SenScript {
                     this.currentAudioSource = newSource;
                     this.updateToggleUI();
                     
+                    // Update level dots for new source
+                    this.showLevelDots();
+                    
+                    // IMMEDIATELY start audio monitoring for the new source
+                    this.startAudioMonitoringOnly();
+                    
                     // Simple restart if recording
-                    if (this.shouldBeRecording) {
-                        this.stopRecording();
-                        setTimeout(() => this.startRecording(), 100);
+                    if (this.shouldBeListening) {
+                        this.stopListening();
+                        setTimeout(() => {
+                            this.startListening();
+                            // Force UI update after source switch
+                            setTimeout(() => this.updateAnimatedTranscript(), 200);
+                        }, 100);
+                    } else {
+                        // Update UI even if not recording to show source change
+                        this.updateAnimatedTranscript();
                     }
                 }
             };
@@ -1605,6 +1941,29 @@ class SenScript {
         }
     }
     
+    showInitializationMessage() {
+        // Show initialization message in transcript
+        let initMessage;
+        if (this.currentAudioSource === 'system') {
+            initMessage = '🔄 Initializing device output capture...';
+        } else {
+            initMessage = '🔄 Initializing microphone access...';
+        }
+        
+        if (this.els.transcript) {
+            this.els.transcript.innerHTML = `<div class="transcript-line current">${initMessage}</div>`;
+        }
+        
+        // Clear message after 2 seconds and update UI
+        setTimeout(() => {
+            this.updateAnimatedTranscript();
+        }, 2000);
+    }
+    
+    showSettings() {
+        this.openSettings();
+    }
+    
     async openSettings() {
         console.log('[Settings] Opening settings modal');
         
@@ -1629,7 +1988,7 @@ class SenScript {
     
     async loadAvailableModels() {
         try {
-            const response = await fetch('/api/models');
+            const response = await fetch('http://localhost:3001/api/models');
             const models = await response.json();
             
             let html = '';
@@ -1679,7 +2038,7 @@ class SenScript {
     
     async loadUsageStats() {
         try {
-            const response = await fetch(`/api/usage?sessionId=${this.sessionId}`);
+            const response = await fetch(`http://localhost:3001/api/usage?sessionId=${this.sessionId}`);
             const stats = await response.json();
             
             this.els.totalCalls.textContent = stats.global?.totalCalls || 0;

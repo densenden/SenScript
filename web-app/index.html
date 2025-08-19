@@ -755,6 +755,7 @@
             border-radius: 36px; /* Glass morphism design */
             overflow: hidden;
             min-height: 180px; /* Increased for better readability */
+            box-shadow: none !important; /* Remove shadow from transcript frame */
         }
         
         .transcript-container {
@@ -822,11 +823,11 @@
             -ms-hyphens: auto;
         }
         
-        /* Animated transcript lines */
+        /* Animated transcript lines - smoother, less wobbling */
         .transcript-line {
             display: block;
             margin-bottom: 8px;
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.4s ease, transform 0.3s ease;
             transform: translateY(0);
         }
         
@@ -1327,53 +1328,106 @@
             opacity: 0.7;
         }
         
-        /* Transcript Container */
-        .transcript-container-inner {
-            position: relative;
-            min-height: 200px;
-        }
         
-        /* Transcript Background Visualizer - HIDDEN */
-        .transcript-visualizer {
-            display: none !important;
-        }
-        
-        .transcript-visualizer.active {
-            display: none !important;
-        }
-        
-        .transcript-visualizer-bars {
-            display: flex;
-            align-items: end;
-            gap: 4px;
-            height: 120px;
-            width: 90%;
-        }
-        
-        .transcript-visualizer-bar {
-            flex: 1;
-            min-height: 6px;
-            background: #10b981;
-            border-radius: 2px;
-            transition: height 0.08s ease;
-            opacity: 0.6;
-            animation: transcriptVisualizerPulse 2s ease-in-out infinite;
-        }
-        
-        .light .transcript-visualizer-bar {
-            background: #059669;
-        }
-        
-        @keyframes transcriptVisualizerPulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 0.8; }
-        }
-        
-        /* Make transcript content overlay the visualizer */
+        /* Transcript Content - Enhanced with animations */
         .transcript-content {
             position: relative;
-            z-index: 2;
             background: transparent;
+            height: 100%;
+            overflow-y: hidden;
+        }
+        
+        /* Enhanced transcript line animations */
+        .transcript-line {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Push up animation when new content appears - gentler */
+        .transcript-line.push-up {
+            animation: pushUp 0.25s ease forwards;
+        }
+        
+        @keyframes pushUp {
+            from {
+                transform: translateY(0);
+            }
+            to {
+                transform: translateY(-20px);
+            }
+        }
+        
+        /* Current line - stable, no wobbling animation */
+        .transcript-line.current {
+            /* Remove animation that was causing wobbling */
+            /* animation: currentLineEntrance 0.4s ease-out; */
+        }
+        
+        /* Interim text typing animation */
+        .transcript-line.interim {
+            animation: interimPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes interimPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        /* Audio Level Dots - Real Audio Level Indicators */
+        .audio-level-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            margin-top: 6px;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease;
+        }
+        
+        .toggle-option.active .audio-level-dots {
+            opacity: 1; /* Show when button is active */
+        }
+        
+        .level-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(156, 163, 175, 0.3); /* Grey by default */
+            transition: background-color 0.1s ease, transform 0.1s ease;
+        }
+        
+        /* Active dots show theme color */
+        .level-dot.active {
+            background-color: #10b981; /* Theme green */
+            transform: scale(1.1);
+            box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+        }
+        
+        .light .level-dot.active {
+            background-color: #059669;
+            box-shadow: 0 0 4px rgba(5, 150, 105, 0.4);
+        }
+        
+        /* Make audio source toggle match Start button height */
+        .toggle-switch {
+            height: 56px; /* Match record button height */
+            min-height: 56px;
+        }
+        
+        .toggle-option {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 8px 16px;
+        }
+        
+        .toggle-text {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
         }
         
         /* Responsive adjustments */
@@ -2111,9 +2165,27 @@
                         <div class="toggle-labels">
                             <div class="toggle-option active" data-value="microphone">
                                 <div class="toggle-text">Microphone</div>
+                                <div class="audio-level-dots" id="micLevelDots">
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                </div>
                             </div>
                             <div class="toggle-option" data-value="system">
                                 <div class="toggle-text">Device Output</div>
+                                <div class="audio-level-dots" id="deviceLevelDots">
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2181,7 +2253,7 @@
                 </div>
                 
                 <div class="controls-section">
-                    <button class="record-button glass-button mobile-only" onclick="document.getElementById('recordBtn').click()">
+                    <button id="mobileRecordBtn" class="record-button glass-button mobile-only">
                         <span class="record-dot"></span>
                         <span>Start</span>
                     </button>
@@ -2190,9 +2262,6 @@
                 <div class="status-bar">
                     <button id="mobileThemeBtn" class="theme-toggle glass-button">
                         <span id="mobileThemeCircle" class="theme-circle dark"></span>
-                    </button>
-                    <button id="mobileSettingsBtn" class="theme-toggle glass-button">
-                        <span class="status-dot yellow"></span>
                     </button>
                 </div>
             </div>
@@ -2210,16 +2279,9 @@
                         <span id="langConfTranscript"></span>
                     </div>
                 </div>
-                <div class="transcript-container-inner">
-                    <!-- Background Audio Visualizer -->
-                    <div id="transcriptVisualizer" class="transcript-visualizer">
-                        <div id="transcriptVisualizerBars" class="transcript-visualizer-bars"></div>
-                    </div>
-                    
-                    <!-- Transcript Content -->
-                    <div id="transcript" class="transcript-content">
-                        Click "Start" to begin transcription...
-                    </div>
+                <!-- Transcript Content -->
+                <div id="transcript" class="transcript-content">
+                    Click "Start" to begin transcription...
                 </div>
             </div>
             
