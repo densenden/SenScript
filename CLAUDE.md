@@ -1,5 +1,8 @@
 # SenScript - Chrome Web App for Universal Conferencing
 
+## **🎯 GOAL NUMBER 1: CARD CREATION SPEED**
+**The primary objective of SenScript is maximum speed in generating educational flashcards from speech. Every feature, optimization, and design decision prioritizes faster card generation over perfect accuracy.**
+
 ## Chrome Web App Concept (v3.0)
 SenScript is now a Chrome-based application that works seamlessly with any web conferencing service through browser-native speech recognition and transparent overlay UI.
 

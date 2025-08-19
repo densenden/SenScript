@@ -1,5 +1,8 @@
 # SenScript 🎙️
 
+## **🎯 GOAL NUMBER 1: CARD CREATION SPEED**
+**The primary objective of SenScript is maximum speed in generating educational flashcards from speech. Every feature, optimization, and design decision prioritizes faster card generation over perfect accuracy.**
+
 > Chrome-based AI transcript-to-flashcard generator with universal conferencing integration
 
 ## ✨ Chrome Web App Features (v3.0)
@@ -10,11 +13,12 @@
 - **🃏 AI Card Generation** - Intelligent flashcards from live conversations
 - **👻 Transparent Popup** - Floating overlay that works over any application
 - **🎧 Perfect Audio Integration** - Direct mic access with zero compatibility issues
+- **⚡ Speed Optimized** - All processing focused on maximum card creation speed
 
-## 🧠 How It Works
+## 🧠 How It Works (Speed Optimized)
 
 ### Architecture Overview
-SenScript is a real-time meeting assistant that captures speech and generates educational flashcards:
+SenScript is a real-time meeting assistant optimized for maximum speed in flashcard generation:
 
 1. **Speech Capture** (app.js)
    - Uses Web Speech API for continuous speech recognition

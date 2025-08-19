@@ -1,8 +1,11 @@
 # Transcript Processing Pipeline - SenScript
 
+## **🎯 GOAL NUMBER 1: CARD CREATION SPEED**
+**Every optimization in this pipeline prioritizes maximum speed in generating educational flashcards from speech.**
+
 ## Übersicht der Verarbeitung
 
-SenScript verarbeitet gesprochene Sprache in Echtzeit durch eine mehrstufige Pipeline, die Text intelligent splittet, filtert und AI-Karten erstellt. Hier ist der genaue Ablauf:
+SenScript verarbeitet gesprochene Sprache in Echtzeit durch eine mehrstufige Pipeline, die Text intelligent splittet, filtert und AI-Karten erstellt. **Alle Parameter sind auf maximale Geschwindigkeit der Kartenerstellung optimiert.** Hier ist der genaue Ablauf:
 
 ---
 

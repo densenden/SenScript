@@ -1,4 +1,5 @@
 // SenScript - Simple Working Version
+// GOAL NUMBER 1: CARD CREATION SPEED
 class SenScript {
     constructor() {
         console.log('[SenScript] Initializing...');
@@ -523,11 +524,22 @@ class SenScript {
     }
     
     shouldProcessNow(text) {
-        // ULTRA-AGGRESSIVE processing to prevent long sentence buildup
-        return /[.!?]\s/.test(text) ||                              // Sentence endings
-               (/[,;:]\s/.test(text) && text.length > 25) ||          // Very early comma splits
-               (/\s+(aber|doch|jedoch|außerdem|zudem|and|but|however|also|so|das\s+bedeutet|sondern|entstehen|anders|sieht|nächsten|therefore|thus|while|because|since)\s/i.test(text) && text.length > 30) || // Much earlier keyword splits
-               text.length > 50;                                      // Much shorter threshold - prevent long buildup!
+        // GOAL: CARD CREATION SPEED - Ultra-aggressive processing
+        const hasEndPunctuation = /[.!?]\s/.test(text);
+        const hasCommaWithLength = /[,;:]\s/.test(text) && text.length > 25;
+        const hasConjunctionWithLength = /\s+(aber|doch|jedoch|außerdem|zudem|and|but|however|also|so|das\s+bedeutet|sondern|entstehen|anders|sieht|nächsten|therefore|thus|while|because|since)\s/i.test(text) && text.length > 30;
+        const tooLong = text.length > 50;
+        
+        const shouldProcess = hasEndPunctuation || hasCommaWithLength || hasConjunctionWithLength || tooLong;
+        
+        if (shouldProcess) {
+            const reason = hasEndPunctuation ? 'end-punctuation' : 
+                          hasCommaWithLength ? 'comma+length' :
+                          hasConjunctionWithLength ? 'conjunction+length' : 'too-long';
+            console.log(`🎯 [SHOULD-PROCESS] YES - Reason: ${reason}, length: ${text.length}`);
+        }
+        
+        return shouldProcess;
     }
     
     processCompleteSentence(sentence) {
@@ -621,8 +633,12 @@ class SenScript {
         
         console.log(`🔍 [WORTHY-CHECK] "${text.substring(0, 40)}..." (${trimmed.length} chars)`);
         
-        // Duplicate check - simplified
-        const textHash = trimmed.substring(0, 30);
+        // Duplicate check - speed optimized
+        const textHash = trimmed.substring(0, 40);
+        if (!this.recentTexts) {
+            this.recentTexts = new Set();
+        }
+        
         if (this.recentTexts.has(textHash)) {
             console.log(`🚫 [DUPLICATE] Similar text already processed`);
             return false;
@@ -631,11 +647,10 @@ class SenScript {
         this.recentTexts.add(textHash);
         setTimeout(() => {
             this.recentTexts.delete(textHash);
-        }, 5000);
+        }, 8000); // Faster cleanup for speed
         
-        // TESTING MODE: Very relaxed filters
-        // Only reject if too short
-        if (trimmed.length < 10) {
+        // GOAL: CARD CREATION SPEED - Optimized minimum length
+        if (trimmed.length < 15) {
             console.log(`❌ Too short: ${trimmed.length} chars`);
             return false;
         }
@@ -1135,22 +1150,31 @@ class SenScript {
     }
     
     addTranscriptLine(text) {
-        // Split long text into multiple lines for better display
-        const maxLineLength = 60; // Shorter lines for better wrapping
-        const lines = this.splitTextForDisplay(text, maxLineLength);
+        // GOAL: CARD CREATION SPEED - Optimize UI display
+        const maxLineLength = 80; // From config
         
-        lines.forEach(line => {
-            const lineData = {
-                id: Date.now() + Math.random(),
-                text: line,
-                timestamp: new Date()
-            };
+        // Prevent duplicate detection
+        const recentText = this.transcriptLines.slice(-2).map(line => line.text).join(' ');
+        if (recentText.includes(text.trim())) {
+            console.log('🚫 [UI] Prevented duplicate line:', text.substring(0, 30));
+            return; // Skip duplicate
+        }
+        
+        // Cut off long sentences for display (speed optimization)
+        const displayText = text.length > maxLineLength ? 
+            text.substring(0, maxLineLength) + '...' : text;
             
-            this.transcriptLines.push(lineData);
-        });
+        const lineData = {
+            id: Date.now() + Math.random(),
+            text: displayText,
+            originalText: text, // Keep original for processing
+            timestamp: new Date()
+        };
         
-        // CONTINUOUS CLEANUP: Keep only last 6 lines for performance
-        const maxLines = 6;
+        this.transcriptLines.push(lineData);
+        
+        // CONTINUOUS CLEANUP: Keep only recent lines for performance (speed optimization)  
+        const maxLines = 10;
         if (this.transcriptLines.length > maxLines) {
             this.transcriptLines = this.transcriptLines.slice(-maxLines);
             console.log(`🧹 [CLEANUP] Trimmed transcript lines to ${maxLines} for performance`);
