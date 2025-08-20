@@ -1088,34 +1088,44 @@ class SenScript {
     setupExampleCards() {
         const exampleCards = [
             {
+                category: "MEETING TIP",
+                front: "How to handle \"Can you take the lead on this?\"",
+                back: "✅ Say: \"I'd be happy to coordinate this. Let me confirm the scope and timeline with everyone\"<br>❌ Avoid: \"I guess\" or immediately saying no<br>🎯 Strategy: Show enthusiasm while clarifying expectations"
+            },
+            {
+                category: "PRESENTATION TIP",
+                front: "Handling difficult Q&A questions",
+                back: "✅ Say: \"That's a great question. Let me think about that for a moment...\"<br>❌ Avoid: \"I don't know\" or making something up<br>🎯 Key point: Buy time to think, then give honest, thoughtful responses"
+            },
+            {
                 category: "INTERVIEW TIP",
                 front: "How to answer \"Tell me about yourself\"?",
                 back: "✅ Say: \"I'm a [role] with [X years] experience in [field]. Recently accomplished [specific achievement].\"<br>❌ Avoid: Personal life details, rambling, or \"I don't know where to start\"<br>🎯 Key point: Keep it professional, structured, and relevant to the job"
             },
             {
-                category: "WHAT TO SAY",
-                front: "When teacher asks: \"What is machine learning?\"",
-                back: "✅ Say: \"It's when computers learn patterns from data to make predictions, like how Netflix suggests movies\"<br>❌ Avoid: \"I don't know\" or overly technical jargon<br>🎯 Key point: Use simple analogies everyone understands"
+                category: "QUICK WIN",
+                front: "Biology test: Photosynthesis equation",
+                back: "✅ Remember: 6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂<br>🎯 Memory trick: \"Six and Six make Sugar and Six\"<br>✅ Key point: Plants use carbon dioxide and water to make glucose"
             },
             {
-                category: "KEY FACTS", 
-                front: "Python programming quick facts for interviews",
-                back: "✅ Python is interpreted, dynamically typed, and great for data science<br>✅ Created by Guido van Rossum in 1991<br>✅ Used by Google, Instagram, Netflix<br>🎯 Mention: \"I appreciate Python's readability and extensive libraries\""
+                category: "KEY FACTS",
+                front: "Chemistry test: Periodic table trends",
+                back: "✅ Atomic radius decreases left to right, increases top to bottom<br>✅ Ionization energy increases left to right, decreases top to bottom<br>🎯 Memory trick: Think of nuclear charge pulling electrons closer"
+            },
+            {
+                category: "WHAT TO SAY",
+                front: "History test: World War II causes",
+                back: "✅ Say: \"Multiple factors: Treaty of Versailles harshness, economic depression, rise of totalitarian regimes\"<br>❌ Avoid: Oversimplifying to just one cause<br>🎯 Strategy: Show understanding of complex historical connections"
             },
             {
                 category: "AVOID THIS",
-                front: "Salary negotiation - What NOT to say",
-                back: "❌ Never say: \"I'll take whatever you offer\" or \"Money isn't important\"<br>❌ Avoid: Asking about salary in the first interview<br>✅ Instead: \"I'm looking for a fair market rate for this role\"<br>🎯 Strategy: Let them make the first offer"
+                front: "Physics test: Common formula mistakes",
+                back: "❌ Never confuse: F=ma vs F=mg (weight vs general force)<br>❌ Don't forget: Units matter! Check if answer makes sense<br>✅ Always: Draw diagrams, identify known/unknown variables first"
             },
             {
                 category: "QUICK WIN",
-                front: "Math test: Quadratic formula shortcut",
-                back: "✅ Remember: \"x equals negative b, plus or minus the square root of b squared minus 4ac, all over 2a\"<br>🎯 Memory trick: \"A Bee Can't See\" (a, b², c)<br>✅ Always check: Does your answer make sense in the original equation?"
-            },
-            {
-                category: "INTERVIEW TIP",
-                front: "How to handle \"What's your biggest weakness?\"",
-                back: "✅ Say: \"I sometimes focus too much on details, but I've learned to set time limits for perfectionism\"<br>❌ Avoid: \"I have no weaknesses\" or actual dealbreakers<br>🎯 Strategy: Pick a real weakness you're actively improving"
+                front: "Math test: Trigonometry memory trick",
+                back: "✅ SOHCAHTOA: Sin=Opposite/Hypotenuse, Cos=Adjacent/Hypotenuse, Tan=Opposite/Adjacent<br>🎯 Memory: \"Some Old Hippie Caught Another Hippie Tripping On Acid\"<br>✅ Always draw the triangle first"
             }
         ];
         
