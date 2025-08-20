@@ -1645,6 +1645,98 @@
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 0 12px 24px rgba(0, 0, 0, 0.08);
         }
         
+        /* Fix light mode text visibility in modal - make text dark */
+        .light .settings-content.glass-dark {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        .light .settings-content.glass-dark *,
+        .light .settings-content.glass-dark h1,
+        .light .settings-content.glass-dark h2, 
+        .light .settings-content.glass-dark h3,
+        .light .settings-content.glass-dark h4,
+        .light .settings-content.glass-dark p,
+        .light .settings-content.glass-dark span,
+        .light .settings-content.glass-dark div,
+        .light .settings-content.glass-dark li,
+        .light .settings-content.glass-dark ul,
+        .light .settings-content.glass-dark button,
+        .light .settings-content.glass-dark label,
+        .light .settings-content.glass-dark input,
+        .light .settings-content.glass-dark select {
+            color: #1f2937 !important;
+        }
+        
+        /* Keep specific elements with their intended colors in light mode */
+        .light .settings-content.glass-dark .status-dot,
+        .light .settings-content.glass-dark .record-dot,
+        .light .settings-content.glass-dark .theme-circle::before,
+        .light .settings-content.glass-dark .theme-circle::after {
+            color: transparent !important;
+        }
+        
+        /* Tab buttons in light mode */
+        .light .modal-tabs .tab-button {
+            color: #1f2937 !important;
+        }
+        
+        .light .modal-tabs .tab-button.active {
+            color: #f97316 !important;
+        }
+        
+        /* Form elements in light mode */
+        .light .settings-content.glass-dark .setting-description {
+            color: #6b7280 !important;
+        }
+        
+        .light .settings-content.glass-dark .api-key-input,
+        .light .settings-content.glass-dark .setting-input {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        .light .settings-content.glass-dark .api-key-input::placeholder,
+        .light .settings-content.glass-dark .setting-input::placeholder {
+            color: #9ca3af !important;
+        }
+        
+        /* Model buttons and glass buttons in light mode */
+        .light .settings-content.glass-dark .model-button {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 2px solid rgba(0, 0, 0, 0.08) !important;
+            color: #1e293b !important;
+        }
+        
+        .light .settings-content.glass-dark .glass-button {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* Interview Test Companion example cards in light mode */
+        .light .settings-content.glass-dark .example-card {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .light .settings-content.glass-dark .card-category {
+            color: #f97316 !important;
+        }
+        
+        .light .settings-content.glass-dark .nav-button {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        .light .settings-content.glass-dark .nav-button:hover {
+            background: rgba(0, 0, 0, 0.1) !important;
+        }
+        
         /* Tab Navigation - Match webapp card patterns */
         .modal-tabs {
             display: flex;
