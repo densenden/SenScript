@@ -1076,6 +1076,35 @@
             background: rgba(0, 0, 0, 0.15);
         }
         
+        /* Language Dropdown Styling */
+        #languageDropdown {
+            background: rgba(31, 41, 55, 0.95) !important;
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        .light #languageDropdown {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .language-dropdown-option {
+            transition: all 0.2s ease;
+            color: white;
+        }
+        
+        .language-dropdown-option:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .light .language-dropdown-option {
+            color: #1f2937;
+        }
+        
+        .light .language-dropdown-option:hover {
+            background: rgba(0, 0, 0, 0.05) !important;
+        }
+        
         .language-checkbox {
             accent-color: #007AFF;
         }
@@ -1603,30 +1632,16 @@
         }
         
         .settings-content {
-            /* Use exact same glass morphism as webapp .glass-dark */
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 36px;
             padding: 0;
             width: 100%;
             max-width: 600px;
             max-height: 90vh;
             overflow: hidden;
-            color: white;
             font-family: 'Inter', system-ui, sans-serif;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.2);
         }
         
         .light .settings-content {
-            /* Use exact same glass morphism as webapp .glass-light */
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 36px;
-            color: #1f2937;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 0 12px 24px rgba(0, 0, 0, 0.08);
         }
         
@@ -1643,7 +1658,7 @@
         }
         
         .light .modal-tabs {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(0, 0, 0, 0.05);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid rgba(0, 0, 0, 0.1);
@@ -3248,9 +3263,84 @@
                 </h2>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span id="cardCount" class="cards-count">0 cards</span>
-                    <div id="languageIndicator" class="language-bubble" title="Card output language (click to change)" style="cursor: pointer;">
+                    <div id="languageIndicator" class="language-bubble" title="Card output language (click to change)" style="cursor: pointer; position: relative;">
                         <span id="languageFlag">🔄</span>
                         <span id="languageText">AUTO</span>
+                        <span style="margin-left: 4px; font-size: 8px;">▼</span>
+                    </div>
+                    
+                    <!-- Language Dropdown -->
+                    <div id="languageDropdown" style="
+                        position: absolute;
+                        top: 100%;
+                        right: 0;
+                        background: rgba(31, 41, 55, 0.95);
+                        backdrop-filter: blur(20px) saturate(180%);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 12px;
+                        padding: 8px;
+                        margin-top: 4px;
+                        display: none;
+                        z-index: 1000;
+                        min-width: 160px;
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                    ">
+                        <div class="language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🔄</span>
+                            <span>Auto-detect</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇩🇪</span>
+                            <span>German</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇺🇸</span>
+                            <span>English</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇫🇷</span>
+                            <span>French</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="es-ES" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇪🇸</span>
+                            <span>Spanish</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="it-IT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇮🇹</span>
+                            <span>Italian</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="pt-PT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇵🇹</span>
+                            <span>Portuguese</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="nl-NL" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇳🇱</span>
+                            <span>Dutch</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ru-RU" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇷🇺</span>
+                            <span>Russian</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="zh-CN" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇨🇳</span>
+                            <span>Chinese</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ja-JP" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇯🇵</span>
+                            <span>Japanese</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ko-KR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇰🇷</span>
+                            <span>Korean</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ar-SA" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇸🇦</span>
+                            <span>Arabic</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="el-GR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇬🇷</span>
+                            <span>Greek</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3289,7 +3379,7 @@
     
     <!-- Settings Modal - Redesigned with Tabs -->
     <div id="settingsModal" class="settings-modal">
-        <div class="settings-content">
+        <div class="settings-content glass-dark">
             <!-- Modal Header -->
             <div class="settings-header">
                 <div class="settings-title-container">
@@ -3303,6 +3393,9 @@
             <div class="modal-tabs">
                 <button class="tab-button active" data-tab="app">
                     App Controls
+                </button>
+                <button class="tab-button" data-tab="interview">
+                    Interview Companion
                 </button>
                 <button class="tab-button" data-tab="ai">
                     AI & API
@@ -3364,33 +3457,12 @@
                                 <option value="ja-JP">🇯🇵 Japanese</option>
                                 <option value="ko-KR">🇰🇷 Korean</option>
                                 <option value="ar-SA">🇸🇦 Arabic</option>
+                                <option value="el-GR">🇬🇷 Greek</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Interview Test Companion Mode -->
-                <div class="setting-group">
-                    <label class="setting-label">Interview Test Companion</label>
-                    <p class="setting-description">Special mode for interviews, exams, and tests. Creates quick strategic tips and cheat sheets to help you shine.</p>
-                    
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                            <input type="checkbox" id="interviewMode" class="mode-checkbox">
-                            <span>Activate Interview Test Companion - Quick interview tips and test strategies</span>
-                        </label>
-                        
-                        <div class="mode-description" style="font-size: 12px; opacity: 0.8; margin-left: 24px; display: none; background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 8px;" id="interviewModeDescription">
-                            <p style="margin: 0 0 8px 0; font-weight: 500;">Creates strategic flashcards with:</p>
-                            <ul style="margin: 0; padding-left: 16px; line-height: 1.4;">
-                                <li>Quick facts to impress interviewers</li>
-                                <li>What to say vs. what NOT to say</li>
-                                <li>Key talking points for any topic</li>
-                                <li>Test-passing strategies</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- Education Preferences -->
                 <div class="setting-group">
@@ -3439,7 +3511,104 @@
                 </div>
             </div>
             
-            <!-- Tab 2: AI & API -->
+            <!-- Tab 2: Interview Test Companion -->
+            <div id="tab-interview" class="tab-content">
+                <div class="setting-group">
+                    <label class="setting-label">Interview Test Companion</label>
+                    <p class="setting-description">Your strategic assistant for interviews, exams, and tests. Creates smart cheat sheets to help you succeed.</p>
+                    
+                    <div style="margin-bottom: 24px;">
+                        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <input type="checkbox" id="interviewMode" class="mode-checkbox">
+                            <span>Activate Interview Test Companion Mode</span>
+                        </label>
+                        
+                        <div class="mode-description" style="font-size: 12px; opacity: 0.8; margin-left: 24px; display: none; background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; margin-top: 8px;" id="interviewModeDescription">
+                            <p style="margin: 0 0 12px 0; font-weight: 500; color: #f97316;">Creates strategic flashcards with:</p>
+                            <ul style="margin: 0; padding-left: 16px; line-height: 1.5;">
+                                <li><strong>Quick facts</strong> to showcase your knowledge</li>
+                                <li><strong>What to say</strong> vs. what NOT to say</li>
+                                <li><strong>Key talking points</strong> for any topic</li>
+                                <li><strong>Test-passing strategies</strong> and shortcuts</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Features Section -->
+                <div class="setting-group">
+                    <label class="setting-label">Features & Use Cases</label>
+                    <p class="setting-description">See how Interview Test Companion adapts to different scenarios.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;">
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Job Interviews</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Strategic answers, company knowledge, salary negotiation tips</p>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">School Exams</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Quick formulas, key concepts, memory tricks</p>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Presentations</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Audience engagement, handling Q&A, key messages</p>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Meetings</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Action items, follow-up strategies, decision points</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Cards Preview -->
+                <div class="setting-group">
+                    <label class="setting-label">Example Cards Preview</label>
+                    <p class="setting-description">Browse example flashcards to see the Interview Test Companion in action.</p>
+                    
+                    <div id="exampleCardsContainer" style="margin: 16px 0;">
+                        <div class="example-cards-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <button id="prevExampleCard" class="nav-button" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 6px 12px; color: white; cursor: pointer;">‹</button>
+                            <span id="cardCounter" style="font-size: 12px; opacity: 0.7;">1 / 6</span>
+                            <button id="nextExampleCard" class="nav-button" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 6px 12px; color: white; cursor: pointer;">›</button>
+                        </div>
+                        
+                        <div id="exampleCardDisplay" class="example-card" style="
+                            background: rgba(255, 255, 255, 0.1); 
+                            border: 1px solid rgba(255, 255, 255, 0.2); 
+                            border-radius: 12px; 
+                            padding: 16px; 
+                            min-height: 120px;
+                            backdrop-filter: blur(10px);
+                        ">
+                            <div class="card-category" style="font-size: 10px; color: #f97316; font-weight: bold; margin-bottom: 8px;">INTERVIEW TIP</div>
+                            <div class="card-front" style="font-weight: bold; margin-bottom: 12px; font-size: 14px;">How to answer "Tell me about yourself"?</div>
+                            <div class="card-back" style="font-size: 12px; line-height: 1.4; opacity: 0.9;">
+                                ✅ Say: "I'm a [role] with [X years] experience in [field]. Recently accomplished [specific achievement]."<br>
+                                ❌ Avoid: Personal life details, rambling, or "I don't know where to start"<br>
+                                🎯 Key point: Keep it professional, structured, and relevant to the job
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- When Active Section -->
+                <div class="setting-group" id="interviewActiveFeatures" style="display: none;">
+                    <label class="setting-label" style="color: #f97316;">Mode Active - Enhanced Features</label>
+                    <p class="setting-description">Interview Test Companion is now active and will automatically optimize card generation for strategic insights.</p>
+                    
+                    <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; padding: 16px; margin: 12px 0;">
+                        <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Auto-Optimized Settings:</h4>
+                        <ul style="margin: 0; padding-left: 16px; font-size: 11px; line-height: 1.4;">
+                            <li>Education level: Beginner (for clear, practical advice)</li>
+                            <li>Detail level: Concise (for quick reference)</li>
+                            <li>Card categories: Interview-specific (Tips, Facts, What to Say, etc.)</li>
+                            <li>Response style: Strategic and actionable</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: AI & API -->
             <div id="tab-ai" class="tab-content">
                 <!-- AI Model Selection -->
                 <div class="setting-group">

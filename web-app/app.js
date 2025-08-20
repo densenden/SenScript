@@ -1072,8 +1072,93 @@ class SenScript {
                 this.updateEducationDisplay();
             }
             
+            // Show/hide interview active features section
+            const activeFeatures = document.getElementById('interviewActiveFeatures');
+            if (activeFeatures) {
+                activeFeatures.style.display = isInterviewMode ? 'block' : 'none';
+            }
+            
             this.saveSettings();
         });
+        
+        // Setup example cards carousel
+        this.setupExampleCards();
+    }
+
+    setupExampleCards() {
+        const exampleCards = [
+            {
+                category: "INTERVIEW TIP",
+                front: "How to answer \"Tell me about yourself\"?",
+                back: "✅ Say: \"I'm a [role] with [X years] experience in [field]. Recently accomplished [specific achievement].\"<br>❌ Avoid: Personal life details, rambling, or \"I don't know where to start\"<br>🎯 Key point: Keep it professional, structured, and relevant to the job"
+            },
+            {
+                category: "WHAT TO SAY",
+                front: "When teacher asks: \"What is machine learning?\"",
+                back: "✅ Say: \"It's when computers learn patterns from data to make predictions, like how Netflix suggests movies\"<br>❌ Avoid: \"I don't know\" or overly technical jargon<br>🎯 Key point: Use simple analogies everyone understands"
+            },
+            {
+                category: "KEY FACTS", 
+                front: "Python programming quick facts for interviews",
+                back: "✅ Python is interpreted, dynamically typed, and great for data science<br>✅ Created by Guido van Rossum in 1991<br>✅ Used by Google, Instagram, Netflix<br>🎯 Mention: \"I appreciate Python's readability and extensive libraries\""
+            },
+            {
+                category: "AVOID THIS",
+                front: "Salary negotiation - What NOT to say",
+                back: "❌ Never say: \"I'll take whatever you offer\" or \"Money isn't important\"<br>❌ Avoid: Asking about salary in the first interview<br>✅ Instead: \"I'm looking for a fair market rate for this role\"<br>🎯 Strategy: Let them make the first offer"
+            },
+            {
+                category: "QUICK WIN",
+                front: "Math test: Quadratic formula shortcut",
+                back: "✅ Remember: \"x equals negative b, plus or minus the square root of b squared minus 4ac, all over 2a\"<br>🎯 Memory trick: \"A Bee Can't See\" (a, b², c)<br>✅ Always check: Does your answer make sense in the original equation?"
+            },
+            {
+                category: "INTERVIEW TIP",
+                front: "How to handle \"What's your biggest weakness?\"",
+                back: "✅ Say: \"I sometimes focus too much on details, but I've learned to set time limits for perfectionism\"<br>❌ Avoid: \"I have no weaknesses\" or actual dealbreakers<br>🎯 Strategy: Pick a real weakness you're actively improving"
+            }
+        ];
+        
+        let currentCardIndex = 0;
+        
+        const prevBtn = document.getElementById('prevExampleCard');
+        const nextBtn = document.getElementById('nextExampleCard');
+        const cardDisplay = document.getElementById('exampleCardDisplay');
+        const cardCounter = document.getElementById('cardCounter');
+        
+        const updateCard = () => {
+            if (!cardDisplay) return;
+            
+            const card = exampleCards[currentCardIndex];
+            cardDisplay.innerHTML = `
+                <div class="card-category" style="font-size: 10px; color: #f97316; font-weight: bold; margin-bottom: 8px;">${card.category}</div>
+                <div class="card-front" style="font-weight: bold; margin-bottom: 12px; font-size: 14px;">${card.front}</div>
+                <div class="card-back" style="font-size: 12px; line-height: 1.4; opacity: 0.9;">${card.back}</div>
+            `;
+            
+            if (cardCounter) {
+                cardCounter.textContent = `${currentCardIndex + 1} / ${exampleCards.length}`;
+            }
+        };
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentCardIndex = (currentCardIndex - 1 + exampleCards.length) % exampleCards.length;
+                updateCard();
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentCardIndex = (currentCardIndex + 1) % exampleCards.length;
+                updateCard();
+            });
+        }
+        
+        // Initialize with first card
+        updateCard();
     }
 
     setupLanguageControls() {
@@ -1116,22 +1201,16 @@ class SenScript {
             e.preventDefault();
             e.stopPropagation();
             
-            console.log('[Language] Opening settings modal to App Controls tab');
-            
-            // Open settings modal to App Controls tab
-            if (this.els.settingsModal) {
-                this.els.settingsModal.style.display = 'flex';
-                this.switchToTab('app');
-                
-                // Focus on the language section by scrolling it into view
-                setTimeout(() => {
-                    const autoLanguageElement = this.els.autoLanguage;
-                    if (autoLanguageElement) {
-                        autoLanguageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }, 100);
+            const dropdown = document.getElementById('languageDropdown');
+            if (dropdown) {
+                const isVisible = dropdown.style.display === 'block';
+                dropdown.style.display = isVisible ? 'none' : 'block';
+                console.log('[Language] Dropdown', isVisible ? 'hidden' : 'shown');
             }
         });
+        
+        // Setup language dropdown
+        this.setupLanguageDropdown();
         
         // Prevent language container clicks from closing modal
         if (this.els.languageSelectContainer) {
@@ -1171,7 +1250,8 @@ class SenScript {
             'zh-CN': '🇨🇳',
             'ja-JP': '🇯🇵',
             'ko-KR': '🇰🇷',
-            'ar-SA': '🇸🇦'
+            'ar-SA': '🇸🇦',
+            'el-GR': '🇬🇷'
         };
         
         const languageNames = {
@@ -1186,7 +1266,8 @@ class SenScript {
             'zh-CN': 'ZH',
             'ja-JP': 'JP',
             'ko-KR': 'KR',
-            'ar-SA': 'AR'
+            'ar-SA': 'AR',
+            'el-GR': 'GR'
         };
         
         if (this.apiSettings.outputLanguage.auto) {
@@ -1197,6 +1278,79 @@ class SenScript {
             this.els.languageFlag.textContent = languageFlags[lang] || '🌐';
             this.els.languageText.textContent = languageNames[lang] || lang.split('-')[0].toUpperCase();
         }
+    }
+    
+    setupLanguageDropdown() {
+        const dropdown = document.getElementById('languageDropdown');
+        const languageOptions = document.querySelectorAll('.language-dropdown-option');
+        
+        if (!dropdown) return;
+        
+        // Handle clicking outside dropdown to close it
+        document.addEventListener('click', (e) => {
+            if (!this.els.languageIndicator.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+        
+        // Handle language option clicks
+        languageOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                const selectedLang = option.dataset.lang;
+                console.log('[Language] Dropdown option selected:', selectedLang);
+                
+                if (selectedLang === 'auto') {
+                    this.apiSettings.outputLanguage.auto = true;
+                } else {
+                    this.apiSettings.outputLanguage.auto = false;
+                    this.apiSettings.outputLanguage.fixed = selectedLang;
+                }
+                
+                // Update display and save
+                this.updateLanguageIndicator();
+                this.saveSettings();
+                
+                // Close dropdown
+                dropdown.style.display = 'none';
+                
+                console.log('[Language] Settings updated via dropdown');
+            });
+        });
+        
+        // Add Greek to the language flags and names if missing
+        const languageFlags = {
+            'de-DE': '🇩🇪',
+            'en-US': '🇺🇸', 
+            'fr-FR': '🇫🇷',
+            'es-ES': '🇪🇸',
+            'it-IT': '🇮🇹',
+            'pt-PT': '🇵🇹',
+            'nl-NL': '🇳🇱',
+            'ru-RU': '🇷🇺',
+            'zh-CN': '🇨🇳',
+            'ja-JP': '🇯🇵',
+            'ko-KR': '🇰🇷',
+            'ar-SA': '🇸🇦',
+            'el-GR': '🇬🇷'
+        };
+        
+        const languageNames = {
+            'de-DE': 'DE',
+            'en-US': 'EN', 
+            'fr-FR': 'FR',
+            'es-ES': 'ES',
+            'it-IT': 'IT',
+            'pt-PT': 'PT',
+            'nl-NL': 'NL',
+            'ru-RU': 'RU',
+            'zh-CN': 'ZH',
+            'ja-JP': 'JP',
+            'ko-KR': 'KR',
+            'ar-SA': 'AR',
+            'el-GR': 'GR'
+        };
     }
     
     async connectAudioSource(stream) {
