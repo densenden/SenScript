@@ -1102,6 +1102,15 @@ class SenScript {
             this.saveSettings();
         });
         
+        // Additional event prevention for select dropdown
+        this.els.outputLanguage.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent modal closing on click
+        });
+        
+        this.els.outputLanguage.addEventListener('mousedown', (e) => {
+            e.stopPropagation(); // Prevent modal closing on mousedown
+        });
+        
         // Handle language indicator click
         this.els.languageIndicator.addEventListener('click', (e) => {
             e.preventDefault();
@@ -2544,8 +2553,12 @@ class SenScript {
                     readyState: audioTracks[0].readyState,
                     label: audioTracks[0].label
                 });
+                
+                // Update audio status display
+                this.updateAudioStatusDisplay('microphone', audioTracks[0]);
             } else {
                 console.error('[Audio] ❌ No audio tracks in stream!');
+                this.updateAudioStatusDisplay('microphone', null);
             }
             
             // Connect to audio visualization
@@ -2622,6 +2635,9 @@ class SenScript {
             console.error('[Audio] Microphone initialization failed:', error);
             this.setStatus('mic', 'red');
             this.shouldBeListening = false;
+            
+            // Update audio status to show disconnected
+            this.updateAudioStatusDisplay('microphone', null);
             this.updateListeningUI();
             
             // Show user-friendly error message
@@ -2670,6 +2686,14 @@ class SenScript {
                 audioTracks: stream.getAudioTracks().length,
                 videoTracks: stream.getVideoTracks().length
             });
+            
+            // Update audio status display for system audio
+            const audioTracks = stream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                this.updateAudioStatusDisplay('system', audioTracks[0]);
+            } else {
+                this.updateAudioStatusDisplay('system', null);
+            }
             
             this.systemStream = stream;
             
@@ -2724,6 +2748,9 @@ class SenScript {
             
         } catch (error) {
             console.error('[Audio] System audio error:', error);
+            
+            // Update audio status to show disconnected
+            this.updateAudioStatusDisplay('system', null);
             
             // Show user instruction for system audio
             if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
@@ -2784,6 +2811,9 @@ class SenScript {
         }
         
         console.log(`✅ [${timestamp}] [STOP-COMPLETE] All recording processes stopped\n`);
+        
+        // Reset audio status display
+        this.updateAudioStatusDisplay(this.currentAudioSource, null);
     }
     
     updateListeningUI() {
@@ -2826,6 +2856,40 @@ class SenScript {
                 mobileRecordButton.classList.remove('recording');
             }
         }
+    }
+    
+    updateAudioStatusDisplay(sourceType, audioTrack) {
+        const audioInputInfo = document.getElementById('audioInputInfo');
+        if (!audioInputInfo) return;
+        
+        if (!audioTrack) {
+            audioInputInfo.textContent = 'Not connected';
+            audioInputInfo.style.opacity = '0.7';
+            return;
+        }
+        
+        // Create descriptive status based on source type and track info
+        let statusText = '';
+        let deviceName = audioTrack.label || 'Unknown device';
+        
+        if (sourceType === 'microphone') {
+            statusText = `🎤 ${deviceName}`;
+            if (audioTrack.muted) {
+                statusText += ' (muted)';
+            } else if (audioTrack.readyState === 'live') {
+                statusText += ' - Active';
+            }
+        } else if (sourceType === 'system') {
+            statusText = `🔊 System audio`;
+            if (audioTrack.readyState === 'live') {
+                statusText += ' - Active';
+            }
+        }
+        
+        audioInputInfo.textContent = statusText;
+        audioInputInfo.style.opacity = audioTrack.readyState === 'live' ? '1' : '0.7';
+        
+        console.log('[Audio] Status updated:', statusText);
     }
     
     setupAudioSourceToggle() {
