@@ -12,6 +12,13 @@ export const SENSCRIPT_CONFIG = {
         PRINCIPLE: "Faster cards > Perfect accuracy"
     },
 
+    // ===== EDUCATION LEVEL ADAPTATION =====
+    EDUCATION: {
+        USER_LEVEL: 3,              // 1=Beginner, 2=Basic, 3=Balanced, 4=Advanced, 5=Expert
+        DETAIL_LEVEL: 3,            // 1=Brief, 2=Concise, 3=Moderate, 4=Detailed, 5=Comprehensive  
+        EXAMPLE_COMPLEXITY: 3       // 1=Simple, 2=Basic, 3=Real-world, 4=Technical, 5=Academic
+    },
+
     // ===== SPLITTING PARAMETERS =====
     SPLITTING: {
         // Real-time splitting thresholds (VERY AGGRESSIVE for speed)

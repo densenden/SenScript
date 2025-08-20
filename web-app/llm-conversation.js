@@ -2,17 +2,92 @@
 // Maintains context across calls to reduce API costs by 90%+
 
 class LLMConversation {
-    constructor(provider) {
+    constructor(provider, educationSettings = { USER_LEVEL: 3, DETAIL_LEVEL: 3, EXAMPLE_COMPLEXITY: 3 }) {
         this.provider = provider;
         this.conversations = new Map(); // Track conversations per session
         this.systemPrompt = null;
         this.maxContextSize = 10; // Keep last 10 exchanges
         this.tokenEstimate = 0;
+        this.educationSettings = educationSettings;
+        
+        console.log('[LLM-Conversation] Education settings:', this.educationSettings);
     }
     
-    getSystemPrompt() {
+    getSystemPrompt(educationSettings = { userLevel: 3, detailLevel: 3, exampleComplexity: 3 }, interviewMode = false) {
+        const { userLevel, detailLevel, exampleComplexity } = educationSettings;
+        
+        // Define education level descriptions
+        const userLevels = {
+            1: "complete beginner with no prior knowledge",
+            2: "basic learner with minimal background", 
+            3: "general audience with some education",
+            4: "advanced student with good background",
+            5: "expert/professional with deep knowledge"
+        };
+        
+        const detailLevels = {
+            1: "very brief, one-sentence explanations",
+            2: "concise explanations with key points only", 
+            3: "moderate detail with context and examples",
+            4: "detailed explanations with multiple aspects",
+            5: "comprehensive coverage with nuances and edge cases"
+        };
+        
+        const exampleLevels = {
+            1: "everyday analogies and simple comparisons",
+            2: "basic real-world examples everyone knows",
+            3: "practical examples from common experience", 
+            4: "technical examples with some complexity",
+            5: "academic examples with precise terminology"
+        };
+        
         if (!this.systemPrompt) {
-            this.systemPrompt = `You are an intelligent meeting assistant that creates educational flashcards from conversation snippets.
+            if (interviewMode) {
+                this.systemPrompt = `You are an Interview Test Companion - a strategic assistant that creates "Spickzettel" (cheat sheets) for interviews, exams, and tests.
+
+INTERVIEW MODE OBJECTIVE:
+Your goal is to help someone succeed in interviews and pass tests by providing strategic insights, key talking points, and smart responses.
+
+CRITICAL LANGUAGE RULE:
+- ALWAYS respond in the SAME LANGUAGE as the input transcript
+- German input = German flashcard
+- English input = English flashcard  
+- DO NOT translate or switch languages
+
+SPICKZETTEL CREATION RULES:
+- FRONT: Strategic question or key topic (max 1 line)
+- BACK: Smart answer with what to say + what NOT to say (max 3 lines)
+- Focus on IMPRESSING interviewers and PASSING tests
+- Provide quick facts, talking points, and strategic responses
+
+Examples of GOOD interview cards:
+Input: "Machine learning algorithms require large datasets for training"
+Output: {"front": "How to discuss ML in interviews?", "back": "✅ Say: 'ML needs quality data, not just quantity - feature engineering matters'\n❌ Avoid: Technical jargon without context\n🎯 Key point: Emphasize data quality over data size"}
+
+Input: "Quantencomputer verwenden Qubits für Berechnungen"
+Output: {"front": "Wie erkläre ich Quantencomputer?", "back": "✅ Sagen: 'Qubits können gleichzeitig 0 und 1 sein - das macht sie exponentiell schneller'\n❌ Vermeiden: Zu technische Details ohne Nutzen zu erklären\n🎯 Kernpunkt: Überlegenheit durch Parallelverarbeitung betonen"}
+
+STRATEGIC CATEGORIES:
+- "Interview Tip" - How to answer specific questions
+- "Key Facts" - Impressive facts to mention
+- "What to Say" - Good responses and talking points
+- "Avoid This" - Common mistakes to avoid
+- "Quick Win" - Easy points to score in tests/interviews
+
+Flashcard JSON format:
+{
+  "category": "Interview Tip|Key Facts|What to Say|Avoid This|Quick Win",
+  "front": "Strategic question or key topic (max 1 line, SAME LANGUAGE AS INPUT)",
+  "back": "Smart answer with what to say + what NOT to say (max 3 lines, SAME LANGUAGE AS INPUT)",
+  "source": {
+    "title": "Wikipedia article title or search term for deeper learning",
+    "type": "wikipedia|search"
+  },
+  "confidence": 0-100,
+  "skip": false
+}`;
+            } else {
+                this.systemPrompt = `You are an intelligent meeting assistant that creates educational flashcards from conversation snippets.
 
 CRITICAL LANGUAGE RULE:
 - ALWAYS respond in the SAME LANGUAGE as the input transcript
@@ -21,9 +96,14 @@ CRITICAL LANGUAGE RULE:
 - French input = French flashcard
 - DO NOT translate or switch languages
 
+EDUCATION LEVEL ADAPTATION:
+- Target audience: ${userLevels[userLevel]}
+- Explanation style: ${detailLevels[detailLevel]}
+- Example complexity: ${exampleLevels[exampleComplexity]}
+
 CRITICAL CONTENT RULES:
 - FRONT: Clear, simplified question or concept (max 1 line)
-- BACK: Concise answer or explanation (max 2 lines, NO question repetition)
+- BACK: Adjust explanation depth based on education level settings above - for detail level 5, provide comprehensive explanations with multiple aspects and nuances (max 4 lines)
 - Extract KNOWLEDGE and INSIGHTS, not just reformulate the question
 - Focus on answerable content with educational value
 
@@ -49,11 +129,22 @@ Output format:
 - If content has educational VALUE: Return JSON flashcard with clear Q&A
 - If content lacks educational VALUE: Return {"skip": true, "reason": "brief explanation"}
 
+MEANINGFUL CATEGORIES:
+- "How-To" - Step-by-step processes and methods
+- "Why" - Explanations of causes, reasons, and mechanisms  
+- "Key Insight" - Important realizations and discoveries
+- "Definition" - Clear explanations of terms and concepts
+- "Example" - Real-world applications and illustrations
+
 Flashcard JSON format:
 {
-  "category": "Question|Definition|Concept|Fact",
+  "category": "How-To|Why|Key Insight|Definition|Example",
   "front": "Clear question or concept (1 line, SAME LANGUAGE AS INPUT)",
-  "back": "Concise answer/explanation (max 2 lines, SAME LANGUAGE AS INPUT)",
+  "back": "Answer/explanation adapted to detail level - comprehensive for level 5 (max 4 lines, SAME LANGUAGE AS INPUT)",
+  "source": {
+    "title": "Wikipedia article title or search term for deeper learning",
+    "type": "wikipedia|search"
+  },
   "confidence": 0-100,
   "skip": false
 }
@@ -64,16 +155,17 @@ Remember:
 - BACK = actual answer/insight (NOT question repetition)
 - Skip content without clear educational answers
 - Focus on extracting knowledge and insights`;
+            }
         }
         return this.systemPrompt;
     }
     
-    async processTranscript(sessionId, transcript, language, languageFlag) {
+    async processTranscript(sessionId, transcript, language, languageFlag, outputLanguage = null, interviewMode = false) {
         // Get or create conversation for this session
         let conversation = this.conversations.get(sessionId);
         
         if (!conversation) {
-            conversation = this.createNewConversation(language);
+            conversation = this.createNewConversation(language, interviewMode);
             this.conversations.set(sessionId, conversation);
         }
         
@@ -82,6 +174,12 @@ Remember:
             this.updateConversationLanguage(conversation, language, languageFlag);
         }
         
+        // Determine which language to respond in
+        const responseLanguage = outputLanguage || language;
+        const responseLanguageName = this.getLanguageName(responseLanguage);
+        
+        console.log(`🎨 [LLM-CONVERSATION] Input: ${this.getLanguageName(language)}, Output: ${responseLanguageName}`);
+        
         // Add user message with transcript
         const userMessage = {
             role: 'user',
@@ -89,11 +187,14 @@ Remember:
 "${transcript}"
 
 CRITICAL REQUIREMENTS:
-1. Respond in ${this.getLanguageName(language)} ONLY (${language})
-2. FRONT: Clear question/concept (1 line max)
-3. BACK: Actual answer/insight (2 lines max, NO question repetition)
-4. Extract KNOWLEDGE, not just reformulate questions
-5. Skip if no educational answer/insight is provided
+1. ${outputLanguage ? `TRANSLATE TO ${responseLanguageName} (${responseLanguage}) - ALL text must be in ${responseLanguageName}, NOT ${this.getLanguageName(language)}` : `Respond in ${this.getLanguageName(language)} ONLY (${language})`}
+2. FRONT: Clear question/concept (1 line max) - ${outputLanguage ? `in ${responseLanguageName}` : `in ${this.getLanguageName(language)}`}
+3. BACK: Actual answer/insight (adapt to detail level - up to 4 lines for comprehensive) - ${outputLanguage ? `in ${responseLanguageName}` : `in ${this.getLanguageName(language)}`}
+4. SOURCE: Provide Wikipedia article title or search term for deeper learning - ${outputLanguage ? `in ${responseLanguageName}` : `in ${this.getLanguageName(language)}`}
+5. Extract KNOWLEDGE, not just reformulate questions
+6. Skip if no educational answer/insight is provided
+
+${outputLanguage ? `TRANSLATION REQUIRED: Input is ${this.getLanguageName(language)}, output MUST be ${responseLanguageName}. Translate all content while preserving educational value.` : ''}
 
 Does this segment contain answerable educational content? If yes, create flashcard. If no educational value, return skip:true.`
         };
@@ -132,20 +233,37 @@ Does this segment contain answerable educational content? If yes, create flashca
         }
     }
     
-    createNewConversation(language) {
+    createNewConversation(language, interviewMode = false) {
+        console.log('🎓 [LLM-CONVERSATION] Creating conversation with education settings:');
+        console.log('   Raw educationSettings object:', JSON.stringify(this.educationSettings, null, 2));
+        console.log('   Interview Mode:', interviewMode ? 'ACTIVATED' : 'Standard');
+        
+        const educationSettings = {
+            userLevel: this.educationSettings.USER_LEVEL || this.educationSettings.userLevel || 3,
+            detailLevel: this.educationSettings.DETAIL_LEVEL || this.educationSettings.detailLevel || 3,
+            exampleComplexity: this.educationSettings.EXAMPLE_COMPLEXITY || this.educationSettings.exampleComplexity || 3
+        };
+        
+        console.log('🎓 [LLM-CONVERSATION] Final education settings for prompt:');
+        console.log('   User Level:', educationSettings.userLevel, '(1=Beginner, 5=Expert)');
+        console.log('   Detail Level:', educationSettings.detailLevel, '(1=Brief, 5=Comprehensive)');  
+        console.log('   Example Complexity:', educationSettings.exampleComplexity, '(1=Simple, 5=Academic)');
+        console.log('   Will generate system prompt with these settings...');
+        
         return {
             id: Date.now(),
             provider: this.selectOptimalProvider(),
             messages: [
                 {
                     role: 'system',
-                    content: this.getSystemPrompt()
+                    content: this.getSystemPrompt(educationSettings, interviewMode)
                 }
             ],
             currentLanguage: language,
             totalCalls: 0,
             cardsGenerated: 0,
-            startTime: Date.now()
+            startTime: Date.now(),
+            interviewMode: interviewMode
         };
     }
     
@@ -247,7 +365,7 @@ Does this segment contain answerable educational content? If yes, create flashca
             body: JSON.stringify({
                 model: provider.model,
                 messages: messages,
-                max_tokens: 150, // Reduced for efficiency
+                max_tokens: 300, // Increased for more detailed cards
                 temperature: 0.5  // Lower for consistency
             })
         });
@@ -262,10 +380,18 @@ Does this segment contain answerable educational content? If yes, create flashca
         try {
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                // Clean the JSON string to remove control characters that break parsing
+                const cleanJson = jsonMatch[0]
+                    .replace(/[\x00-\x1f\x7f-\x9f]/g, '') // Remove control characters
+                    .replace(/\n/g, '\\n')  // Escape newlines properly
+                    .replace(/\r/g, '\\r')  // Escape carriage returns
+                    .replace(/\t/g, '\\t'); // Escape tabs
+                
+                return JSON.parse(cleanJson);
             }
         } catch (e) {
             console.error('Parse error:', e);
+            console.error('Raw content:', content);
         }
         
         return { skip: true, reason: 'Parse error' };
@@ -296,7 +422,7 @@ Does this segment contain answerable educational content? If yes, create flashca
                 model: provider.model,
                 system: systemPrompt,
                 messages: anthropicMessages,
-                max_tokens: 150,
+                max_tokens: 300,
                 temperature: 0.5
             })
         });
@@ -311,10 +437,18 @@ Does this segment contain answerable educational content? If yes, create flashca
         try {
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                // Clean the JSON string to remove control characters that break parsing
+                const cleanJson = jsonMatch[0]
+                    .replace(/[\x00-\x1f\x7f-\x9f]/g, '') // Remove control characters
+                    .replace(/\n/g, '\\n')  // Escape newlines properly
+                    .replace(/\r/g, '\\r')  // Escape carriage returns
+                    .replace(/\t/g, '\\t'); // Escape tabs
+                
+                return JSON.parse(cleanJson);
             }
         } catch (e) {
             console.error('Parse error:', e);
+            console.error('Raw content:', content);
         }
         
         return { skip: true, reason: 'Parse error' };
@@ -330,7 +464,7 @@ Does this segment contain answerable educational content? If yes, create flashca
             body: JSON.stringify({
                 model: provider.model,
                 messages: messages,
-                max_tokens: 150,
+                max_tokens: 300,
                 temperature: 0.5
             })
         });
@@ -345,10 +479,18 @@ Does this segment contain answerable educational content? If yes, create flashca
         try {
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                // Clean the JSON string to remove control characters that break parsing
+                const cleanJson = jsonMatch[0]
+                    .replace(/[\x00-\x1f\x7f-\x9f]/g, '') // Remove control characters
+                    .replace(/\n/g, '\\n')  // Escape newlines properly
+                    .replace(/\r/g, '\\r')  // Escape carriage returns
+                    .replace(/\t/g, '\\t'); // Escape tabs
+                
+                return JSON.parse(cleanJson);
             }
         } catch (e) {
             console.error('Parse error:', e);
+            console.error('Raw content:', content);
         }
         
         return { skip: true, reason: 'Parse error' };
@@ -360,7 +502,15 @@ Does this segment contain answerable educational content? If yes, create flashca
             'en-US': 'English',
             'fr-FR': 'French',
             'es-ES': 'Spanish',
-            'it-IT': 'Italian'
+            'it-IT': 'Italian',
+            'ru-RU': 'Russian',
+            'ja-JP': 'Japanese',
+            'zh-CN': 'Chinese',
+            'ko-KR': 'Korean',
+            'pt-PT': 'Portuguese',
+            'nl-NL': 'Dutch',
+            'ar-SA': 'Arabic',
+            'el-GR': 'Greek'
         };
         return names[languageCode] || 'Unknown';
     }
@@ -388,6 +538,35 @@ Does this segment contain answerable educational content? If yes, create flashca
     
     clearAllSessions() {
         this.conversations.clear();
+    }
+    
+    // Update education settings for a specific session
+    updateEducationSettings(sessionId, newSettings) {
+        console.log('🎓 [LLM-CONVERSATION] Updating education settings for session:', sessionId);
+        console.log('   New settings:', JSON.stringify(newSettings, null, 2));
+        
+        // Update global default settings
+        if (newSettings.userLevel !== undefined) {
+            this.educationSettings.userLevel = newSettings.userLevel;
+            this.educationSettings.USER_LEVEL = newSettings.userLevel; // Backward compatibility
+        }
+        if (newSettings.detailLevel !== undefined) {
+            this.educationSettings.detailLevel = newSettings.detailLevel;
+            this.educationSettings.DETAIL_LEVEL = newSettings.detailLevel;
+        }
+        if (newSettings.exampleComplexity !== undefined) {
+            this.educationSettings.exampleComplexity = newSettings.exampleComplexity;
+            this.educationSettings.EXAMPLE_COMPLEXITY = newSettings.exampleComplexity;
+        }
+        
+        console.log('🎓 [LLM-CONVERSATION] Updated educationSettings:', JSON.stringify(this.educationSettings, null, 2));
+        
+        // Clear existing conversation for this session to force new system prompt
+        const conversation = this.conversations.get(sessionId);
+        if (conversation) {
+            console.log('🔄 [LLM-CONVERSATION] Clearing existing conversation to apply new education settings');
+            this.conversations.delete(sessionId);
+        }
     }
 }
 

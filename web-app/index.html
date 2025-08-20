@@ -61,22 +61,51 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
-        /* Light theme button styles */
-        .light .glass-button {
-            background: rgba(0, 0, 0, 0.05);
+        /* Light theme button styles - WHITE buttons for screen-2 and screen-3 only */
+        .light .screen-2 .glass-button,
+        .light .screen-3 .glass-button {
+            background: rgba(255, 255, 255, 0.95);
             border: 1px solid rgba(0, 0, 0, 0.1);
             color: #1f2937;
             border-radius: 15px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(20px) saturate(180%);
         }
         
-        .light .glass-button:hover {
-            background: rgba(0, 0, 0, 0.1);
+        .light .screen-2 .glass-button:hover,
+        .light .screen-3 .glass-button:hover {
+            background: rgba(255, 255, 255, 1);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
         }
         
-        .light .glass-button:active {
+        .light .screen-2 .glass-button:active,
+        .light .screen-3 .glass-button:active {
+            background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            transform: translateY(0);
+        }
+        
+        /* Light theme button styles - DARK buttons for screen-1 (keep original dark appearance) */
+        .light .screen-1 .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px) saturate(180%);
+        }
+        
+        .light .screen-1 .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 3px 6px rgba(0, 0, 0, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        .light .screen-1 .glass-button:active {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+            transform: translateY(0);
         }
         
         /* Mobile-first responsive design - APP-LIKE LAYOUT */
@@ -196,9 +225,9 @@
             display: flex; /* Force display on mobile */
         }
         
-        /* Hide LLM button on mobile */
+        /* Settings button visible on mobile */
         .app-header #settingsBtn {
-            display: none !important;
+            display: flex !important;
         }
         
         .app-header .logo-text h1 {
@@ -792,7 +821,19 @@
             font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 4px;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .language-indicator span {
+            line-height: 1;
+        }
+        
+        /* When confidence is empty, center the language code perfectly */
+        .language-indicator:has(span:empty) {
+            gap: 0;
         }
         
         .light .language-indicator {
@@ -823,7 +864,74 @@
             -ms-hyphens: auto;
         }
         
-        /* Animated transcript lines - smoother, less wobbling */
+        /* THREE-ROW TRANSCRIPT STRUCTURE */
+        .transcript-rows {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: flex-start;
+            gap: 8px;
+        }
+        
+        .transcript-row {
+            display: flex;
+            align-items: baseline;
+            min-height: 40px;
+            padding: 8px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .transcript-row .time {
+            font-size: 14px;
+            opacity: 0.6;
+            min-width: 80px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .transcript-row .text {
+            flex: 1;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        
+        /* Row opacity levels for visual hierarchy */
+        .transcript-row.old {
+            opacity: 0.4;
+            transform: translateY(-2px);
+        }
+        
+        .transcript-row.previous {
+            opacity: 0.7;
+        }
+        
+        .transcript-row.current {
+            opacity: 1;
+            font-weight: 500;
+        }
+        
+        .transcript-row.interim {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #007AFF;
+            padding-left: 12px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Light mode transcript rows */
+        .light .transcript-row.interim {
+            background: rgba(0, 0, 0, 0.03);
+            border-left-color: #007AFF;
+        }
+        
+        /* Legacy transcript line styles (for compatibility) */
         .transcript-line {
             display: block;
             margin-bottom: 8px;
@@ -938,6 +1046,38 @@
         
         .light .cards-count {
             color: #1f2937;
+        }
+        
+        .language-bubble {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .language-bubble:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        .light .language-bubble {
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+        }
+        
+        .light .language-bubble:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        
+        .language-checkbox {
+            accent-color: #007AFF;
         }
         
         .cards-container {
@@ -1445,189 +1585,886 @@
             }
         }
         
-        /* Settings Modal */
+        /* Settings Modal - Redesigned with better mobile optimization */
         .settings-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.75);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 16px;
         }
         
         .settings-content {
-            background: rgba(20, 20, 30, 0.95);
-            backdrop-filter: blur(40px);
+            /* Use exact same glass morphism as webapp .glass-dark */
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh; /* Limit height on mobile */
-            overflow-y: auto; /* Enable scrolling */
+            border-radius: 36px;
+            padding: 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
             color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.2);
         }
         
         .light .settings-content {
-            background: rgba(255, 255, 255, 0.95);
+            /* Use exact same glass morphism as webapp .glass-light */
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
             border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 36px;
             color: #1f2937;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 0 12px 24px rgba(0, 0, 0, 0.08);
         }
         
-        .settings-header {
+        /* Tab Navigation - Match webapp card patterns */
+        .modal-tabs {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0;
+            margin: 0;
         }
         
-        .settings-title {
-            font-size: 24px;
-            font-weight: 600;
+        .light .modal-tabs {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
         
-        .settings-close {
-            background: none;
+        .tab-button {
+            flex: 1;
+            padding: 16px 12px;
+            background: transparent;
             border: none;
-            font-size: 24px;
-            color: white;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            position: relative;
+            text-align: center;
         }
         
-        .light .settings-close {
-            color: #1f2937;
-        }
-        
-        .settings-close:hover {
+        .tab-button:hover {
+            color: white;
             background: rgba(255, 255, 255, 0.1);
         }
         
-        .light .settings-close:hover {
+        .tab-button.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: white;
+        }
+        
+        .light .tab-button {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        .light .tab-button:hover {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .light .tab-button.active {
+            color: #1f2937;
             background: rgba(0, 0, 0, 0.1);
         }
         
-        .setting-group {
-            margin-bottom: 24px;
+        .light .tab-button.active::after {
+            background: #1f2937;
         }
         
-        .setting-label {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 24px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
             display: block;
         }
         
+        .tab-icon {
+            display: none;
+        }
+        
+        /* Modal Header - Match webapp card patterns */
+        .settings-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0;
+        }
+        
+        .light .settings-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-title-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .settings-logo {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        
+        .light .settings-logo {
+            content: url('assets/images/logo-black.svg');
+        }
+        
+        .settings-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #f8fafc;
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+        
+        .light .settings-title {
+            color: #0f172a;
+        }
+        
+        .settings-close {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            /* Glass button styling inherited from .glass-button */
+        }
+        
+        /* Modal Body - Scrollable */
+        .settings-body {
+            padding: 24px;
+            max-height: calc(90vh - 80px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        
+        .settings-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .settings-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .settings-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .light .settings-body::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Setting Groups - Container Based */
+        .setting-group {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting-group:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .light .setting-group {
+            background: rgba(255, 255, 255, 1.0);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .light .setting-group:hover {
+            background: rgba(255, 255, 255, 1.0);
+            border-color: rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Setting Labels - Improved Typography */
+        .setting-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 8px;
+            display: block;
+            letter-spacing: -0.025em;
+        }
+        
+        .light .setting-label {
+            color: #1f2937;
+        }
+        
+        .setting-description {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .light .setting-description {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        /* Input Fields - Modern Design */
         .setting-input {
             width: 100%;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
             color: white;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        
+        .setting-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
         }
         
         .light .setting-input {
-            background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(0, 0, 0, 0.12);
             color: #1f2937;
+        }
+        
+        .light .setting-input:focus {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
         }
         
         .setting-input::placeholder {
             color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
         }
         
         .light .setting-input::placeholder {
             color: rgba(31, 41, 55, 0.5);
         }
+
+        /* Range Sliders - Better Design */
+        .setting-range {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            outline: none;
+            margin: 12px 0;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .setting-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .setting-range::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5), 0 3px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .setting-range::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .light .setting-range {
+            background: rgba(0, 0, 0, 0.15);
+        }
         
+        /* Improved Checkbox Styling */
+        input[type="checkbox"].language-checkbox,
+        input[type="checkbox"].mode-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: #f97316;
+            cursor: pointer;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        input[type="checkbox"].language-checkbox:checked,
+        input[type="checkbox"].mode-checkbox:checked {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-color: #f97316;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        
+        input[type="checkbox"].language-checkbox:checked::after,
+        input[type="checkbox"].mode-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .light input[type="checkbox"].language-checkbox,
+        .light input[type="checkbox"].mode-checkbox {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .light input[type="checkbox"].language-checkbox:checked,
+        .light input[type="checkbox"].mode-checkbox:checked {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-color: #f97316;
+        }
+        
+        /* Mode Description Styling for Light Mode */
+        .light .mode-description {
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: #1f2937 !important;
+        }
+
+        /* Range Labels - Improved Spacing */
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding: 0 4px;
+        }
+
+        .range-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #10b981;
+            padding: 4px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .range-description {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .light .range-description {
+            color: rgba(31, 41, 55, 0.6);
+            background: rgba(0, 0, 0, 0.05);
+            border-left: 3px solid rgba(0, 0, 0, 0.2);
+        }
+        
+        .light .usage-label {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        .light .checkbox-wrapper label {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        .light .metric-label {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        .api-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        .light .api-label {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        .range-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .light .range-label {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        .settings-text-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .settings-text-button:hover {
+            opacity: 0.8;
+        }
+        
+        .light .settings-text-button {
+            color: #1f2937;
+        }
+        
+        /* Model Grid - Card-based Layout */
         .model-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 12px;
             margin-top: 16px;
         }
         
         .model-button {
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            color: white;
+            padding: 16px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            color: #f1f5f9;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
             font-size: 13px;
             font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .model-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .model-button:hover::before {
+            opacity: 1;
         }
         
         .light .model-button {
-            background: rgba(0, 0, 0, 0.03);
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            color: #1f2937;
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            color: #1e293b;
         }
         
         .model-button:hover {
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .light .model-button:hover {
-            border-color: rgba(0, 0, 0, 0.2);
-            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
         }
         
         .model-button.selected {
             border-color: #10b981;
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(16, 185, 129, 0.15);
             color: #10b981;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .model-button.selected::before {
+            opacity: 0;
         }
         
         .model-name {
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
         }
         
         .model-cost {
-            font-size: 11px;
+            font-size: 12px;
             opacity: 0.7;
+            position: relative;
+            z-index: 1;
         }
         
+        /* Status Indicators - Colored Dots */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .status-indicator.green {
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .status-indicator.yellow {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+        
+        .status-indicator.red {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Usage Stats - Modern Card */
         .usage-stats {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 16px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 20px;
         }
         
         .light .usage-stats {
-            background: rgba(0, 0, 0, 0.03);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.04));
+            border: 1px solid rgba(16, 185, 129, 0.15);
         }
         
         .usage-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            font-size: 13px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            font-size: 14px;
         }
         
         .usage-item {
             text-align: center;
+            padding: 16px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .light .usage-item {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
         }
         
         .usage-value {
-            font-size: 20px;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .usage-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .light .usage-label {
+            color: #64748b;
+        }
+        
+        /* Save Button - Glass Style */
+        .save-button {
+            width: 100%;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
             font-weight: 700;
-            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .save-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        
+        .save-button:active {
+            transform: translateY(0);
+        }
+        
+        /* Checkbox Styling */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #10b981;
+            cursor: pointer;
+        }
+        
+        .checkbox-wrapper label {
+            font-size: 14px;
+            color: #94a3b8;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .light .checkbox-wrapper label {
+            color: #64748b;
+        }
+        
+        /* Theme Options */
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .theme-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-option:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .theme-option.selected {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            color: #f1f5f9;
+        }
+        
+        .light .theme-option {
+            background: rgba(0, 0, 0, 0.04);
+            border: 2px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        .light .theme-option:hover {
+            border-color: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.08);
+        }
+        
+        .light .theme-option.selected {
+            border-color: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.12);
+            color: #1e293b;
+        }
+        
+        .theme-preview {
+            width: 32px;
+            height: 20px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .system-preview {
+            background: linear-gradient(90deg, #1f2937 50%, #f8fafc 50%);
+        }
+        
+        .dark-preview {
+            background: #1f2937;
+        }
+        
+        .light-preview {
+            background: #f8fafc;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-option span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* Performance Metrics */
+        .metric-card {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .light .metric-card {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .light .metric-label {
+            color: #64748b;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
             color: #10b981;
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 640px) {
+            .settings-content {
+                margin: 8px;
+                max-height: calc(100vh - 16px);
+                border-radius: 24px;
+            }
+            
+            .settings-header {
+                padding: 16px 20px;
+            }
+            
+            .tab-content {
+                padding: 20px;
+                max-height: calc(100vh - 140px);
+            }
+            
+            .setting-group {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .model-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .usage-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .performance-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .theme-options {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .setting-label {
+                font-size: 15px;
+            }
+            
+            .setting-description {
+                font-size: 13px;
+            }
+            
+            .tab-button {
+                padding: 12px 8px;
+                font-size: 12px;
+            }
+            
+            .tab-icon {
+                font-size: 14px;
+            }
         }
         
         /* Mobile Landscape View - Complete Override */
@@ -2143,6 +2980,133 @@
                 flex: 0 0 100%;
             }
         }
+        
+        /* About page logo - 80% size, black in light mode */
+        .about-logo {
+            width: 48px; /* 80% of what appears to be ~60px */
+            height: 48px;
+            border-radius: 50%;
+        }
+        
+        .light .about-logo {
+            content: url('assets/images/logo-black.svg');
+        }
+        
+        /* Company card using exact frontend patterns */
+        .company-card {
+            background: rgba(255, 255, 255, 0.15); /* Exact frontend pattern */
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; /* Exact frontend border-radius */
+            padding: 20px; /* Standard frontend padding */
+            margin-bottom: 20px;
+        }
+        
+        .light .company-card {
+            background: rgba(255, 255, 255, 0.85); /* Exact light mode pattern */
+            border: 1px solid rgba(31, 41, 55, 0.1);
+        }
+        
+        /* System Status Cards - Bold Design */
+        .status-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .status-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .light .status-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(31, 41, 55, 0.1);
+        }
+        
+        .light .status-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .status-icon {
+            font-size: 28px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .light .status-icon {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .status-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .light .status-name {
+            color: #1f2937;
+        }
+        
+        /* Light mode: Transcript and AI windows should be white like inverted nav */
+        .light .screen-2.glass-light,
+        .light .screen-3.glass-light {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        /* Ensure text is dark in light mode for these screens */
+        .light .screen-2.glass-light *,
+        .light .screen-3.glass-light * {
+            color: #1f2937 !important;
+        }
+        
+        /* Keep specific colored elements */
+        .light .screen-2.glass-light .status-dot,
+        .light .screen-3.glass-light .status-dot,
+        .light .screen-2.glass-light .language-indicator,
+        .light .screen-3.glass-light .card {
+            color: inherit !important;
+        }
+
+        /* Light mode styles for glass-dark containers (transcript and cards) */
+        .light .screen-2.glass-dark,
+        .light .screen-3.glass-dark {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Ensure text is dark in light mode for glass-dark screens */
+        .light .screen-2.glass-dark,
+        .light .screen-3.glass-dark {
+            color: #1f2937 !important;
+        }
+        
+        .light .screen-2.glass-dark *,
+        .light .screen-3.glass-dark * {
+            color: #1f2937 !important;
+        }
     </style>
 </head>
 <body>
@@ -2197,16 +3161,6 @@
                 </button>
             </div>
             
-            <div class="status-bar">
-                <button id="themeBtn" class="theme-toggle glass-button">
-                    <span id="themeCircle" class="theme-circle dark"></span>
-                    Theme
-                </button>
-                <button id="settingsBtn" class="status-button glass-button">
-                    <span class="status-dot yellow"></span>
-                    LLM
-                </button>
-            </div>
             
             <!-- Status & Features (desktop only) -->
             <div class="integrated-status desktop-only" style="margin-top: auto; padding: 0; margin: 0; display: flex; flex-direction: column;">
@@ -2220,25 +3174,13 @@
                         <li>• Export to JSON</li>
                     </ul>
                 </div>
-                
-                <div class="status-grid" style="margin-top: auto; padding-top: 0;">
-                    <div class="status-item" style="border-radius: 12px;">
-                        <span class="status-label">Speech API</span>
-                        <span class="status-dot green" id="speechStatus"></span>
-                    </div>
-                    <div class="status-item" style="border-radius: 12px;">
-                        <span class="status-label">AI Processing</span>
-                        <span class="status-dot yellow" id="aiStatus"></span>
-                    </div>
-                    <div class="status-item" style="border-radius: 12px;">
-                        <span class="status-label">Microphone</span>
-                        <span class="status-dot green" id="micStatus"></span>
-                    </div>
-                    <div class="status-item" style="border-radius: 12px;">
-                        <span class="status-label">System Audio</span>
-                        <span class="status-dot red" id="audioStatus"></span>
-                    </div>
-                </div>
+            </div>
+            
+            <!-- Settings button at absolute bottom -->
+            <div style="margin-top: auto;">
+                <button id="settingsBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;">
+                    Settings
+                </button>
             </div>
         </div>
         
@@ -2260,8 +3202,12 @@
                 </div>
                 
                 <div class="status-bar">
-                    <button id="mobileThemeBtn" class="theme-toggle glass-button">
-                        <span id="mobileThemeCircle" class="theme-circle dark"></span>
+                    <button id="mobileSettingsBtn" class="glass-button" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="12" cy="5" r="1"></circle>
+                            <circle cx="12" cy="19" r="1"></circle>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -2274,9 +3220,9 @@
             <div class="transcript-container">
                 <div class="transcript-header">
                     <h2 class="transcript-title">Live Transcript</h2>
-                    <div class="language-indicator">
+                    <div id="transcriptLanguageIndicator" class="language-bubble" title="Detected input language">
+                        <span id="transcriptLanguageFlag">🌐</span>
                         <span id="langCodeTranscript">AUTO</span>
-                        <span id="langConfTranscript"></span>
                     </div>
                 </div>
                 <!-- Transcript Content -->
@@ -2296,8 +3242,17 @@
             <!-- Screen 3: Flashcards -->
             <div class="screen-3 glass-dark" id="screen3">
             <div class="cards-header">
-                <h2 class="cards-title">AI Flashcards</h2>
-                <span id="cardCount" class="cards-count">0 cards</span>
+                <h2 class="cards-title">
+                    <span id="cardsMainTitle">AI Flashcards</span>
+                    <span id="cardsModeIndicator" style="font-size: 12px; opacity: 0.6; font-weight: 400; margin-left: 8px;"></span>
+                </h2>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span id="cardCount" class="cards-count">0 cards</span>
+                    <div id="languageIndicator" class="language-bubble" title="Card output language (click to change)" style="cursor: pointer;">
+                        <span id="languageFlag">🔄</span>
+                        <span id="languageText">AUTO</span>
+                    </div>
+                </div>
             </div>
             <div id="cardsContainer" class="cards-container">
                 <div style="text-align: center; opacity: 0.5; padding: 40px 20px;">
@@ -2319,24 +3274,6 @@
         <div class="app-footer">
             <!-- Screen 4: Info & Status - Now Footer -->
             <div class="screen-4 glass-dark" id="screen4">
-            <div class="info-grid">
-                <div class="info-card">
-                    <h4>Speech API</h4>
-                    <span class="status-dot green" id="speechStatus"></span>
-                </div>
-                <div class="info-card">
-                    <h4>AI Processing</h4>
-                    <span class="status-dot yellow" id="aiStatus"></span>
-                </div>
-                <div class="info-card">
-                    <h4>Microphone</h4>
-                    <span class="status-dot green" id="micStatus"></span>
-                </div>
-                <div class="info-card">
-                    <h4>System Audio</h4>
-                    <span class="status-dot red" id="audioStatus"></span>
-                </div>
-            </div>
             
             <!-- Features section hidden on mobile -->
             
@@ -2350,68 +3287,330 @@
     </div> <!-- Close container -->
     
     
-    <!-- Settings Modal -->
+    <!-- Settings Modal - Redesigned with Tabs -->
     <div id="settingsModal" class="settings-modal">
         <div class="settings-content">
+            <!-- Modal Header -->
             <div class="settings-header">
-                <h2 class="settings-title">LLM Settings</h2>
-                <button id="settingsClose" class="settings-close">×</button>
+                <div class="settings-title-container">
+                    <img src="assets/images/logo-white.svg" alt="SenScript" class="settings-logo">
+                    <h2 class="settings-title">SenScript Settings</h2>
+                </div>
+                <button id="settingsClose" class="settings-close glass-button">×</button>
             </div>
             
-            <div class="setting-group">
-                <label class="setting-label">🚀 Select AI Model (fastest response wins)</label>
-                <div id="modelGrid" class="model-grid">
-                    <!-- Models loaded dynamically -->
+            <!-- Tab Navigation -->
+            <div class="modal-tabs">
+                <button class="tab-button active" data-tab="app">
+                    App Controls
+                </button>
+                <button class="tab-button" data-tab="ai">
+                    AI & API
+                </button>
+                <button class="tab-button" data-tab="stats">
+                    Statistics
+                </button>
+                <button class="tab-button" data-tab="about">
+                    About
+                </button>
+            </div>
+            
+            <!-- Tab 1: App Controls -->
+            <div id="tab-app" class="tab-content active">
+                <!-- Theme Settings -->
+                <div class="setting-group">
+                    <label class="setting-label">Theme Settings</label>
+                    <p class="setting-description">Choose your preferred appearance theme.</p>
+                    
+                    <div class="theme-options" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+                        <div class="theme-option" data-theme="system">
+                            <div class="theme-preview system-preview"></div>
+                            <span>System</span>
+                        </div>
+                        <div class="theme-option" data-theme="dark">
+                            <div class="theme-preview dark-preview"></div>
+                            <span>Dark</span>
+                        </div>
+                        <div class="theme-option" data-theme="light">
+                            <div class="theme-preview light-preview"></div>
+                            <span>Light</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Output Language -->
+                <div class="setting-group">
+                    <label class="setting-label">Card Language</label>
+                    <p class="setting-description">Choose the language for AI-generated flashcards.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <input type="checkbox" id="autoLanguage" class="language-checkbox" checked>
+                            <span>AUTO - Match input language</span>
+                        </label>
+                        
+                        <div id="languageSelectContainer" style="display: none;">
+                            <label class="api-label">Fixed Output Language</label>
+                            <select id="outputLanguage" class="setting-input">
+                                <option value="de-DE">🇩🇪 German</option>
+                                <option value="en-US">🇺🇸 English</option>
+                                <option value="fr-FR">🇫🇷 French</option>
+                                <option value="es-ES">🇪🇸 Spanish</option>
+                                <option value="it-IT">🇮🇹 Italian</option>
+                                <option value="pt-PT">🇵🇹 Portuguese</option>
+                                <option value="nl-NL">🇳🇱 Dutch</option>
+                                <option value="ru-RU">🇷🇺 Russian</option>
+                                <option value="zh-CN">🇨🇳 Chinese</option>
+                                <option value="ja-JP">🇯🇵 Japanese</option>
+                                <option value="ko-KR">🇰🇷 Korean</option>
+                                <option value="ar-SA">🇸🇦 Arabic</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interview Test Companion Mode -->
+                <div class="setting-group">
+                    <label class="setting-label">Interview Test Companion</label>
+                    <p class="setting-description">Special mode for interviews, exams, and tests. Creates quick strategic tips and cheat sheets to help you shine.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <input type="checkbox" id="interviewMode" class="mode-checkbox">
+                            <span>Activate Interview Test Companion - Quick interview tips and test strategies</span>
+                        </label>
+                        
+                        <div class="mode-description" style="font-size: 12px; opacity: 0.8; margin-left: 24px; display: none; background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 8px;" id="interviewModeDescription">
+                            <p style="margin: 0 0 8px 0; font-weight: 500;">Creates strategic flashcards with:</p>
+                            <ul style="margin: 0; padding-left: 16px; line-height: 1.4;">
+                                <li>Quick facts to impress interviewers</li>
+                                <li>What to say vs. what NOT to say</li>
+                                <li>Key talking points for any topic</li>
+                                <li>Test-passing strategies</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Education Preferences -->
+                <div class="setting-group">
+                    <label class="setting-label">Education Level <span class="status-indicator yellow"></span></label>
+                    <p class="setting-description">Controls how the AI assumes your background knowledge level for explanations.</p>
+                    
+                    <input type="range" id="educationLevel" min="1" max="5" value="3" class="setting-range">
+                    <div class="range-labels">
+                        <span class="range-label">Beginner</span>
+                        <span id="educationLevelValue" class="range-value">Balanced</span>
+                        <span class="range-label">Expert</span>
+                    </div>
+                    <p id="educationLevelDesc" class="range-description">
+                        General audience with some education
+                    </p>
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label">Detail Level</label>
+                    <p class="setting-description">Controls explanation length and depth in AI responses.</p>
+                    
+                    <input type="range" id="detailLevel" min="1" max="5" value="3" class="setting-range">
+                    <div class="range-labels">
+                        <span class="range-label">Brief</span>
+                        <span id="detailLevelValue" class="range-value">Moderate</span>
+                        <span class="range-label">Comprehensive</span>
+                    </div>
+                    <p id="detailLevelDesc" class="range-description">
+                        Moderate detail with context and examples
+                    </p>
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label">Example Complexity</label>
+                    <p class="setting-description">Controls the complexity of examples and analogies used in explanations.</p>
+                    
+                    <input type="range" id="exampleComplexity" min="1" max="5" value="3" class="setting-range">
+                    <div class="range-labels">
+                        <span class="range-label">Simple</span>
+                        <span id="exampleComplexityValue" class="range-value">Real-world</span>
+                        <span class="range-label">Academic</span>
+                    </div>
+                    <p id="exampleComplexityDesc" class="range-description">
+                        Practical examples from common experience
+                    </p>
                 </div>
             </div>
             
-            <div class="setting-group">
-                <label class="setting-label">🔑 OpenAI API Key</label>
-                <input type="password" id="openaiKey" class="setting-input" placeholder="sk-... (optional - fallback key provided)">
-            </div>
-            
-            <div class="setting-group">
-                <label class="setting-label">🧠 Anthropic API Key</label>
-                <input type="password" id="anthropicKey" class="setting-input" placeholder="sk-ant-... (optional - fallback key provided)">
-            </div>
-            
-            <div class="setting-group">
-                <label class="setting-label">🌊 DeepSeek API Key</label>
-                <input type="password" id="deepseekKey" class="setting-input" placeholder="sk-... (optional - fallback key provided)">
-            </div>
-            
-            <div class="setting-group">
-                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
-                    <input type="checkbox" id="useFallback" checked>
-                    Use SenScript fallback keys when your keys aren't provided
-                </label>
-            </div>
-            
-            <div class="usage-stats">
-                <h4 style="margin-bottom: 12px; font-size: 16px;">📊 Usage Stats</h4>
-                <div class="usage-grid">
-                    <div class="usage-item">
-                        <div id="totalCalls" class="usage-value">0</div>
-                        <div>API Calls</div>
+            <!-- Tab 2: AI & API -->
+            <div id="tab-ai" class="tab-content">
+                <!-- AI Model Selection -->
+                <div class="setting-group">
+                    <label class="setting-label">AI Model Selection</label>
+                    <p class="setting-description">Choose your preferred AI model. Fastest response wins automatically.</p>
+                    <div id="modelGrid" class="model-grid">
+                        <!-- Models loaded dynamically -->
                     </div>
-                    <div class="usage-item">
-                        <div id="totalTokens" class="usage-value">0</div>
-                        <div>Tokens Used</div>
+                </div>
+                
+                <!-- API Keys Container -->
+                <div class="setting-group">
+                    <label class="setting-label">API Keys</label>
+                    <p class="setting-description">Add your own API keys for unlimited usage, or use our fallback keys.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">OpenAI API Key</label>
+                        <input type="password" id="openaiKey" class="setting-input" placeholder="sk-... (optional)">
                     </div>
-                    <div class="usage-item">
-                        <div id="cardsGenerated" class="usage-value">0</div>
-                        <div>Cards Created</div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">Anthropic API Key</label>
+                        <input type="password" id="anthropicKey" class="setting-input" placeholder="sk-ant-... (optional)">
                     </div>
-                    <div class="usage-item">
-                        <div id="avgResponseTime" class="usage-value">0ms</div>
-                        <div>Avg Response</div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">DeepSeek API Key</label>
+                        <input type="password" id="deepseekKey" class="setting-input" placeholder="sk-... (optional)">
+                    </div>
+                    
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="useFallback" checked>
+                        <label for="useFallback">Use SenScript fallback keys when your keys aren't provided</label>
                     </div>
                 </div>
             </div>
             
-            <button id="saveSettings" class="glass-button" style="width: 100%; padding: 16px; margin-top: 24px; font-weight: 600;">
-                💾 Save Settings
-            </button>
+            <!-- Tab 3: Statistics -->
+            <div id="tab-stats" class="tab-content">
+                <!-- Usage Statistics Container -->
+                <div class="usage-stats">
+                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">Usage Statistics</h4>
+                    <div class="usage-grid">
+                        <div class="usage-item">
+                            <div id="totalCalls" class="usage-value">0</div>
+                            <div class="usage-label">API Calls</div>
+                        </div>
+                        <div class="usage-item">
+                            <div id="totalTokens" class="usage-value">0</div>
+                            <div class="usage-label">Tokens Used</div>
+                        </div>
+                        <div class="usage-item">
+                            <div id="cardsGenerated" class="usage-value">0</div>
+                            <div class="usage-label">Cards Created</div>
+                        </div>
+                        <div class="usage-item">
+                            <div id="avgResponseTime" class="usage-value">0ms</div>
+                            <div class="usage-label">Avg Response</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Status - Simple Design -->
+                <div class="setting-group">
+                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">System Status</h4>
+                    <div class="simple-status-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="simple-status-item" style="display: flex; align-items: center; gap: 12px;">
+                            <span id="speechApiStatus" class="status-dot green"></span>
+                            <span class="status-text" style="flex: 1;">Speech Recognition</span>
+                            <span id="speechApiInfo" class="status-info-text" style="opacity: 0.7; font-size: 13px;">Chrome Web Speech API</span>
+                        </div>
+                        <div class="simple-status-item" style="display: flex; align-items: center; gap: 12px;">
+                            <span id="aiProcessingStatus" class="status-dot green"></span>
+                            <span class="status-text" style="flex: 1;">AI Service</span>
+                            <span id="aiServiceInfo" class="status-info-text" style="opacity: 0.7; font-size: 13px;">OpenAI GPT-3.5</span>
+                        </div>
+                        <div class="simple-status-item" style="display: flex; align-items: center; gap: 12px;">
+                            <span id="audioInputStatus" class="status-dot red"></span>
+                            <span class="status-text" style="flex: 1;">Audio Input</span>
+                            <span id="audioInputInfo" class="status-info-text" style="opacity: 0.7; font-size: 13px;">Not connected</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Metrics -->
+                <div class="setting-group">
+                    <label class="setting-label">Performance Metrics</label>
+                    <p class="setting-description">Real-time performance data for optimization.</p>
+                    
+                    <div class="performance-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 16px;">
+                        <div class="metric-card">
+                            <div class="metric-label">Memory Usage</div>
+                            <div class="metric-value" id="memoryUsage">~8MB</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Session Duration</div>
+                            <div class="metric-value" id="sessionDuration">0m 0s</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Recognition Accuracy</div>
+                            <div class="metric-value" id="recognitionAccuracy">95%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Cards per Minute</div>
+                            <div class="metric-value" id="cardsPerMinute">0.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab 4: About -->
+            <div id="tab-about" class="tab-content">
+                <!-- Company Information -->
+                <div class="setting-group">
+                    <div class="about-header" style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                        <img src="assets/images/logo-white.svg" alt="SenScript" class="about-logo">
+                        <div>
+                            <h3 style="margin: 0; font-size: 20px; font-weight: 400;">SenScript</h3>
+                            <p style="margin: 0; opacity: 0.7; font-size: 14px;">Real-time AI flashcard generation</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Company section using exact frontend card pattern -->
+                    <div class="company-card">
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Company</h4>
+                        <div style="display: grid; gap: 8px; font-size: 14px; line-height: 1.5;">
+                            <div style="font-weight: 600;">SEN.CO UG (haftungsbeschränkt)</div>
+                            <div>Paradiesgasse 53, 60594 Frankfurt am Main, Germany</div>
+                            <div>Managing Director: Denis Kreuzer</div>
+                            <div>HRB 129222 | VAT ID: DE358821685</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact & Services -->
+                    <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div class="service-card" style="background: rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 20px;">
+                            <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Contact</h4>
+                            <div style="font-size: 14px; line-height: 1.6;">
+                                <div style="margin-bottom: 8px;"><a href="mailto:sound@sen.studio" style="color: inherit; text-decoration: none;">sound@sen.studio</a></div>
+                                <div style="margin-bottom: 8px;"><a href="tel:+4915566179807" style="color: inherit; text-decoration: none;">+49 15566179807</a></div>
+                                <div><a href="https://sen.studio" target="_blank" style="color: inherit; text-decoration: none;">sen.studio</a></div>
+                            </div>
+                        </div>
+                        
+                        <div class="service-card" style="background: rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 20px;">
+                            <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Development Services</h4>
+                            <div style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
+                                MVP Development • Web & Mobile Apps<br>
+                                AI Integration • Technical Infrastructure
+                            </div>
+                            <div><a href="https://dev.sen.studio" target="_blank" style="color: inherit; text-decoration: none; font-weight: 500;">dev.sen.studio</a></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Legal Links -->
+                    <div class="legal-links" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; padding: 16px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; font-size: 14px;">
+                        <a href="https://www.sen.studio/content/legal/imprint.html" target="_blank" style="color: inherit; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;">Imprint</a>
+                        <span style="opacity: 0.3;">•</span>
+                        <a href="https://www.sen.studio/content/legal/terms.html" target="_blank" style="color: inherit; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;">Terms</a>
+                        <span style="opacity: 0.3;">•</span>
+                        <a href="https://www.sen.studio/content/legal/privacy.html" target="_blank" style="color: inherit; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;">Privacy</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Save Button - Fixed at Bottom -->
+            <div style="padding: 20px 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.1);">
+                <button id="saveSettings" class="save-button glass-button">
+                    Save Settings
+                </button>
+            </div>
         </div>
     </div>
     

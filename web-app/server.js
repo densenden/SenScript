@@ -7,12 +7,30 @@ require('dotenv').config();
 const LLMProvider = require('./llm-providers');
 const LLMConversation = require('./llm-conversation');
 
+// Import education settings
+let SENSCRIPT_CONFIG = {};
+try {
+    // Try to import settings (may not exist in development)
+    const { SENSCRIPT_CONFIG: config } = require('./settings-config.js');
+    SENSCRIPT_CONFIG = config;
+    console.log('[Config] Loaded education settings:', config.EDUCATION || 'Default');
+} catch (error) {
+    console.log('[Config] Using default settings (settings-config.js not found)');
+    SENSCRIPT_CONFIG = {
+        EDUCATION: {
+            USER_LEVEL: 1,
+            DETAIL_LEVEL: 5,  
+            EXAMPLE_COMPLEXITY: 3
+        }
+    };
+}
+
 const port = process.env.PORT || 3002;
 const webAppDir = __dirname;
 
 // Initialize LLM system
 const llmProvider = new LLMProvider();
-const llmConversation = new LLMConversation(llmProvider);
+const llmConversation = new LLMConversation(llmProvider, SENSCRIPT_CONFIG.EDUCATION);
 
 // User settings storage (in production, use database)
 const userSettings = new Map();
@@ -134,15 +152,44 @@ async function generateFlashcard(sessionId, transcript, language, languageFlag) 
     // Apply user settings
     applyUserKeys(sessionId);
     
+    // LOG EDUCATION SETTINGS VERIFICATION
+    const userSettings = getUserSettings(sessionId);
+    console.log('🎓 [SERVER-EDUCATION] Education settings for session:', sessionId);
+    console.log('   User has settings:', userSettings ? 'YES' : 'NO');
+    if (userSettings && userSettings.education) {
+        console.log('   User Level:', userSettings.education.userLevel, '(1=Beginner, 5=Expert)');
+        console.log('   Detail Level:', userSettings.education.detailLevel, '(1=Brief, 5=Comprehensive)');
+        console.log('   Example Complexity:', userSettings.education.exampleComplexity, '(1=Simple, 5=Academic)');
+    } else {
+        console.log('   Education settings:', 'UNDEFINED - using default Level 3');
+    }
+    
     const startTime = Date.now();
 
     try {
+        // Check if user has output language override setting
+        const userSettings = getUserSettings(sessionId);
+        let outputLanguage = null;
+        
+        if (userSettings.outputLanguage && !userSettings.outputLanguage.auto) {
+            outputLanguage = userSettings.outputLanguage.fixed;
+            console.log(`🎨 [CARD-GENERATION] Using fixed output language: ${outputLanguage} (overriding input ${language})`);
+        } else {
+            console.log(`🎨 [CARD-GENERATION] Using auto language mode: ${language}`);
+        }
+        
+        // Check if user has interview mode enabled
+        const interviewMode = userSettings.interviewMode || false;
+        console.log(`🎯 [CARD-GENERATION] Interview mode: ${interviewMode ? 'ACTIVATED - Using Spickzettel strategy' : 'Standard educational cards'}`);
+        
         // Use conversation-based approach for efficiency
         const result = await llmConversation.processTranscript(
             sessionId,
             transcript,
             language,
-            languageFlag
+            languageFlag,
+            outputLanguage,  // Pass the output language override
+            interviewMode    // Pass the interview mode setting
         );
         
         // Track usage
@@ -189,19 +236,43 @@ const server = http.createServer(async (req, res) => {
         
         req.on('end', () => {
             try {
-                const { sessionId, apiKeys, selectedModel, useFallback } = JSON.parse(body);
+                const payload = JSON.parse(body);
+                const { sessionId, apiKeys, selectedModel, useFallback, education, outputLanguage } = payload;
                 const settings = getUserSettings(sessionId || 'default');
+                
+                console.log('📡 [SETTINGS-API] Received settings update:');
+                console.log('   SessionId:', sessionId || 'default');
+                console.log('   Full payload:', JSON.stringify(payload, null, 2));
                 
                 if (apiKeys) settings.apiKeys = apiKeys;
                 if (selectedModel !== undefined) settings.selectedModel = selectedModel;
                 if (useFallback !== undefined) settings.useFallback = useFallback;
+                if (payload.interviewMode !== undefined) settings.interviewMode = payload.interviewMode;
+                if (outputLanguage) {
+                    settings.outputLanguage = outputLanguage;
+                    console.log('🎨 [SETTINGS-API] Output language settings received:', JSON.stringify(outputLanguage, null, 2));
+                }
+                if (education) {
+                    settings.education = education;
+                    console.log('🎓 [SETTINGS-API] Education settings received:');
+                    console.log('   User Level:', education.userLevel, '(1=Beginner, 5=Expert)');
+                    console.log('   Detail Level:', education.detailLevel, '(1=Brief, 5=Comprehensive)');
+                    console.log('   Example Complexity:', education.exampleComplexity, '(1=Simple, 5=Academic)');
+                    
+                    // UPDATE LLM CONVERSATION WITH NEW EDUCATION SETTINGS
+                    console.log('🔄 [SETTINGS-API] Updating LLMConversation with new education settings...');
+                    llmConversation.updateEducationSettings(sessionId || 'default', education);
+                } else {
+                    console.log('⚠️  [SETTINGS-API] No education settings in payload!');
+                }
                 
                 userSettings.set(sessionId || 'default', settings);
                 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, settings }));
                 
-                console.log('[API] Settings updated for session:', sessionId || 'default');
+                console.log('✅ [SETTINGS-API] Settings stored for session:', sessionId || 'default');
+                console.log('   Final settings:', JSON.stringify(settings, null, 2));
             } catch (error) {
                 console.error('[API] Settings error:', error);
                 res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -251,6 +322,38 @@ const server = http.createServer(async (req, res) => {
         
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(models));
+        return;
+    }
+    
+    // API endpoint for system audio transcription
+    if (pathname === '/api/transcribe-system-audio' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+
+        req.on('end', async () => {
+            try {
+                // For now, return a mock response since we don't have Whisper API setup
+                // In production, this would process the audio file with Whisper or similar
+                console.log('[API] System audio transcription requested (mock response)');
+                
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    text: '',
+                    message: 'Server-side transcription not implemented yet'
+                }));
+            } catch (error) {
+                console.error('[API] Error in system audio transcription:', error.message);
+                
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    error: error.message
+                }));
+            }
+        });
         return;
     }
     

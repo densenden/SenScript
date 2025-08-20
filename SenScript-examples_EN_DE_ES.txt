@@ -1,7 +1,7 @@
 
 
 Today we explore quantum superposition and entanglement, examining how particles can exist in multiple states simultaneously. Professor Leif asks: What is the significance of the Heisenberg uncertainty principle? How does entanglement challenge locality? Let’s write wavefunctions and analyze interference patterns. Test questions: Define superposition. Explain entanglement. Derive uncertainty relation
-
+	
 
 Heute behandeln wir Quanten­superposition und Verschränkung, wie Teilchen gleichzeitig in mehreren Zuständen existieren können. Professor Leif fragt: Was bedeutet die Heisenbergsche Unschärferelation? Wie stellt Verschränkung lokale Kausalität infrage? Schreiben wir Wellenfunktionen und analysieren Interferenzmuster. Testfragen: Definiere Superposition. Erkläre Verschränkung. 
 
