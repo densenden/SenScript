@@ -261,7 +261,9 @@ const server = http.createServer(async (req, res) => {
                     
                     // UPDATE LLM CONVERSATION WITH NEW EDUCATION SETTINGS
                     console.log('🔄 [SETTINGS-API] Updating LLMConversation with new education settings...');
-                    llmConversation.updateEducationSettings(sessionId || 'default', education);
+                    // TODO: Implement updateEducationSettings in LLMConversation class
+                    // llmConversation.updateEducationSettings(sessionId || 'default', education);
+                    console.log('⚠️  [SETTINGS-API] Education settings update skipped (method not implemented yet)');
                 } else {
                     console.log('⚠️  [SETTINGS-API] No education settings in payload!');
                 }

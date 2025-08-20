@@ -113,8 +113,8 @@ class SenScript {
             // Interview mode controls
             interviewMode: document.getElementById('interviewMode'),
             interviewModeDescription: document.getElementById('interviewModeDescription'),
-            cardsMainTitle: document.getElementById('cardsMainTitle'),
-            cardsModeIndicator: document.getElementById('cardsModeIndicator'),
+            cardsModeToggle: document.getElementById('cardsModeToggle'),
+            modeInfoButton: document.getElementById('modeInfoButton'),
             educationLevelValue: document.getElementById('educationLevelValue'),
             educationLevelDesc: document.getElementById('educationLevelDesc'),
             detailLevel: document.getElementById('detailLevel'),
@@ -181,18 +181,20 @@ class SenScript {
         this.els.detailLevel.oninput = () => this.updateEducationDisplay();
         this.els.exampleComplexity.oninput = () => this.updateEducationDisplay();
         
-        // Close modal when clicking outside
+        // Close modal only when clicking the modal backdrop
         this.els.settingsModal.onclick = (e) => {
-            if (e.target === this.els.settingsModal) {
-                console.log('[Settings] Modal background clicked - closing');
+            // Only close if clicking directly on the modal backdrop
+            if (e.target.classList.contains('settings-modal')) {
+                console.log('[Settings] Modal backdrop clicked - closing');
                 this.closeSettings();
             }
         };
         
-        // Prevent settings content clicks from closing modal
+        // Simple content click prevention
         if (this.els.settingsContent) {
             this.els.settingsContent.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent modal closing
+                console.log('[Settings] Content area clicked, should NOT close modal');
+                // Don't prevent anything - let the modal onclick handler deal with it
             });
         }
         
@@ -1046,6 +1048,7 @@ class SenScript {
         
         // Handle interview mode toggle
         this.els.interviewMode.addEventListener('change', (e) => {
+            console.log('[Interview] Interview mode toggle changed to:', e.target.checked);
             e.stopPropagation(); // Prevent modal closing
             const isInterviewMode = e.target.checked;
             this.apiSettings.interviewMode = isInterviewMode;
@@ -1078,11 +1081,81 @@ class SenScript {
                 activeFeatures.style.display = isInterviewMode ? 'block' : 'none';
             }
             
-            this.saveSettings();
+            this.saveSettingsOnly();
         });
+        
+        // Setup mode toggle in flashcards header
+        this.setupModeToggle();
         
         // Setup example cards carousel
         this.setupExampleCards();
+        
+        // Add comprehensive event prevention for toggle switches
+        this.setupToggleSwitchEventPrevention();
+    }
+    
+    setupModeToggle() {
+        if (!this.els.cardsModeToggle || !this.els.modeInfoButton) return;
+        
+        // Handle mode toggle click
+        this.els.cardsModeToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('[Mode] Cards mode toggle clicked');
+            
+            // Toggle interview mode
+            const currentMode = this.apiSettings.interviewMode;
+            this.apiSettings.interviewMode = !currentMode;
+            
+            // Update the settings checkbox to match
+            if (this.els.interviewMode) {
+                this.els.interviewMode.checked = this.apiSettings.interviewMode;
+            }
+            
+            // Show/hide description in settings
+            if (this.els.interviewModeDescription) {
+                this.els.interviewModeDescription.style.display = this.apiSettings.interviewMode ? 'block' : 'none';
+            }
+            
+            // Update display
+            this.updateCardModeDisplay();
+            
+            // Apply interview mode settings
+            if (this.apiSettings.interviewMode) {
+                this.apiSettings.education.userLevel = 1;
+                this.apiSettings.education.detailLevel = 2;
+                this.apiSettings.education.exampleComplexity = 1;
+            }
+            
+            // Save settings
+            this.saveSettingsOnly();
+        });
+        
+        // Handle info button click - opens settings to CheatCard Mode tab
+        this.els.modeInfoButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('[Mode] Info button clicked - opening CheatCard Mode settings');
+            
+            // Open settings modal
+            this.openSettings();
+            
+            // Switch to interview/CheatCard tab
+            const interviewTab = document.querySelector('[data-tab="interview"]');
+            if (interviewTab) {
+                // Remove active from all tabs
+                document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Activate interview tab
+                interviewTab.classList.add('active');
+                const interviewContent = document.getElementById('tab-interview');
+                if (interviewContent) {
+                    interviewContent.classList.add('active');
+                }
+            }
+        });
+        
+        // Initialize display
+        this.updateCardModeDisplay();
     }
 
     setupExampleCards() {
@@ -1171,11 +1244,43 @@ class SenScript {
         updateCard();
     }
 
-    setupLanguageControls() {
-        if (!this.els.autoLanguage || !this.els.outputLanguage || !this.els.languageIndicator) return;
+    setupToggleSwitchEventPrevention() {
+        console.log('[Toggle] Setting up toggle switch event prevention');
         
-        // Handle auto language checkbox
+        // Add click prevention to all toggle-related elements
+        const toggleLabels = document.querySelectorAll('.settings-content .toggle-label');
+        const toggleSwitches = document.querySelectorAll('.settings-content .toggle-switch');
+        const toggleSliders = document.querySelectorAll('.settings-content .toggle-slider');
+        
+        console.log(`[Toggle] Found ${toggleLabels.length} labels, ${toggleSwitches.length} switches, ${toggleSliders.length} sliders`);
+        
+        // Prevent clicks on toggle containers from closing modal
+        [...toggleLabels, ...toggleSwitches, ...toggleSliders].forEach((element, index) => {
+            element.addEventListener('click', (e) => {
+                console.log(`[Toggle] Prevented modal close on toggle element ${index}`);
+                e.stopPropagation();
+            });
+        });
+        
+        console.log('[Toggle] Event prevention setup complete');
+    }
+
+    setupLanguageControls() {
+        console.log('[Language] Setting up language controls...');
+        console.log('[Language] Elements found:', {
+            autoLanguage: !!this.els.autoLanguage,
+            outputLanguage: !!this.els.outputLanguage, 
+            languageIndicator: !!this.els.languageIndicator
+        });
+        
+        if (!this.els.autoLanguage || !this.els.outputLanguage || !this.els.languageIndicator) {
+            console.warn('[Language] Missing required elements, skipping setup');
+            return;
+        }
+        
+        // Handle auto language toggle switch
         this.els.autoLanguage.addEventListener('change', (e) => {
+            console.log('[Language] Auto language toggle changed to:', e.target.checked);
             e.stopPropagation(); // Prevent modal closing
             const isAuto = e.target.checked;
             this.apiSettings.outputLanguage.auto = isAuto;
@@ -1186,7 +1291,7 @@ class SenScript {
             }
             
             this.updateLanguageIndicator();
-            this.saveSettings();
+            this.saveSettingsOnly();
         });
         
         // Handle fixed language selection
@@ -1194,7 +1299,7 @@ class SenScript {
             e.stopPropagation(); // Prevent modal closing
             this.apiSettings.outputLanguage.fixed = e.target.value;
             this.updateLanguageIndicator();
-            this.saveSettings();
+            this.saveSettingsOnly();
         });
         
         // Additional event prevention for select dropdown
@@ -1207,17 +1312,54 @@ class SenScript {
         });
         
         // Handle language indicator click
-        this.els.languageIndicator.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        console.log('[Language] Setting up click event for language indicator');
+        console.log('[Language] Language indicator element:', this.els.languageIndicator);
+        
+        if (this.els.languageIndicator) {
+            // Test that element is clickable
+            console.log('[Language] Language indicator clickable test:', {
+                element: this.els.languageIndicator,
+                style: window.getComputedStyle(this.els.languageIndicator).pointerEvents,
+                cursor: window.getComputedStyle(this.els.languageIndicator).cursor
+            });
             
-            const dropdown = document.getElementById('languageDropdown');
-            if (dropdown) {
-                const isVisible = dropdown.style.display === 'block';
-                dropdown.style.display = isVisible ? 'none' : 'block';
-                console.log('[Language] Dropdown', isVisible ? 'hidden' : 'shown');
-            }
-        });
+            this.els.languageIndicator.onclick = (e) => {
+                console.log('[Language] 🎯 LANGUAGE INDICATOR CLICKED!');
+                console.log('[Language] 🎯 Event:', e);
+                
+                const dropdown = document.getElementById('languageDropdown');
+                console.log('[Language] 🔍 Dropdown element:', dropdown);
+                
+                if (dropdown) {
+                    console.log('[Language] 📏 Current dropdown display:', dropdown.style.display);
+                    console.log('[Language] 📏 Computed dropdown display:', window.getComputedStyle(dropdown).display);
+                    
+                    const isCurrentlyVisible = dropdown.style.display === 'block';
+                    dropdown.style.display = isCurrentlyVisible ? 'none' : 'block';
+                    
+                    // Add visual feedback to the indicator
+                    if (dropdown.style.display === 'block') {
+                        this.els.languageIndicator.style.background = 'rgba(255, 255, 255, 0.15)';
+                        this.els.languageIndicator.style.transform = 'scale(1.05)';
+                    } else {
+                        this.els.languageIndicator.style.background = '';
+                        this.els.languageIndicator.style.transform = '';
+                    }
+                    
+                    console.log('[Language] 📦 Dropdown toggled to:', dropdown.style.display);
+                    console.log('[Language] 📦 Dropdown now visible:', dropdown.style.display === 'block');
+                } else {
+                    console.error('[Language] ❌ languageDropdown element not found!');
+                }
+                
+                // Prevent modal from closing
+                e.stopPropagation();
+                return false;
+            };
+        } else {
+            console.error('[Language] ❌ languageIndicator element not found!');
+            console.log('[Language] Available elements:', Object.keys(this.els));
+        }
         
         // Setup language dropdown
         this.setupLanguageDropdown();
@@ -1234,14 +1376,15 @@ class SenScript {
     }
     
     updateCardModeDisplay() {
-        if (!this.els.cardsMainTitle || !this.els.cardsModeIndicator) return;
+        if (!this.els.cardsModeToggle) return;
         
+        // Apply flip animation based on mode
         if (this.apiSettings.interviewMode) {
-            this.els.cardsMainTitle.textContent = 'Interview Test Companion';
-            this.els.cardsModeIndicator.textContent = '';
+            // Flip to show CheatCards (back side)
+            this.els.cardsModeToggle.style.transform = 'rotateY(180deg)';
         } else {
-            this.els.cardsMainTitle.textContent = 'AI Flashcards';
-            this.els.cardsModeIndicator.textContent = '';
+            // Flip to show FlashCards (front side)
+            this.els.cardsModeToggle.style.transform = 'rotateY(0deg)';
         }
     }
 
@@ -1281,7 +1424,7 @@ class SenScript {
         };
         
         if (this.apiSettings.outputLanguage.auto) {
-            this.els.languageFlag.textContent = '🔄';
+            this.els.languageFlag.textContent = '🌐';
             this.els.languageText.textContent = 'AUTO';
         } else {
             const lang = this.apiSettings.outputLanguage.fixed;
@@ -1291,15 +1434,26 @@ class SenScript {
     }
     
     setupLanguageDropdown() {
+        console.log('[Language] Setting up language dropdown...');
         const dropdown = document.getElementById('languageDropdown');
         const languageOptions = document.querySelectorAll('.language-dropdown-option');
         
-        if (!dropdown) return;
+        console.log('[Language] Dropdown found:', !!dropdown);
+        console.log('[Language] Language options found:', languageOptions.length);
+        console.log('[Language] Language indicator element:', !!this.els.languageIndicator);
+        
+        if (!dropdown) {
+            console.warn('[Language] Dropdown element not found!');
+            return;
+        }
         
         // Handle clicking outside dropdown to close it
         document.addEventListener('click', (e) => {
             if (!this.els.languageIndicator.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = 'none';
+                // Reset visual feedback
+                this.els.languageIndicator.style.background = '';
+                this.els.languageIndicator.style.transform = '';
             }
         });
         
@@ -1320,10 +1474,13 @@ class SenScript {
                 
                 // Update display and save
                 this.updateLanguageIndicator();
-                this.saveSettings();
+                this.saveSettingsOnly();
                 
                 // Close dropdown
                 dropdown.style.display = 'none';
+                // Reset visual feedback
+                this.els.languageIndicator.style.background = '';
+                this.els.languageIndicator.style.transform = '';
                 
                 console.log('[Language] Settings updated via dropdown');
             });
@@ -2644,7 +2801,10 @@ class SenScript {
     }
     
     startListening() {
-        console.log('[Control] Starting...', 'Source:', this.currentAudioSource);
+        console.log('[Control] 🚀 START LISTENING CLICKED!');
+        console.log('[Control] 🎯 Current audio source:', this.currentAudioSource);
+        console.log('[Control] 🔍 Audio source type check:', typeof this.currentAudioSource);
+        console.log('[Control] 📍 Will call:', this.currentAudioSource === 'system' ? 'startSystemAudio()' : 'startMicrophone()');
         
         // Clear transcript window when starting/restarting
         this.transcriptLines = [];
@@ -2663,8 +2823,10 @@ class SenScript {
         }
         
         if (this.currentAudioSource === 'system') {
+            console.log('[Control] ✅ Starting SYSTEM AUDIO (screen sharing)');
             this.startSystemAudio();
         } else {
+            console.log('[Control] ✅ Starting MICROPHONE');
             this.startMicrophone();
         }
     }
@@ -3059,12 +3221,25 @@ class SenScript {
     setupAudioSourceToggle() {
         const toggleOptions = this.els.audioSourceSwitch.querySelectorAll('.toggle-option');
         
+        console.log('[Toggle] Found', toggleOptions.length, 'toggle options');
+        toggleOptions.forEach((option, index) => {
+            console.log(`[Toggle] Option ${index}: data-value="${option.dataset.value}", text="${option.textContent.trim()}"`);
+        });
+        
         toggleOptions.forEach(option => {
             option.onclick = () => {
                 const newSource = option.dataset.value;
+                console.log('[UI] ✋ Audio source toggle clicked!');
+                console.log('[UI] 🎯 Selected option data-value:', newSource);
+                console.log('[UI] 📝 Current audio source was:', this.currentAudioSource);
+                
                 if (newSource !== this.currentAudioSource) {
-                    console.log('[UI] Switching audio source to:', newSource);
+                    console.log('[UI] ✅ Switching audio source from', this.currentAudioSource, 'to', newSource);
                     this.currentAudioSource = newSource;
+                    
+                    // Verify the change took effect
+                    console.log('[UI] 🔍 Current audio source is now:', this.currentAudioSource);
+                    
                     this.updateToggleUI();
                     
                     // Update level dots for new source
@@ -3362,8 +3537,20 @@ class SenScript {
         }
     }
     
-    async saveSettings() {
-        console.log('[Settings] Saving settings...');
+    async saveSettingsAndClose() {
+        console.log('[Settings] Saving settings and closing modal...');
+        await this.saveSettingsOnly();
+        this.closeSettings();
+        
+        // Show success message
+        this.els.saveSettings.textContent = '✅ Saved!';
+        setTimeout(() => {
+            this.els.saveSettings.textContent = '💾 Save Settings';
+        }, 2000);
+    }
+    
+    async saveSettingsOnly() {
+        console.log('[Settings] Auto-saving settings (keeping modal open)...');
         
         this.apiSettings.apiKeys = {
             openai: this.els.openaiKey.value.trim(),
@@ -3377,7 +3564,7 @@ class SenScript {
             exampleComplexity: parseInt(this.els.exampleComplexity.value)
         };
         
-        console.log('🎓 [SETTINGS-SAVE] Education settings updated:');
+        console.log('🎓 [AUTO-SAVE] Education settings updated:');
         console.log('   User Level:', this.apiSettings.education.userLevel, '(1=Beginner, 5=Expert)');
         console.log('   Detail Level:', this.apiSettings.education.detailLevel, '(1=Brief, 5=Comprehensive)');
         console.log('   Example Complexity:', this.apiSettings.education.exampleComplexity, '(1=Simple, 5=Academic)');
@@ -3388,14 +3575,11 @@ class SenScript {
         
         // Update server
         await this.updateServerSettings();
-        
-        this.closeSettings();
-        
-        // Show success message
-        this.els.saveSettings.textContent = '✅ Saved!';
-        setTimeout(() => {
-            this.els.saveSettings.textContent = '💾 Save Settings';
-        }, 2000);
+    }
+    
+    // Legacy method for backward compatibility
+    async saveSettings() {
+        return this.saveSettingsAndClose();
     }
     
     exportCards() {
