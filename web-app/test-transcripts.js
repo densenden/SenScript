@@ -229,67 +229,67 @@ const testTranscripts = [
         shouldGenerate: true
     },
     
-    // German Test 1: Physics Lecture - Quantum Mechanics
+    // German Test 1: Casual Tech Conversation
     {
-        id: 'german_physics',
-        scenario: 'University Physics Lecture',
-        text: "Also, meine Damen und Herren, kommen wir zur Quantenverschränkung. Das ist wirklich faszinierend! Stellen Sie sich vor - zwei Teilchen können miteinander verbunden sein, egal wie weit sie voneinander entfernt sind. Einstein nannte das 'spukhafte Fernwirkung', weil er es nicht glauben wollte. Aber wir haben es bewiesen! Wenn Sie ein Teilchen messen, wissen Sie sofort den Zustand des anderen Teilchens, auch wenn es auf der anderen Seite des Universums ist. Das widerspricht unserer alltäglichen Erfahrung komplett, nicht wahr? Aber genau das macht die Quantenphysik so revolutionär.",
-        expectedCategory: "CONCEPT",
-        language: 'de-DE',
-        difficulty: 'advanced',
-        shouldGenerate: true
-    },
-    
-    // German Test 2: Medical Training - Emergency Response
-    {
-        id: 'german_medical',
-        scenario: 'Medical Emergency Training',
-        text: "Okay, also bei einem Herzstillstand - jede Sekunde zählt! Erste Priorität: Prüfen Sie Bewusstsein und Atmung. Keine Reaktion? Sofort 112 anrufen! Dann beginnen Sie mit der Herzdruckmassage. Wichtig: 30 Kompressionen, dann 2 Beatmungen. Das Tempo ist entscheidend - etwa 100 bis 120 Kompressionen pro Minute. Denken Sie an den Bee Gees Song 'Stayin' Alive' - genau dieser Rhythmus! Drücken Sie fest, mindestens 5 Zentimeter tief. Viele haben Angst, Rippen zu brechen, aber hören Sie - gebrochene Rippen heilen, ein toter Patient nicht!",
-        expectedCategory: "KEY FACTS",
-        language: 'de-DE',
-        difficulty: 'critical',
-        shouldGenerate: true
-    },
-    
-    // German Test 3: Software Development Workshop
-    {
-        id: 'german_coding',
-        scenario: 'Coding Workshop',
-        text: "So, heute zeige ich euch einen coolen Trick für React Hooks. Das Problem kennt ihr alle - useEffect läuft beim ersten Render, auch wenn ihr das nicht wollt. Hier ist die Lösung: Wir bauen uns einen eigenen Hook, useDidMount. Ganz einfach mit useRef und useEffect kombiniert. Der useRef speichert, ob es der erste Render ist. Beim ersten Mal skippen wir die Logik, danach läuft sie normal. Das spart euch so viele Bugs, glaubt mir! Ich zeig's euch mal schnell im Code...",
+        id: 'german_tech_chat',
+        scenario: 'Tech Friend Conversation',
+        text: "Hey, du entwickelst doch auch, oder? Ich hab da neulich ein Problem gehabt mit React. Also, immer wenn ich useEffect verwende, läuft der beim ersten Render mit, auch wenn ich das gar nicht will. Kennst du das? Ein Kollege hat mir dann einen Trick gezeigt - man kann einfach useRef nehmen, um zu tracken, ob es der erste Render ist. Dann skippt man die Logik beim ersten Mal und danach läuft alles normal. Hat bei mir super funktioniert!",
         expectedCategory: "QUICK WIN",
         language: 'de-DE',
         difficulty: 'practical',
         shouldGenerate: true
     },
     
-    // English Test 1: Economics Lecture - Market Dynamics
+    // German Test 2: Business Meeting Discussion
     {
-        id: 'english_economics',
-        scenario: 'Economics Lecture',
-        text: "Let's talk about the invisible hand of the market - Adam Smith's brilliant concept from 1776. Now, people often misunderstand this. Smith wasn't saying markets are perfect. He was observing that when individuals pursue their own self-interest, they often benefit society without intending to. Think about it - a baker doesn't make bread to feed you out of kindness. They do it for profit. But in pursuing that profit, they provide something society needs. That's the invisible hand at work. Of course, we've learned since then that markets can fail - monopolies, externalities, information asymmetry. But the core insight remains powerful.",
-        expectedCategory: "CONCEPT",
-        language: 'en-US',
-        difficulty: 'advanced',
-        shouldGenerate: true
-    },
-    
-    // English Test 2: Psychology Research Presentation
-    {
-        id: 'english_psychology',
-        scenario: 'Research Presentation',
-        text: "Our study on cognitive biases revealed something fascinating about confirmation bias. We gave participants identical data sets but framed them differently. Group A was told the data supported climate change, Group B was told it refuted it. Here's the kicker - 78% of participants found the data convincing when it aligned with their pre-existing beliefs, regardless of which framing they received! This shows how powerful our biases are. We literally see what we want to see in the data. For researchers, this is crucial - we need rigorous peer review and blind studies to counteract our own biases.",
-        expectedCategory: "KEY FACTS",
-        language: 'en-US',
-        difficulty: 'research',
-        shouldGenerate: true
-    },
-    
-    // English Test 3: Marketing Strategy Workshop
-    {
-        id: 'english_marketing',
-        scenario: 'Marketing Workshop',
-        text: "Alright team, let's talk about the biggest mistake in email marketing - sending everything to everyone. That's spam, not marketing! Here's what works: segment your list based on behavior. Did they open your last email? Click a link? Purchase something? Each action tells you something. Create three segments: hot, warm, and cold. Hot leads get your offers, warm leads get value content to nurture them, cold leads get re-engagement campaigns. One client increased their conversion rate by 340% just by implementing this. It's not rocket science, but it requires discipline.",
+        id: 'german_meeting_tip',
+        scenario: 'Casual Business Chat',
+        text: "Weißt du, was ich in Meetings gelernt habe? Wenn jemand sagt 'das Budget reicht nicht für dieses Feature', dann akzeptiere das nie einfach so. Frag stattdessen: 'Was bräuchten wir denn, um das möglich zu machen?' Das ändert die ganze Dynamik der Unterhaltung. Plötzlich reden alle über Lösungen, nicht über Probleme. Hab ich letzte Woche erst wieder gemacht - und siehe da, wir haben doch eine Lösung gefunden.",
         expectedCategory: "MEETING TIP",
+        language: 'de-DE',
+        difficulty: 'practical',
+        shouldGenerate: true
+    },
+    
+    // German Test 3: Language Learning Chat
+    {
+        id: 'german_language_tip',
+        scenario: 'Language Learning Talk',
+        text: "Ach, du lernst Französisch? Cool! Ich hab da einen super Trick für das Participe Passé mit être. Das vergisst man ja immer. Stell dir einfach vor, es ist wie ein verliebtes Paar - mit être muss sich immer alles angleichen. 'Elle est venue', 'ils sont partis' - merkst du? Immer schön angepasst. Hat mir damals in der Schule echt geholfen, dieses Bild mit dem verliebten Paar.",
+        expectedCategory: "QUICK WIN",
+        language: 'de-DE',
+        difficulty: 'easy',
+        shouldGenerate: true
+    },
+    
+    // English Test 1: Casual Job Interview Advice
+    {
+        id: 'english_interview_chat',
+        scenario: 'Career Advice Chat',
+        text: "Oh, you have a tech interview coming up? Nice! Let me tell you something I learned the hard way. When they ask about a technology you've never used - don't just say you don't know it. That's like giving up immediately. Instead, say something like 'I haven't worked with that specifically, but I've got solid experience with similar tools like X and Y, and I'm confident I could pick it up quickly.' Then explain your learning process. Shows you're adaptable, you know?",
+        expectedCategory: "INTERVIEW TIP",
+        language: 'en-US',
+        difficulty: 'practical',
+        shouldGenerate: true
+    },
+    
+    // English Test 2: Customer Service Experience Share
+    {
+        id: 'english_customer_chat',
+        scenario: 'Work Experience Share',
+        text: "You work in customer service too? Oh man, I learned something really important about handling angry customers. Never start with 'I understand your frustration' - customers can smell that script from a mile away. Instead, try something like 'That's absolutely not the experience we want for you. Let me see what happened and fix this right now.' It's way more genuine and shows you're taking action, not just giving them empty empathy.",
+        expectedCategory: "WHAT TO SAY",
+        language: 'en-US',
+        difficulty: 'practical',
+        shouldGenerate: true
+    },
+    
+    // English Test 3: Programming Debug Tip
+    {
+        id: 'english_debug_chat',
+        scenario: 'Developer Coffee Chat',
+        text: "Dude, you've gotta try rubber duck debugging if you haven't already. I know it sounds crazy, but trust me on this one. You just explain your code line by line to this rubber duck on your desk - or any object really. The magic happens because you're forced to slow down and actually think through your logic step by step. I swear, sometimes that duck finds bugs faster than my code reviews. My teammates think I'm nuts, but it works!",
+        expectedCategory: "QUICK WIN",
         language: 'en-US',
         difficulty: 'practical',
         shouldGenerate: true
