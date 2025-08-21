@@ -100,25 +100,25 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      <div className="pt-16 min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="pt-16 min-h-screen">
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-r from-orange-50 to-blue-50 dark:from-orange-900/20 dark:to-blue-900/20">
+        <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <motion.h1 
-                className="text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6"
+                className="text-4xl lg:text-6xl font-bold text-white mb-6 text-shadow"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
                 We Pioneered{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
                   CheatCard
                 </span>{' '}
                 Technology
               </motion.h1>
               <motion.p 
-                className="text-xl lg:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-8"
+                className="text-xl lg:text-2xl text-white/90 max-w-4xl mx-auto mb-8 text-shadow"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
@@ -130,7 +130,7 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-lg text-gray-500 dark:text-gray-400"
+                className="text-lg text-white/80 text-shadow"
               >
                 Mission: <strong>Maximum card creation speed over perfect accuracy</strong>
               </motion.div>
@@ -142,10 +142,10 @@ export default function AboutPage() {
         <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-4xl font-bold text-white mb-4 text-shadow">
                 Why CheatCards Change Everything
               </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              <p className="text-xl text-white/90 max-w-3xl mx-auto text-shadow">
                 Traditional flashcards aren&apos;t enough for modern challenges. 
                 CheatCards provide tactical advantages in real-time.
               </p>
@@ -161,7 +161,7 @@ export default function AboutPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    className="text-center p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
+                    className="text-center p-6 app-container"
                   >
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl mb-6">
                       <IconComponent className="w-8 h-8 text-white" />
@@ -180,13 +180,13 @@ export default function AboutPage() {
         </section>
 
         {/* Real Examples */}
-        <section className="py-20 bg-gray-50 dark:bg-gray-800/50">
+        <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-4xl font-bold text-white mb-4 text-shadow">
                 Real CheatCards from Real Users
               </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              <p className="text-xl text-white/90 max-w-3xl mx-auto text-shadow">
                 These cards were generated during actual conversations, showing how SenScript 
                 transforms everyday interactions into strategic advantages.
               </p>
@@ -220,7 +220,7 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  className="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg"
+                  className="text-center p-6 app-container"
                 >
                   <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
                     {item.stat}
@@ -238,10 +238,10 @@ export default function AboutPage() {
         <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-4xl font-bold text-white mb-4 text-shadow">
                 Success Stories
               </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              <p className="text-xl text-white/90 max-w-3xl mx-auto text-shadow">
                 Real professionals who transformed their careers using SenScript CheatCards
               </p>
             </div>
@@ -259,7 +259,7 @@ export default function AboutPage() {
                   }`}
                 >
                   {/* Story Content */}
-                  <div className={`space-y-6 ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
+                  <div className={`app-container p-8 space-y-6 ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
                     <div className="flex items-center space-x-4">
                       <div className="text-4xl">{story.icon}</div>
                       <div>
@@ -323,13 +323,33 @@ export default function AboutPage() {
 
                   {/* Visual Element */}
                   <div className={`${index % 2 === 1 ? 'lg:col-start-1' : ''}`}>
-                    <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-3xl p-12 text-center">
-                      <div className="text-6xl mb-6">{story.icon}</div>
-                      <div className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        {story.metric}
+                    <div className="relative">
+                      {/* 4:3 Image Frame */}
+                      <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
+                        <img
+                          src={`/images/${
+                            story.title.includes('Sarah') ? 'sarah.png' :
+                            story.title.includes('Marcus') ? 'marcus.png' :
+                            'lisa.png'
+                          }`}
+                          alt={`${story.title.split("'s")[0]} - ${story.role}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Overlay with metrics */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        <div className="absolute bottom-6 left-6 right-6 text-white">
+                          <div className="text-2xl font-bold mb-1">
+                            {story.metric}
+                          </div>
+                          <div className="text-lg font-medium opacity-90">
+                            {story.outcome}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-lg text-orange-600 dark:text-orange-400 font-medium">
-                        {story.outcome}
+                      
+                      {/* Floating Icon Badge */}
+                      <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+                        {story.icon}
                       </div>
                     </div>
                   </div>
@@ -340,20 +360,20 @@ export default function AboutPage() {
         </section>
 
         {/* Technical Innovation */}
-        <section className="py-20 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+        <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-4xl font-bold text-white mb-4 text-shadow">
                 Revolutionary Technical Approach
               </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              <p className="text-xl text-white/90 max-w-3xl mx-auto text-shadow">
                 SenScript&apos;s universal audio capture strategy eliminates the need for 
                 platform-specific integrations
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
+              <div className="app-container p-8 space-y-6">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Universal Compatibility
                 </h3>
@@ -379,7 +399,7 @@ export default function AboutPage() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-gray-700">
+              <div className="app-container p-8">
                 <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
                   Technical Architecture
                 </h4>
@@ -414,10 +434,10 @@ export default function AboutPage() {
         {/* Final CTA */}
         <section className="py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-4xl font-bold text-white mb-6 text-shadow">
               Ready to Transform Your Conversations?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+            <p className="text-xl text-white/90 mb-8 text-shadow">
               Join thousands of professionals who never miss an opportunity because 
               they&apos;re always prepared with SenScript CheatCards.
             </p>

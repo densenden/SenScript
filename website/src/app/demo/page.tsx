@@ -6,6 +6,7 @@ import { Play, Pause, RotateCcw, Download, Mic, MicOff } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { CheatCard } from '@/components/ui/CheatCard';
+import { MobileFrame } from '@/components/ui/MobileFrame';
 import { cheatCardAPI, CheatCard as CheatCardType } from '@/lib/cheatcard-api';
 import { DEMO_SCENARIOS, INTERVIEW_TYPES } from '@/lib/constants';
 
@@ -18,6 +19,8 @@ export default function DemoPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
   
   const recognitionRef = useRef<any>(null);
   
@@ -152,25 +155,33 @@ export default function DemoPage() {
     URL.revokeObjectURL(url);
   };
 
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleRotate = () => {
+    setOrientation(prev => prev === 'portrait' ? 'landscape' : 'portrait');
+  };
+
   return (
     <>
       <Header />
-      <div className="pt-16 min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="pt-16 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 text-shadow">
               Experience CheatCards Live
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-white/90 max-w-3xl mx-auto text-shadow">
               Try real AI-powered card generation with our interactive demo. 
               Choose a scenario or use your own voice.
             </p>
           </div>
 
           {/* Demo Controls */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 mb-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="app-container p-8 mb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               {/* Left Side - Controls */}
               <div className="space-y-6">
                 {/* Scenario Selection */}
@@ -263,24 +274,114 @@ export default function DemoPage() {
                 </div>
               </div>
 
-              {/* Right Side - Live Transcript */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Live Transcript:
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 h-48 overflow-y-auto">
-                  <div className="space-y-2">
-                    {isListening && (
-                      <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium">Listening...</span>
+              {/* Right Side - Mobile Interface Demo */}
+              <div className="flex justify-center">
+                <MobileFrame 
+                  isExpanded={isExpanded}
+                  onToggleExpanded={toggleExpanded}
+                  onRotate={handleRotate}
+                  orientation={orientation}
+                >
+                  {/* SenScript Mobile Interface */}
+                  <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+                    {/* App Header */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-orange-600 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">S</span>
+                          </div>
+                          <span className="font-semibold text-gray-900 dark:text-white text-sm">SenScript</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-gray-500">Live</span>
+                        </div>
                       </div>
-                    )}
-                    <p className="text-gray-800 dark:text-gray-200 leading-relaxed">
-                      {isListening ? transcript : currentText || 'Select a scenario and click "Play Scenario" or use "Try Your Voice"'}
-                    </p>
+                    </div>
+
+                    {/* Audio Visualization */}
+                    <div className="p-4">
+                      <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3">
+                        <div className="flex items-center justify-center space-x-1 h-8 mb-2">
+                          {[...Array(12)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="bg-orange-500 w-1 rounded-full"
+                              animate={{
+                                height: isPlaying || isListening ? [4, 20, 8, 24, 6] : [4]
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: isPlaying || isListening ? Infinity : 0,
+                                delay: i * 0.1
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-300 text-center">
+                          {isListening ? 'Listening...' : 
+                           isPlaying ? 'Processing transcript...' : 
+                           'Tap to start recording'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Live Transcript */}
+                    <div className="flex-1 p-4 overflow-y-auto">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 mb-4 text-xs leading-relaxed">
+                        <div className="text-gray-500 dark:text-gray-400 mb-1">Live Transcript:</div>
+                        <div className="text-gray-800 dark:text-gray-200">
+                          {isListening ? transcript : 
+                           currentText || 
+                           'Start speaking to see your words appear here...'}
+                        </div>
+                      </div>
+
+                      {/* Generated Cards Preview */}
+                      <div className="space-y-2">
+                        {generatedCards.slice(-2).map((card, index) => (
+                          <div key={card.id} className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2">
+                            <div className="flex items-center space-x-1 mb-1">
+                              <span className="text-xs">💡</span>
+                              <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                                {card.category.toUpperCase()}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2">
+                              {card.front}
+                            </p>
+                          </div>
+                        ))}
+                        
+                        {isGenerating && (
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex space-x-1">
+                                <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce"></div>
+                                <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                              </div>
+                              <span className="text-xs text-yellow-700 dark:text-yellow-300">Generating card...</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bottom Controls */}
+                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex justify-center space-x-4">
+                        <button className="flex items-center justify-center w-12 h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-full shadow-lg transition-colors">
+                          {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                        </button>
+                        <button className="flex items-center justify-center w-12 h-12 bg-gray-600 hover:bg-gray-700 text-white rounded-full shadow-lg transition-colors">
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </MobileFrame>
               </div>
             </div>
           </div>
@@ -311,7 +412,7 @@ export default function DemoPage() {
 
             {generatedCards.length > 0 && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+                <h2 className="text-2xl font-bold text-white mb-8 text-center text-shadow">
                   Generated {mode === 'interview' ? 'CheatCards' : 'Flashcards'}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -343,14 +444,14 @@ export default function DemoPage() {
             {!isGenerating && generatedCards.length === 0 && (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">🎯</div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-2xl font-bold text-white mb-4 text-shadow">
                   Ready to Generate Your First CheatCard?
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+                <p className="text-white/80 mb-8 max-w-2xl mx-auto text-shadow">
                   Choose a scenario above and click "Play Scenario", or try speaking directly 
                   using "Try Your Voice" to see real-time card generation.
                 </p>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-sm text-white/70 text-shadow">
                   💡 Tip: CheatCard mode creates strategic interview responses, 
                   while Standard mode focuses on educational content.
                 </div>

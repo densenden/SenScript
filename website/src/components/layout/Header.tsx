@@ -20,11 +20,18 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-8 h-8 bg-orange-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-              <Mic className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              Sen<span className="text-orange-600">Script</span>
+            <img 
+              src="/images/logos/logo-black.svg" 
+              alt="SenScript Logo" 
+              className="w-8 h-8 group-hover:scale-110 transition-transform duration-200 dark:hidden"
+            />
+            <img 
+              src="/images/logos/logo-white.svg" 
+              alt="SenScript Logo" 
+              className="w-8 h-8 group-hover:scale-110 transition-transform duration-200 hidden dark:block"
+            />
+            <span className="text-xl font-normal text-gray-900 dark:text-white">
+              SenScript
             </span>
           </Link>
 

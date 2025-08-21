@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-20 pb-32">
+    <section className="relative overflow-hidden pt-20 pb-32">
       {/* Background Elements */}
       <div className="absolute inset-0">
         {/* Animated background shapes */}
@@ -49,7 +49,7 @@ export function Hero() {
               className="inline-flex items-center space-x-2 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-4 py-2 rounded-full text-sm font-medium mb-8"
             >
               <Zap className="w-4 h-4" />
-              <span>Now with CheatCard Interview Mode</span>
+              <span>Real-Time AI Flashcard Generation</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -57,15 +57,15 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+              className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight text-shadow"
             >
               Turn Any{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">
-                Interview
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
+                Conversation
               </span>{' '}
-              Into Your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                Advantage
+              Into{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                Study Materials
               </span>
             </motion.h1>
 
@@ -74,10 +74,11 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
+              className="text-xl lg:text-2xl text-white/90 mb-8 leading-relaxed text-shadow"
             >
-              AI-powered <strong>CheatCard</strong> generation from live conversations. 
-              Turn meetings, lectures, and interviews into strategic study materials in real-time.
+              AI-powered flashcard generation from live conversations. 
+              Turn meetings, lectures, and interviews into study materials in real-time - 
+              including specialized <strong>CheatCard mode</strong> for strategic advantages.
             </motion.p>
 
             {/* Key Benefits */}
@@ -92,9 +93,9 @@ export function Hero() {
                 { icon: '🎯', text: 'Interview-Ready Cards' },
                 { icon: '🌍', text: '13 Languages' }
               ].map((feature, index) => (
-                <div key={index} className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
+                <div key={index} className="flex items-center space-x-2 text-white/80">
                   <span className="text-2xl">{feature.icon}</span>
-                  <span className="font-medium">{feature.text}</span>
+                  <span className="font-medium text-shadow">{feature.text}</span>
                 </div>
               ))}
             </motion.div>
@@ -111,7 +112,7 @@ export function Hero() {
                 className="group bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center space-x-2"
               >
                 <Mic className="w-5 h-5" />
-                <span>Try CheatCard Mode</span>
+                <span>Try Live Demo</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               
