@@ -229,69 +229,69 @@ const testTranscripts = [
         shouldGenerate: true
     },
     
-    // German Test 1: Casual Tech Conversation
+    // German Test 1: Client Technical Questions
     {
-        id: 'german_tech_chat',
-        scenario: 'Tech Friend Conversation',
-        text: "Hey, du entwickelst doch auch, oder? Ich hab da neulich ein Problem gehabt mit React. Also, immer wenn ich useEffect verwende, läuft der beim ersten Render mit, auch wenn ich das gar nicht will. Kennst du das? Ein Kollege hat mir dann einen Trick gezeigt - man kann einfach useRef nehmen, um zu tracken, ob es der erste Render ist. Dann skippt man die Logik beim ersten Mal und danach läuft alles normal. Hat bei mir super funktioniert!",
-        expectedCategory: "QUICK WIN",
+        id: 'german_tech_grilling',
+        scenario: 'Client Technical Meeting',
+        text: "So, Sie sind also unser neuer Entwickler? Gut, dann erklären Sie mir doch mal: Wie funktioniert eigentlich State Management in React? Und warum sollten wir Redux verwenden statt einfach nur useState? Ich habe gehört, dass es auch andere Lösungen gibt wie Zustand oder Context API. Was ist denn da der Unterschied? Und noch eine Frage: Wie gehen Sie mit Performance-Problemen um, wenn die App langsam wird?",
+        expectedCategory: "WHAT TO SAY",
         language: 'de-DE',
-        difficulty: 'practical',
+        difficulty: 'challenging',
         shouldGenerate: true
     },
     
-    // German Test 2: Business Meeting Discussion
+    // German Test 2: Boss Project Review
     {
-        id: 'german_meeting_tip',
-        scenario: 'Casual Business Chat',
-        text: "Weißt du, was ich in Meetings gelernt habe? Wenn jemand sagt 'das Budget reicht nicht für dieses Feature', dann akzeptiere das nie einfach so. Frag stattdessen: 'Was bräuchten wir denn, um das möglich zu machen?' Das ändert die ganze Dynamik der Unterhaltung. Plötzlich reden alle über Lösungen, nicht über Probleme. Hab ich letzte Woche erst wieder gemacht - und siehe da, wir haben doch eine Lösung gefunden.",
+        id: 'german_boss_questions',
+        scenario: 'Project Review Meeting',
+        text: "Also, ich schaue mir hier die Zahlen für Ihr Projekt an... Können Sie mir erklären, warum wir schon 3 Wochen im Verzug sind? Was ist da schiefgelaufen? Und wie wollen Sie das wieder aufholen? Ich brauche konkrete Lösungen, nicht nur Entschuldigungen. Die Geschäftsleitung will morgen Antworten. Also, was schlagen Sie vor? Wie stellen Sie sicher, dass so etwas nicht wieder passiert?",
         expectedCategory: "MEETING TIP",
         language: 'de-DE',
-        difficulty: 'practical',
+        difficulty: 'stressful',
         shouldGenerate: true
     },
     
-    // German Test 3: Language Learning Chat
+    // German Test 3: Professor Oral Exam
     {
-        id: 'german_language_tip',
-        scenario: 'Language Learning Talk',
-        text: "Ach, du lernst Französisch? Cool! Ich hab da einen super Trick für das Participe Passé mit être. Das vergisst man ja immer. Stell dir einfach vor, es ist wie ein verliebtes Paar - mit être muss sich immer alles angleichen. 'Elle est venue', 'ils sont partis' - merkst du? Immer schön angepasst. Hat mir damals in der Schule echt geholfen, dieses Bild mit dem verliebten Paar.",
-        expectedCategory: "QUICK WIN",
+        id: 'german_exam_pressure',
+        scenario: 'University Oral Exam',
+        text: "Gut, kommen wir zur mündlichen Prüfung. Erklären Sie mir doch bitte das Konzept der Quantenverschränkung. Wie funktioniert das genau? Und was hat Einstein damit gemeint, als er von 'spukhafter Fernwirkung' sprach? Können Sie mir ein praktisches Beispiel geben? Und welche Bedeutung hat das für die moderne Physik? Zeit haben Sie zwei Minuten für die Antwort.",
+        expectedCategory: "CONCEPT",
         language: 'de-DE',
-        difficulty: 'easy',
+        difficulty: 'exam',
         shouldGenerate: true
     },
     
-    // English Test 1: Casual Job Interview Advice
+    // English Test 1: Investor Pitch Questions
     {
-        id: 'english_interview_chat',
-        scenario: 'Career Advice Chat',
-        text: "Oh, you have a tech interview coming up? Nice! Let me tell you something I learned the hard way. When they ask about a technology you've never used - don't just say you don't know it. That's like giving up immediately. Instead, say something like 'I haven't worked with that specifically, but I've got solid experience with similar tools like X and Y, and I'm confident I could pick it up quickly.' Then explain your learning process. Shows you're adaptable, you know?",
-        expectedCategory: "INTERVIEW TIP",
-        language: 'en-US',
-        difficulty: 'practical',
-        shouldGenerate: true
-    },
-    
-    // English Test 2: Customer Service Experience Share
-    {
-        id: 'english_customer_chat',
-        scenario: 'Work Experience Share',
-        text: "You work in customer service too? Oh man, I learned something really important about handling angry customers. Never start with 'I understand your frustration' - customers can smell that script from a mile away. Instead, try something like 'That's absolutely not the experience we want for you. Let me see what happened and fix this right now.' It's way more genuine and shows you're taking action, not just giving them empty empathy.",
+        id: 'english_investor_grilling',
+        scenario: 'Investor Pitch Meeting',
+        text: "Alright, so you're asking for 2 million dollars. Let's see if you've done your homework. What's your customer acquisition cost? How do you plan to scale this? I see here you have competitors - what makes you different? And frankly, your burn rate concerns me. How long will this funding actually last you? Give me some hard numbers. What's your path to profitability? Because I've seen too many startups with great ideas but no business sense.",
         expectedCategory: "WHAT TO SAY",
         language: 'en-US',
-        difficulty: 'practical',
+        difficulty: 'high-pressure',
         shouldGenerate: true
     },
     
-    // English Test 3: Programming Debug Tip
+    // English Test 2: Doctor Medical Questions
     {
-        id: 'english_debug_chat',
-        scenario: 'Developer Coffee Chat',
-        text: "Dude, you've gotta try rubber duck debugging if you haven't already. I know it sounds crazy, but trust me on this one. You just explain your code line by line to this rubber duck on your desk - or any object really. The magic happens because you're forced to slow down and actually think through your logic step by step. I swear, sometimes that duck finds bugs faster than my code reviews. My teammates think I'm nuts, but it works!",
-        expectedCategory: "QUICK WIN",
+        id: 'english_medical_questioning',
+        scenario: 'Medical Consultation',
+        text: "I need to ask you some questions about your symptoms. When did this pain start exactly? Is it constant or does it come and go? On a scale of 1 to 10, how would you rate it? Does anything make it worse? Better? Have you taken any medications for it? Any family history of similar problems? Are you experiencing any other symptoms - nausea, dizziness, shortness of breath? I need you to be very specific here.",
+        expectedCategory: "WHAT TO SAY",
         language: 'en-US',
-        difficulty: 'practical',
+        difficulty: 'medical',
+        shouldGenerate: true
+    },
+    
+    // English Test 3: Technical Job Interview
+    {
+        id: 'english_tech_interview',
+        scenario: 'Senior Developer Interview',
+        text: "Let's dive into some technical questions. Can you explain the difference between REST and GraphQL? When would you choose one over the other? Now, tell me about a time you had to optimize a slow database query. What was your approach? And here's a scenario: your API is getting 10x more traffic than expected and response times are slow. Walk me through how you'd diagnose and fix this. You have 5 minutes.",
+        expectedCategory: "INTERVIEW TIP",
+        language: 'en-US',
+        difficulty: 'technical',
         shouldGenerate: true
     }
 ];
