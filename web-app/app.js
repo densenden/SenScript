@@ -250,11 +250,12 @@ class SenScript {
         window.testCheat = () => this.runCheatCardTests();
         window.resetAllCaches = () => this.resetAllCaches();
         window.app = this;
-        console.log('🧪 [DEBUG] Available console commands:');
+        console.log('🧪 [DEBUG] Available console commands (v2025.08.21):');
         console.log('  testCards() - Run all card generation tests');
-        console.log('  testCheat() - Test CheatCards specifically');
+        console.log('  testCheat() - Test CheatCards specifically (UNIFIED SYSTEM)');
         console.log('  resetAllCaches() - Clear all caches for fresh generation');
         console.log('  app.resetCardEngine() - Reset card engine only');
+        console.log('🔄 Cache busted - test functions should now work!');
     }
     
     setupAutoRestart() {
@@ -1047,28 +1048,40 @@ class SenScript {
                 return;
             }
             
-            // 2. Create card with content ready but hidden
+            // 2. Create card data but create empty container first
             const cardData = this.prepareCardData(result, segment);
-            const cardElement = this.createCardElement(cardData);
+            const cardElement = this.createEmptyContainer(cardData.cardType);
             
-            // 3. Add to DOM as 12px container (content hidden)
+            // 3. Add empty 12px container to DOM
             this.els.cardsContainer.prepend(cardElement);
             this.cards.unshift(cardData);
             
             // 4. Auto-scroll to top
             this.els.cardsContainer.scrollTop = 0;
+            console.log('👶 [PIPELINE] Born as 12px empty container');
             
-            // 5. Animate height expansion (only for bottom-most new card)
+            // 5. Breeding animation (slight shake)
             setTimeout(() => {
-                cardElement.classList.remove('card-birth');
-                cardElement.classList.add('card-open');
+                console.log('🥚 [PIPELINE] Breeding animation - preparing to grow');
+                cardElement.classList.add('card-breeding');
                 
-                // 6. Fade in text after height animation completes
+                // 6. Start height expansion after breeding
                 setTimeout(() => {
-                    cardElement.classList.add('card-ready');
-                }, 400); // After height animation
+                    console.log('🎬 [PIPELINE] Growing to full height');
+                    cardElement.classList.remove('card-birth', 'card-breeding');
+                    cardElement.classList.add('card-open');
+                    
+                    // 7. Add content and fade in after growth completes
+                    setTimeout(() => {
+                        console.log('📝 [PIPELINE] Adding content and fading in');
+                        cardElement.innerHTML = this.generateCardHTML(cardData);
+                        cardElement.classList.add('card-ready');
+                        this.setupCardClickHandler(cardElement, cardData);
+                    }, 400); // After height animation
+                    
+                }, 200); // Breeding duration
                 
-            }, 50); // Small delay for smooth birth
+            }, 500); // Time to see empty 12px container
             
             this.updateCardCount();
             this.els.exportBtn.disabled = false;
@@ -1107,25 +1120,31 @@ class SenScript {
     }
     
     /**
-     * Create card DOM element with unified birth states
+     * Create empty card container for birth animation
      */
-    createCardElement(cardData) {
+    createEmptyContainer(cardType) {
         const cardEl = document.createElement('div');
         cardEl.className = 'card card-birth'; // Start in birth state (12px)
-        cardEl.setAttribute('data-category', cardData.category || 'DEFAULT');
-        cardEl.setAttribute('data-card-type', cardData.cardType || 'flash');
-        cardEl.style.cursor = 'pointer';
+        cardEl.setAttribute('data-card-type', cardType || 'flash');
         
-        // Generate card HTML content
-        cardEl.innerHTML = this.generateCardHTML(cardData);
-        
-        // Set up click handler for card flipping
-        cardEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cardEl.classList.toggle('flipped');
-        });
+        // Empty container - no content yet
+        cardEl.innerHTML = '';
         
         return cardEl;
+    }
+    
+    /**
+     * Set up click handler for card after content is added
+     */
+    setupCardClickHandler(cardElement, cardData) {
+        cardElement.setAttribute('data-category', cardData.category || 'DEFAULT');
+        cardElement.style.cursor = 'pointer';
+        
+        // Set up click handler for card flipping
+        cardElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cardElement.classList.toggle('flipped');
+        });
     }
     
     /**
@@ -1496,39 +1515,34 @@ class SenScript {
                 };
                 
                 // Use unified card creation for consistent testing
-                try {
-                    await this.createUnifiedCard(test.text, detection);
-                    const duration = Date.now() - startTime;
-                    
-                    const testResult = {
-                        id: test.id,
-                        success: true, // If createUnifiedCard doesn't throw, it succeeded
-                        duration,
-                        expectedCategory: test.expectedCategory,
-                        actualCategory: 'Generated via unified system',
-                        expectedFront: test.expectedCardFront,
-                        actualFront: test.text.substring(0, 50) + '...',
-                        result: 'unified-system'
-                    };
-                    
-                    results.push(testResult);
-                    console.log(`✅ [TEST-${i + 1}] PASS - Generated via unified system`);
-                } catch (error) {
-                    console.log(`⏭️ [TEST-${i + 1}] SKIP - ${error.message}`);
-                }
+                await this.createUnifiedCard(test.text, detection);
+                const duration = Date.now() - startTime;
                 
-                console.log(`⏱️ [TEST-${i + 1}] Duration: ${duration}ms`);
+                const testResult = {
+                    id: test.id,
+                    success: true, // If createUnifiedCard doesn't throw, it succeeded
+                    duration,
+                    expectedCategory: test.expectedCategory,
+                    actualCategory: 'Generated via unified system',
+                    expectedFront: test.expectedCardFront,
+                    actualFront: test.text.substring(0, 50) + '...',
+                    result: 'unified-system'
+                };
+                
+                results.push(testResult);
+                console.log(`✅ [TEST-${i + 1}] PASS - Generated via unified system (${duration}ms)`);
                 
                 // Delay between tests for readability and to avoid overwhelming the API
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 
             } catch (error) {
+                const duration = Date.now() - (startTime || Date.now());
                 console.error(`❌ [TEST-${i + 1}] ERROR:`, error);
                 results.push({
                     id: test.id,
                     success: false,
                     error: error.message,
-                    duration: Date.now() - startTime
+                    duration
                 });
             }
         }

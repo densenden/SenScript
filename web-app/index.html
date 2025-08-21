@@ -1330,7 +1330,7 @@
             }
         }
         
-        /* UNIFIED CARD BIRTH ANIMATION */
+        /* UNIFIED CARD BIRTH ANIMATIONS */
         @keyframes cardBirth {
             0% {
                 height: 12px;
@@ -1346,6 +1346,13 @@
                 border-radius: 20px;
                 transform: scale(1);
             }
+        }
+        
+        @keyframes cardBreeding {
+            0%, 100% { transform: translateX(0) scale(1); }
+            25% { transform: translateX(-1px) scale(1.02); }
+            50% { transform: translateX(1px) scale(0.98); }
+            75% { transform: translateX(-0.5px) scale(1.01); }
         }
 
         .cards-container {
@@ -1392,6 +1399,13 @@
         .card.card-birth[data-card-type="flash"] {
             background: rgba(59, 130, 246, 0.15);
             border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Breeding animation: slight shake/pulse before growing */
+        .card.card-breeding {
+            animation: cardBreeding 0.3s ease-in-out infinite;
+            opacity: 0.5;
+            width: 100%;
         }
         
         /* Opening animation: 12px -> full height */
