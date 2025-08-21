@@ -1223,7 +1223,7 @@ class SenScript {
         // Ensure CheatCard mode is active
         if (!this.apiSettings.interviewMode) {
             this.apiSettings.interviewMode = true;
-            this.updateCardsModeToggle();
+            this.updateCardModeDisplay();
             console.log('🎯 [TEST] Switched to CheatCard mode for testing');
         }
         
