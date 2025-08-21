@@ -1190,6 +1190,34 @@ class SenScript {
     }
     
     /**
+     * Show current test transcript in the transcript window
+     */
+    showTestTranscript(test, current, total) {
+        if (!this.els.transcript) return;
+        
+        const flag = test.language === 'de-DE' ? '🇩🇪' : '🇺🇸';
+        const truncatedText = test.text.length > 200 ? 
+            test.text.substring(0, 200) + '...' : test.text;
+        
+        this.els.transcript.innerHTML = `
+            <div class="transcript-rows enhanced">
+                <div class="transcript-row line-3 current">
+                    <span class="time">Test ${current}/${total}</span>
+                    <span class="text">🧪 ${test.scenario} ${flag}</span>
+                </div>
+                <div class="transcript-row line-2 previous">
+                    <span class="time">${test.expectedCategory}</span>
+                    <span class="text">${test.language}</span>
+                </div>
+                <div class="transcript-row line-1 old test-detail">
+                    <span class="time">📝</span>
+                    <span class="text" style="font-size: 13px; line-height: 1.4; opacity: 0.9;">${truncatedText}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
      * Show message in transcript window
      */
     showTranscriptMessage(message, type = 'info') {
@@ -1255,6 +1283,9 @@ class SenScript {
             console.log(`\n🔄 [TEST-${i + 1}] Processing: ${test.scenario} (${test.language})`);
             console.log(`📝 [TEST-${i + 1}] Text: "${test.text.substring(0, 100)}..."`);
             
+            // Show current test in transcript window
+            this.showTestTranscript(test, i + 1, selectedTests.length);
+            
             try {
                 const detection = {
                     lang: test.language,
@@ -1274,8 +1305,8 @@ class SenScript {
                     console.log(`⏭️ [TEST-${i + 1}] SKIP - ${result?.reason || 'unknown'}`);
                 }
                 
-                // Small delay between tests
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Delay between tests for readability
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
             } catch (error) {
                 console.error(`❌ [TEST-${i + 1}] ERROR:`, error.message);
