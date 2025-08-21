@@ -1,0 +1,193 @@
+{
+  "cards": [
+    {
+      "category": "QUICK WIN",
+      "front": "What are the four key medical root words to master for understanding terminology?",
+      "back": "🎯 'cardio' - heart related\n⚡ 'pulmonary' - lungs\n📝 'hepatic' - liver, 'renal' - kidneys\nMemorize for easier understanding of medical terms",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800143112_cz8xbslna",
+      "timestamp": "20:15:43",
+      "originalText": "So, as we dive into medical terminology this semester, I cannot stress enough how important it is to master the root words early on. Let me give you the big four that you'll see constantly: 'cardio' - that's everything related to the heart, okay? Then we have 'pulmonary' - that's your lungs. 'Hepatic' refers to the liver, and 'renal' is kidneys. These four roots alone will appear in, oh, probably hundreds of terms you'll encounter. If you learn these now, you'll thank me during your board exams, I promise you that.",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "INTERVIEW TIP",
+      "front": "How should you respond when asked about a technology you haven't used in a tech interview?",
+      "back": "🎯 Acknowledge lack of direct experience honestly\n⚡ Pivot to related experience and transferable skills\n📝 Highlight understanding of core principles for quick adaptation",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800140400_wz8g1dpj3",
+      "timestamp": "20:15:40",
+      "originalText": "Alright, so here's a common scenario in tech interviews - they'll throw a technology at you that you've never used, like, let's say they ask about Kubernetes and you've never touched it. The worst thing you can do is just say 'I don't know Kubernetes.' Instead, here's the strategy: acknowledge it honestly but pivot to related experience. Say something like, 'While I haven't worked directly with Kubernetes, I have extensive experience with Docker and AWS ECS, which share similar containerization concepts. I'm confident I could ramp up quickly on Kubernetes because I understand the underlying principles of container orchestration.'",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "MEETING TIP",
+      "front": "How can you handle stakeholder pushback on budget allocation during a meeting?",
+      "back": "🎯 Reframe the discussion by asking for solutions\n⚡ Inquire about what is needed to make it possible\n📝 Encourage problem-solving and collaboration",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800138964_0wsycg5nb",
+      "timestamp": "20:15:38",
+      "originalText": "Here's what I've learned over the years - instead of just accepting the no, try reframing it. Ask them, okay, what would it take to make this possible?",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "MEETING TIP",
+      "front": "How can you reframe a 'no' response from stakeholders during budget discussions?",
+      "back": "🎯 Ask what it would take to make it possible\n⚡ Explore phasing or reallocating budget\n📝 Change the conversation dynamic for better outcomes",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800138210_y3ih4or8i",
+      "timestamp": "20:15:38",
+      "originalText": "You know, maybe we can phase it, or find budget from somewhere else. It completely changes the dynamic of the conversation, trust me on this one.",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "AVOID THIS",
+      "front": "What should you avoid when stakeholders resist allocating budget for new features in a project meeting?",
+      "back": "🎯 Avoid dismissing stakeholders' concerns\n⚡ Don't react defensively or dismissively\n📝 Listen actively, understand concerns, and propose alternatives",
+      "confidence": 85,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800138142_1vxzap9ok",
+      "timestamp": "20:15:38",
+      "originalText": "So, um, looking at our Q3 budget here... yeah, we've got about 50K allocated for new features. Now, when stakeholders push back and say, oh we can't afford that new dashboard feature, right?",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "MEETING TIP",
+      "front": "How can you address being 3 weeks behind schedule in a project meeting?",
+      "back": "🎯 Offer concrete solutions, not just excuses\n⚡ Prepare detailed action plans for catching up\n📝 Show accountability and commitment to meeting deadlines",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800136844_svlshntvw",
+      "timestamp": "20:15:36",
+      "originalText": "Und wie wollen Sie das wieder aufholen? Ich brauche konkrete Lösungen, nicht nur Entschuldigungen. Die Geschäftsleitung will morgen Antworten. Also, was schlagen Sie vor",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    },
+    {
+      "category": "MEETING TIP",
+      "front": "How can you ensure such delays do not happen again in a project?",
+      "back": "🎯 Implement better project tracking and monitoring\n⚡ Conduct regular progress reviews and risk assessments\n📝 Learn from past mistakes to improve future processes",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800136509_ocg75dtoi",
+      "timestamp": "20:15:36",
+      "originalText": "Wie stellen Sie sicher, dass so etwas nicht wieder passiert?",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    },
+    {
+      "category": "INTERVIEW TIP",
+      "front": "How would you explain a 3-week delay in a project during a discussion?",
+      "back": "🎯 Acknowledge the delay and provide reasons\n⚡ Offer solutions or mitigation strategies\n📝 Show accountability and commitment to resolving issues",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800136098_lfs5mkwqb",
+      "timestamp": "20:15:36",
+      "originalText": "Also, ich schaue mir hier die Zahlen für Ihr Projekt an... Können Sie mir erklären, warum wir schon 3 Wochen im Verzug sind?",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    },
+    {
+      "category": "INTERVIEW TIP",
+      "front": "How do you handle performance issues when an app becomes slow?",
+      "back": "🎯 Identify bottlenecks and optimize code\n⚡ Consider lazy loading and code splitting\n📝 Use performance monitoring tools for insights",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800133611_2g4kwf123",
+      "timestamp": "20:15:33",
+      "originalText": "Und noch eine Frage: Wie gehen Sie mit Performance-Problemen um, wenn die App langsam wird?",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    },
+    {
+      "category": "CONCEPT",
+      "front": "What is the difference between using Redux and other solutions like Zustand or Context API in React state management?",
+      "back": "🎯 Redux offers centralized state management\n⚡ Zustand and Context API are alternatives\n📝 Choose based on project complexity and needs",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800133586_4e7oe733f",
+      "timestamp": "20:15:33",
+      "originalText": "Und warum sollten wir Redux verwenden statt einfach nur useState? Ich habe gehört, dass es auch andere Lösungen gibt wie Zustand oder Context API. Was ist denn da der Unterschied",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    },
+    {
+      "category": "CONCEPT",
+      "front": "What is the question about State Management in React?",
+      "back": "🎯 Explaining how State Management works in React\n⚡ Understanding React's method of managing and updating component state\n📝 Key concept in React development",
+      "confidence": 85,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800133075_ej10sv3r0",
+      "timestamp": "20:15:33",
+      "originalText": "So, Sie sind also unser neuer Entwickler? Gut, dann erklären Sie mir doch mal: Wie funktioniert eigentlich State Management in React",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    },
+    {
+      "category": "MEETING TIP",
+      "front": "How can you show respect in German business culture regarding punctuality?",
+      "back": "🎯 Always arrive early with a 10-minute buffer\n⚡ Wait in a nearby cafe or car\n📝 Demonstrates professionalism and respect for others' time",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755800130878_uea87mgor",
+      "timestamp": "20:15:30",
+      "originalText": "Ja, also wenn wir über deutsche Geschäftskultur sprechen, muss ich wirklich betonen - Pünktlichkeit ist kein Scherz hier. Ich hatte mal einen amerikanischen Kollegen, der dachte, fünf Minuten Verspätung wären okay, 'nur fünf Minuten', sagte er. Großer Fehler! In Deutschland ist das respektlos. Mein Tipp? Plant immer zehn Minuten Puffer ein. Kommt lieber zu früh und wartet im Auto oder in einem Café in der Nähe. Das zeigt Professionalität und Respekt für die Zeit der anderen.",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    }
+  ],
+  "exported": "2025-08-21T18:15:47.265Z",
+  "total": 12,
+  "settings": {
+    "currentMode": "cheat",
+    "outputLanguage": {
+      "auto": true,
+      "fixed": "ja-JP"
+    },
+    "education": {
+      "userLevel": 3,
+      "detailLevel": 3,
+      "exampleComplexity": 3
+    },
+    "interviewMode": true
+  },
+  "metadata": {
+    "cardTypes": {
+      "cheat": 12,
+      "flash": 0
+    }
+  }
+}

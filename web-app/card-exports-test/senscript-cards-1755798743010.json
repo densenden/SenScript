@@ -1,0 +1,95 @@
+{
+  "cards": [
+    {
+      "category": "QUICK WIN",
+      "front": "Importance of mastering medical root words early. What are the 'big four'?",
+      "back": "📝 'Cardio' - heart, 'pulmonary' - lungs, 'hepatic' - liver, 'renal' - kidneys. Learn for hundreds of related terms.",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755798684970_o7twtx73v",
+      "timestamp": "19:51:24",
+      "originalText": "So, as we dive into medical terminology this semester, I cannot stress enough how important it is to master the root words early on. Let me give you the big four that you'll see constantly: 'cardio' - that's everything related to the heart, okay? Then we have 'pulmonary' - that's your lungs. 'Hepatic' refers to the liver, and 'renal' is kidneys. These four roots alone will appear in, oh, probably hundreds of terms you'll encounter. If you learn these now, you'll thank me during your board exams, I promise you that.",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "INTERVIEW TIP",
+      "front": "How to handle questions about unfamiliar technologies in tech interviews?",
+      "back": "🎯 Acknowledge honestly, pivot to related experience. Connect similarities. Express confidence in quick learning.",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755798682327_69nrp5h3r",
+      "timestamp": "19:51:22",
+      "originalText": "Alright, so here's a common scenario in tech interviews - they'll throw a technology at you that you've never used, like, let's say they ask about Kubernetes and you've never touched it. The worst thing you can do is just say 'I don't know Kubernetes.' Instead, here's the strategy: acknowledge it honestly but pivot to related experience. Say something like, 'While I haven't worked directly with Kubernetes, I have extensive experience with Docker and AWS ECS, which share similar containerization concepts. I'm confident I could ramp up quickly on Kubernetes because I understand the underlying principles of container orchestration.'",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "MEETING TIP",
+      "front": "How to handle stakeholder pushback on budget. Reframing the conversation strategy?",
+      "back": "🎯 Instead of accepting 'no', ask 'What would make it possible?' Reframe, phase, or find alternative budget. Changes conversation dynamic.",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755798679559_r5znelx7a",
+      "timestamp": "19:51:19",
+      "originalText": "So, um, looking at our Q3 budget here... yeah, we've got about 50K allocated for new features. Now, when stakeholders push back and say, oh we can't afford that new dashboard feature, right? Here's what I've learned over the years - instead of just accepting the no, try reframing it. Ask them, okay, what would it take to make this possible? You know, maybe we can phase it, or find budget from somewhere else. It completely changes the dynamic of the conversation, trust me on this one.",
+      "source": "card-engine",
+      "flag": "🇺🇸"
+    },
+    {
+      "category": "MEETING TIP",
+      "front": "Erklärung für Verzögerung im Projekt gefragt. Wie aufholen? Konkrete Lösungen statt Entschuldigungen. Vorbereitung für Geschäftsleitung.",
+      "back": "🎯 Klare Analyse der Verzögerungsursachen. Konkrete Maßnahmen zur Aufholung planen. Fokus auf Lösungen, nicht Problemen.",
+      "confidence": 85,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755798677087_tw6s4ddcy",
+      "timestamp": "19:51:17",
+      "originalText": "Also, ich schaue mir hier die Zahlen für Ihr Projekt an... Können Sie mir erklären, warum wir schon 3 Wochen im Verzug sind? Was ist da schiefgelaufen? Und wie wollen Sie das wieder aufholen? Ich brauche konkrete Lösungen, nicht nur Entschuldigungen. Die Geschäftsleitung will morgen Antworten. Also, was schlagen Sie vor? Wie stellen Sie sicher, dass so etwas nicht wieder passiert?",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    },
+    {
+      "category": "CONCEPT",
+      "front": "Wie funktioniert State Management in React? Warum Redux statt useState? Unterschiede zu Zustand und Context API? Umgang mit Performance-Problemen?",
+      "back": "🎯 State Management organisiert und speichert Daten in React. Redux für komplexe Anwendungen. Zustand und Context API sind Alternativen. Performance-Probleme durch Code-Optimierung lösen.",
+      "confidence": 90,
+      "cardType": "cheat",
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755798673915_5xn7rmerk",
+      "timestamp": "19:51:13",
+      "originalText": "So, Sie sind also unser neuer Entwickler? Gut, dann erklären Sie mir doch mal: Wie funktioniert eigentlich State Management in React? Und warum sollten wir Redux verwenden statt einfach nur useState? Ich habe gehört, dass es auch andere Lösungen gibt wie Zustand oder Context API. Was ist denn da der Unterschied? Und noch eine Frage: Wie gehen Sie mit Performance-Problemen um, wenn die App langsam wird?",
+      "source": "card-engine",
+      "flag": "🇩🇪"
+    }
+  ],
+  "exported": "2025-08-21T17:52:23.005Z",
+  "total": 5,
+  "settings": {
+    "currentMode": "cheat",
+    "outputLanguage": {
+      "auto": true,
+      "fixed": "ja-JP"
+    },
+    "education": {
+      "userLevel": 3,
+      "detailLevel": 3,
+      "exampleComplexity": 3
+    },
+    "interviewMode": true
+  },
+  "metadata": {
+    "cardTypes": {
+      "cheat": 5,
+      "flash": 0
+    }
+  }
+}

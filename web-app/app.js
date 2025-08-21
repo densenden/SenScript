@@ -14,6 +14,10 @@ class SenScript {
         this.cards = [];
         this.fullTranscriptLog = [];  // Keep full transcript for download
         this.isLight = false;
+        
+        // Card Generation Tracking
+        this.pendingCards = new Map(); // Track empty cards waiting for content
+        this.cardGenerationCounter = 0;
         this.themePreference = this.detectSystemTheme();
         // Support for 12 major languages
         this.supportedLanguages = [
@@ -948,29 +952,346 @@ class SenScript {
             this.recognition.lang = this.currentLang;
         }
         
-        // Create card using new engine - NON-BLOCKING for continuous speech!
+        // UNIFIED CARD BIRTH PROCESS - Single method for all card types
         if (this.cardEngine && this.cardEngine.isTextWorthyOfCard(sentence)) {
-            // Use new card engine for speed and reliability
-            this.cardEngine.generateCard(sentence, detection).then(result => {
-                if (result && !result.skip) {
-                    this.handleCardGenerationResult(result, sentence);
-                }
-            }).catch(error => {
-                console.error('❌ [CARD-ENGINE] Card generation failed:', error);
-                this.setStatus('ai', 'red');
+            const segments = this.intelligentQuestionSplitting(sentence);
+            
+            // Process all segments using unified birth process
+            segments.forEach((segment, index) => {
+                setTimeout(() => {
+                    this.createUnifiedCard(segment, detection);
+                }, index * 200); // Staggered timing for multiple cards
             });
-        } else {
-            // Text not worthy of card or engine not ready
-            if (!this.cardEngine) {
-                console.warn('⚠️ [CARD-ENGINE] Engine not initialized');
+        }
+    }
+    
+    /**
+     * Intelligent question/aspect splitting for multi-card generation
+     */
+    intelligentQuestionSplitting(text) {
+        // Early return for simple cases
+        if (!text.includes('?') || text.length < 50) {
+            return [text];
+        }
+        
+        // Count distinct questions
+        const questionCount = (text.match(/\?/g) || []).length;
+        if (questionCount < 2) {
+            return [text];
+        }
+        
+        // 1. Primary splitting: Direct questions with transition words
+        let segments = [];
+        
+        // German question patterns
+        const germanSplits = text.split(/\?\s*(?=(?:Und|Außerdem|Was|Wie|Warum|Wann|Wo|Wer|Können\s+Sie|Erklären\s+Sie))/gi);
+        if (germanSplits.length > 1) {
+            segments = germanSplits.map(s => s.trim() + (s.includes('?') ? '' : '?')).filter(s => s.length > 15);
+        }
+        
+        // English question patterns if German didn't work
+        if (segments.length <= 1) {
+            const englishSplits = text.split(/\?\s*(?=(?:And|Also|What|How|Why|When|Where|Who|Can\s+you|Explain))/gi);
+            if (englishSplits.length > 1) {
+                segments = englishSplits.map(s => s.trim() + (s.includes('?') ? '' : '?')).filter(s => s.length > 15);
             }
         }
+        
+        // 2. Advanced splitting: Topic transitions
+        if (segments.length <= 1) {
+            const topicSplits = text.split(/\?\s*(?=(?:Noch\s+eine\s+Frage|Another\s+question|Darüber\s+hinaus|Furthermore|Moreover))/gi);
+            if (topicSplits.length > 1) {
+                segments = topicSplits.map(s => s.trim() + (s.includes('?') ? '' : '?')).filter(s => s.length > 15);
+            }
+        }
+        
+        // 3. Fallback: Simple question mark splitting with context preservation
+        if (segments.length <= 1 && questionCount >= 2) {
+            const simpleSplits = text.split(/\?\s+(?=[A-ZÄÖÜ])/g);
+            if (simpleSplits.length > 1) {
+                segments = simpleSplits.map((s, i) => {
+                    let segment = s.trim();
+                    if (i < simpleSplits.length - 1 && !segment.includes('?')) {
+                        segment += '?';
+                    }
+                    return segment;
+                }).filter(s => s.length > 15);
+            }
+        }
+        
+        // Validation: Ensure we have meaningful segments
+        if (segments.length <= 1 || segments.some(s => s.length < 10)) {
+            return [text]; // Return original if splitting failed
+        }
+        
+        console.log(`✂️ [SPLIT] ${segments.length} aspects found:`, segments.map(s => s.substring(0, 40) + '...'));
+        return segments;
+    }
+    
+    /**
+     * Generate card for individual segment with context info
+     */
+    /**
+     * Create empty card container waiting for content
+     */
+    createEmptyCard(segment, detection, partNum, totalParts) {
+        const cardId = `card_empty_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const currentMode = this.apiSettings.interviewMode ? 'cheat' : 'flash';
+        
+        // Create empty card element
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card empty entering';
+        cardEl.setAttribute('data-card-type', currentMode);
+        cardEl.setAttribute('data-card-id', cardId);
+        
+        // Store reference for later filling
+        this.pendingCards.set(cardId, {
+            element: cardEl,
+            segment,
+            detection,
+            partNum,
+            totalParts
+        });
+        
+        // Add to DOM (prepend to show newest on top)
+        this.els.cardsContainer.prepend(cardEl);
+        
+        console.log(`📦 [CONTAINER] Created empty card [${partNum}/${totalParts}]:`, segment.substring(0, 40) + '...');
+        
+        return cardId;
+    }
+    
+    /**
+     * Generate content for empty card container
+     */
+    async generateCardContent(cardId, segment, detection) {
+        console.log(`🔄 [CONTAINER] Generating content for:`, segment.substring(0, 60) + '...');
+        
+        try {
+            const result = await this.cardEngine.generateCard(segment, detection);
+            
+            if (result && !result.skip) {
+                this.fillCard(cardId, result, segment);
+            } else {
+                // Remove empty card if generation failed
+                this.removeEmptyCard(cardId);
+                console.log(`⏭️ [CONTAINER] Removed empty card - generation failed:`, result?.reason || 'unknown');
+            }
+        } catch (error) {
+            console.error('❌ [CONTAINER] Content generation failed:', error);
+            this.removeEmptyCard(cardId);
+        }
+    }
+    
+    /**
+     * Fill empty card container with generated content
+     */
+    fillCard(cardId, cardResult, originalText) {
+        const pendingCard = this.pendingCards.get(cardId);
+        if (!pendingCard) return;
+        
+        const { element } = pendingCard;
+        
+        // Extract card data
+        let cardData = cardResult.card || cardResult;
+        
+        // Add metadata
+        cardData.id = cardId;
+        cardData.timestamp = new Date().toLocaleTimeString();
+        cardData.originalText = originalText;
+        cardData.source = 'card-engine';
+        
+        // Ensure cardType is set
+        if (!cardData.cardType) {
+            cardData.cardType = this.apiSettings.interviewMode ? 'cheat' : 'flash';
+        }
+        
+        // Set language flag if not present
+        if (!cardData.flag) {
+            const detectedLanguage = this.detectLanguage(originalText);
+            cardData.flag = this.getLanguageFlag(detectedLanguage.lang);
+        }
+        
+        // Start morphing animation
+        element.classList.add('filling');
+        
+        // Create card content (initially hidden)
+        const contentHTML = this.generateCardHTML(cardData);
+        element.innerHTML = `<div class="card-content">${contentHTML}</div>`;
+        
+        // Trigger content fade-in after morph starts
+        setTimeout(() => {
+            element.classList.remove('empty', 'filling');
+            element.classList.add('filled');
+        }, 600);
+        
+        // Add to cards array
+        this.cards.unshift(cardData);
+        
+        // Cleanup
+        this.pendingCards.delete(cardId);
+        this.updateCardCount();
+        this.els.exportBtn.disabled = false;
+        
+        console.log(`✨ [CONTAINER] Filled card with content:`, cardData.category, '|', cardData.front.substring(0, 50));
+    }
+    
+    /**
+     * Remove empty card if generation fails
+     */
+    removeEmptyCard(cardId) {
+        const pendingCard = this.pendingCards.get(cardId);
+        if (pendingCard) {
+            pendingCard.element.remove();
+            this.pendingCards.delete(cardId);
+        }
+    }
+
+    /**
+     * UNIFIED CARD BIRTH PROCESS - Single method for all card creation
+     * 1. Create 12px container with ready content
+     * 2. Card pops to final height (only bottom card animates)
+     * 3. Text fades in when fully open
+     * 4. Scroll to top
+     */
+    async createUnifiedCard(segment, detection) {
+        console.log(`🎯 [UNIFIED-BIRTH] Creating card for:`, segment.substring(0, 60) + '...');
+        
+        try {
+            // 1. Generate content FIRST (before creating container)
+            const result = await this.cardEngine.generateCard(segment, detection);
+            
+            if (!result || result.skip) {
+                console.log(`⏭️ [UNIFIED-BIRTH] Skipped - not worthy:`, result?.reason || 'unknown');
+                return;
+            }
+            
+            // 2. Create card with content ready but hidden
+            const cardData = this.prepareCardData(result, segment);
+            const cardElement = this.createCardElement(cardData);
+            
+            // 3. Add to DOM as 12px container (content hidden)
+            this.els.cardsContainer.prepend(cardElement);
+            this.cards.unshift(cardData);
+            
+            // 4. Auto-scroll to top
+            this.els.cardsContainer.scrollTop = 0;
+            
+            // 5. Animate height expansion (only for bottom-most new card)
+            setTimeout(() => {
+                cardElement.classList.remove('card-birth');
+                cardElement.classList.add('card-open');
+                
+                // 6. Fade in text after height animation completes
+                setTimeout(() => {
+                    cardElement.classList.add('card-ready');
+                }, 400); // After height animation
+                
+            }, 50); // Small delay for smooth birth
+            
+            this.updateCardCount();
+            this.els.exportBtn.disabled = false;
+            this.setStatus('ai', 'green');
+            
+            console.log('✅ [UNIFIED-BIRTH] Card created:', cardData.category);
+            
+        } catch (error) {
+            console.error('❌ [UNIFIED-BIRTH] Failed:', error);
+            this.setStatus('ai', 'red');
+        }
+    }
+    
+    /**
+     * Prepare card data with all metadata
+     */
+    prepareCardData(result, originalText) {
+        let cardData = result.card || result;
+        
+        // Add metadata
+        cardData.id = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        cardData.timestamp = new Date().toLocaleTimeString();
+        cardData.originalText = originalText;
+        cardData.source = 'card-engine';
+        
+        // Set card type based on current mode
+        cardData.cardType = this.apiSettings.interviewMode ? 'cheat' : 'flash';
+        
+        // Set language flag
+        if (!cardData.flag) {
+            const detectedLanguage = this.detectLanguage(originalText);
+            cardData.flag = this.getLanguageFlag(detectedLanguage.lang);
+        }
+        
+        return cardData;
+    }
+    
+    /**
+     * Create card DOM element with unified birth states
+     */
+    createCardElement(cardData) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card card-birth'; // Start in birth state (12px)
+        cardEl.setAttribute('data-category', cardData.category || 'DEFAULT');
+        cardEl.setAttribute('data-card-type', cardData.cardType || 'flash');
+        cardEl.style.cursor = 'pointer';
+        
+        // Generate card HTML content
+        cardEl.innerHTML = this.generateCardHTML(cardData);
+        
+        // Set up click handler for card flipping
+        cardEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cardEl.classList.toggle('flipped');
+        });
+        
+        return cardEl;
+    }
+    
+    /**
+     * Generate HTML content for card
+     */
+    generateCardHTML(card) {
+        // Add confidence indicator, source, provider, and language flag
+        const sourceCircle = card.source === 'AI' ? 
+            '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
+            '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
+        const confidenceText = (card.confidence && card.confidence !== 'undefined' && !isNaN(card.confidence)) ? ` ${card.confidence}%` : '';
+        
+        const headerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">
+                <div style="display: flex; align-items: center;">
+                    <span>${card.category}</span>
+                    ${sourceCircle}
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    ${confidenceText ? `<span>${confidenceText}</span>` : ''}
+                    <span>${card.flag || '🌐'}</span>
+                    <span style="opacity: 0.7;">${card.timestamp}</span>
+                </div>
+            </div>
+        `;
+        
+        const frontHTML = `
+            <div class="card-front" style="margin-bottom: 16px;">
+                <div style="font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, 0.95); line-height: 1.4; margin-bottom: 12px;">${card.front}</div>
+            </div>
+        `;
+        
+        const backHTML = `
+            <div class="card-back">
+                <div style="font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.85);">
+                    ${card.back.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `;
+        
+        return headerHTML + frontHTML + backHTML;
     }
     
     /**
      * Handle card generation result from the new card engine
      */
-    handleCardGenerationResult(result, originalText) {
+    handleCardGenerationResult(result, originalText, fromPipeline = false) {
         try {
             // Extract card data - handle both old and new formats
             let cardData = result.card || result;
@@ -1009,8 +1330,8 @@ class SenScript {
             // Add to cards array
             this.cards.unshift(cardData);
             
-            // Update UI
-            this.renderCard(cardData);
+            // Update UI with pipeline birth animation if needed
+            this.renderCard(cardData, fromPipeline);
             this.updateCardCount();
             this.els.exportBtn.disabled = false;
             this.setStatus('ai', 'green');
@@ -1103,7 +1424,7 @@ class SenScript {
             
             // Show current test in transcript with monospace font
             this.showTranscriptMessage(`Test ${i + 1}/10: ${test.expectedCategory}`, 'test');
-            this.showTranscriptMessage(test.text.substring(0, 120) + '...', 'transcript');
+            this.showTranscriptMessage(test.text, 'transcript');
             
             // Log AI call status
             console.log(`🔄 [TEST-${i + 1}] Starting AI call for: "${test.text.substring(0, 50)}..."`);
@@ -1196,8 +1517,7 @@ class SenScript {
         if (!this.els.transcript) return;
         
         const flag = test.language === 'de-DE' ? '🇩🇪' : '🇺🇸';
-        const truncatedText = test.text.length > 200 ? 
-            test.text.substring(0, 200) + '...' : test.text;
+        const fullText = test.text; // Show complete text, no truncation
         
         this.els.transcript.innerHTML = `
             <div class="transcript-rows enhanced">
@@ -1211,7 +1531,7 @@ class SenScript {
                 </div>
                 <div class="transcript-row line-1 old test-detail">
                     <span class="time">📝</span>
-                    <span class="text" style="font-size: 13px; line-height: 1.4; opacity: 0.9;">${truncatedText}</span>
+                    <span class="text" style="font-size: 13px; line-height: 1.4; opacity: 0.9;">${fullText}</span>
                 </div>
             </div>
         `;
@@ -1267,7 +1587,7 @@ class SenScript {
         const germanTests = window.TestTranscripts.getTestTranscripts({ language: 'de-DE' });
         const englishTests = window.TestTranscripts.getTestTranscripts({ language: 'en-US' });
         
-        // Select 3 of each
+        // Select 3 of each in correct order
         const selectedTests = [
             ...germanTests.slice(0, 3),
             ...englishTests.slice(0, 3)
@@ -1293,17 +1613,26 @@ class SenScript {
                     flag: this.cardEngine.getLanguageFlag(test.language)
                 };
                 
-                const result = await this.cardEngine.generateCard(test.text, detection);
+                // 🎯 REAL-LIFE TESTING: Use the actual live transcript processing method
+                console.log(`🧪 [TEST-${i + 1}] Processing via REAL processCompleteSentence() method`);
                 
-                if (result && !result.skip) {
-                    this.handleCardGenerationResult(result, test.text);
-                    console.log(`✅ [TEST-${i + 1}] SUCCESS - Generated ${result.card?.category || result.category}`);
-                    console.log(`🎯 [TEST-${i + 1}] CheatCard format check:`, 
-                        result.card?.back?.includes('🎯') ? '✓ Has emojis' : '✗ Missing emojis');
-                    successCount++;
-                } else {
-                    console.log(`⏭️ [TEST-${i + 1}] SKIP - ${result?.reason || 'unknown'}`);
-                }
+                // Count cards before processing
+                const cardsBefore = this.cards.length;
+                
+                // Call the EXACT same method used in live transcription
+                // This ensures testing matches real-world behavior exactly
+                this.processCompleteSentence(test.text);
+                
+                // Wait for async card generation to complete properly
+                // Longer delay to ensure all pipeline cards are generated before next test
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Count cards after processing to track success
+                const cardsAfter = this.cards.length;
+                const newCardsGenerated = cardsAfter - cardsBefore;
+                successCount += newCardsGenerated;
+                
+                console.log(`📊 [TEST-${i + 1}] Generated ${newCardsGenerated} card(s) via real-life method`);
                 
                 // Delay between tests for readability
                 await new Promise(resolve => setTimeout(resolve, 1500));
@@ -1888,6 +2217,17 @@ class SenScript {
      * Reset all caches when mode changes to ensure different card styles
      */
     resetCachesForModeChange() {
+        // Clear any pending empty cards with wrong card type
+        const emptyCards = document.querySelectorAll('.card.empty');
+        emptyCards.forEach(card => {
+            const cardId = card.getAttribute('data-card-id');
+            if (cardId && this.pendingCards.has(cardId)) {
+                this.pendingCards.delete(cardId);
+                card.remove();
+                console.log('🗑️ [MODE-CHANGE] Removed pending empty card with old card type');
+            }
+        });
+        
         // Reset card engine cache
         if (this.cardEngine) {
             this.cardEngine.reset();
@@ -2835,9 +3175,9 @@ class SenScript {
         }
     }
 
-    renderCard(card) {
+    renderCard(card, fromPipeline = false) {
         const cardEl = document.createElement('div');
-        cardEl.className = 'card new-card';
+        cardEl.className = fromPipeline ? 'card new-card pipeline-birth' : 'card new-card';
         // Add data-category attribute for cheat card styling
         cardEl.setAttribute('data-category', card.category || 'DEFAULT');
         // Add data-card-type for styling
@@ -4887,7 +5227,7 @@ class SenScript {
         if (this.cards.length === 0) return;
         
         const data = {
-            cards: this.cards,
+            cards: [...this.cards].reverse(), // Export in chronological order (oldest first)
             exported: new Date().toISOString(),
             total: this.cards.length,
             settings: {
