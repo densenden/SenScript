@@ -45,11 +45,11 @@ class CardGenerationEngine {
         
         // 1. Length check (fastest)
         if (length < 15) return false;
-        if (length > 500) return false; // Too long, likely noise
+        if (length > 2000) return false; // Increased limit for real transcripts
         
-        // 2. Character type check (fast)
-        const alphaNumericRatio = (trimmed.match(/[a-zA-Z0-9äöüÄÖÜß]/g) || []).length / length;
-        if (alphaNumericRatio < 0.3) return false; // Too much noise/symbols
+        // 2. Character type check (fast) - expanded for multilingual support
+        const alphaNumericRatio = (trimmed.match(/[a-zA-Z0-9äöüÄÖÜßàâçéèêëïîôùûüÿñáíóúñÀÂÇÉÈÊËÏÎÔÙÛÜŸÑÁÍÓÚÑ]/g) || []).length / length;
+        if (alphaNumericRatio < 0.25) return false; // Lowered threshold for more punctuation
         
         // 3. Content patterns (medium cost) 
         const lowerText = trimmed.toLowerCase();
@@ -61,23 +61,43 @@ class CardGenerationEngine {
         // Skip repetitive patterns
         if (/(.{1,10})\1{3,}/.test(trimmed)) return false; // Repeated patterns
         
-        // 4. Educational/informational signals (most expensive, but valuable)
-        const educationalSignals = [
-            /\b(how|what|when|where|why|because|therefore|thus|however|although)\b/i,
-            /\b(definition|example|process|method|technique|strategy|principle)\b/i,
-            /\b(important|key|critical|essential|remember|note|consider)\b/i,
-            /\b(step|phase|stage|first|second|third|next|then|finally)\b/i,
-            /\b(formula|equation|rule|law|theory|concept|idea|approach)\b/i,
+        // 4. Universal content quality indicators (language-independent)
+        const qualityIndicators = [
+            // Structural complexity
             /[.!?][^.!?]*[.!?]/, // Multiple sentences
-            /\b\d+[%°$€£¥]\b|\b\d{4}\b|\b\d+\.\d+\b/, // Numbers, dates, percentages
+            /[,:;]\s+\w/, // Complex punctuation usage
+            /\([^)]+\)/, // Parenthetical explanations
+            /[""][^""]*[""]/, // Quoted content
+            
+            // Numerical and technical content
+            /\b\d+[%°$€£¥]\b|\b\d{4}\b|\b\d+[.,]\d+\b/, // Numbers, dates, percentages
+            /\b\d+\s*[-–—]\s*\d+\b/, // Ranges
+            /\b[A-Z]{2,}\b/, // Acronyms
+            
+            // Educational discourse patterns
+            /\w+[:]\s*\w+/, // Definitions or explanations
+            /\b\w+[.,]\s+\w+[.,]\s+\w+/, // Lists or sequences
+            /\s+[-•]\s+/, // Bullet points or dashes
+            
+            // Content depth indicators
+            length > 100, // Longer content is more likely educational
+            /\w{8,}/.test(trimmed), // Contains complex words
+            (trimmed.split(/\s+/).length > 15), // More than 15 words
+            
+            // Sentence variety
+            /[.!?].*[.!?].*[.!?]/, // Three or more sentences
         ];
         
-        const hasEducationalSignal = educationalSignals.some(pattern => pattern.test(trimmed));
-        if (hasEducationalSignal) return true;
+        const qualityScore = qualityIndicators.filter(indicator => 
+            typeof indicator === 'boolean' ? indicator : indicator.test(trimmed)
+        ).length;
         
-        // 5. Fallback: Accept if reasonably long and structured
-        const hasStructure = /[.!?:;,]/.test(trimmed) && length >= 25;
-        return hasStructure;
+        // Accept if it has enough quality indicators
+        if (qualityScore >= 3) return true;
+        
+        // 5. Final fallback: Basic structure check
+        const hasBasicStructure = /[.!?:;,]/.test(trimmed) && length >= 30;
+        return hasBasicStructure;
     }
     
     /**
