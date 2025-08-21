@@ -178,9 +178,10 @@ async function generateFlashcard(sessionId, transcript, language, languageFlag, 
         const result = await llmConversation.processTranscript(
             sessionId,
             transcript,
-            language,
+            outputLanguage || language,  // Use output language if set, fallback to input language
             languageFlag,
-            cardMode         // Pass the card mode directly from request
+            cardMode,         // Pass the card mode directly from request
+            outputLanguage    // Also pass the output language separately for prompts
         );
         
         // Track usage

@@ -56,7 +56,7 @@ LANGUAGE: Always respond in the same language as the input transcript.`;
         return this.systemPrompt;
     }
     
-    async processTranscript(sessionId, transcript, language, languageFlag, cardMode = null) {
+    async processTranscript(sessionId, transcript, language, languageFlag, cardMode = null, outputLanguage = null) {
         // Get or create conversation for this session
         let conversation = this.conversations.get(sessionId);
         
@@ -75,6 +75,11 @@ LANGUAGE: Always respond in the same language as the input transcript.`;
         const modeInstruction = isCheatMode ? 
             'CHEAT CARD MODE - MANDATORY: Use ONLY emojis for structure (🎯, ⚡, 📝). NO bullet points or dots. Each emoji line should be actionable and memorable.' :
             'FLASH CARD MODE - MANDATORY: Use plain text paragraphs without emojis or bullet points. Write in complete sentences with detailed explanations.';
+
+        // Determine output language instruction
+        const outputLangInstruction = outputLanguage && outputLanguage !== language 
+            ? `\n\nIMPORTANT: Generate the flashcard content in ${this.getLanguageName(outputLanguage)} language, not ${this.getLanguageName(language)}.`
+            : '';
 
         // Add user message with transcript
         const userMessage = {
@@ -100,7 +105,7 @@ MANDATORY: Select the most appropriate category from this EXACT list:
 - CONCEPT (for complex ideas only)
 - FACT (for simple factual info only)
 
-Use the EXACT category name. Include "cardType": "${isCheatMode ? 'cheat' : 'flash'}" in response.
+Use the EXACT category name. Include "cardType": "${isCheatMode ? 'cheat' : 'flash'}" in response.${outputLangInstruction}
 
 Generate a flashcard if ANY educational value exists. MODE: ${isCheatMode ? 'CHEAT' : 'FLASH'}`
         };
@@ -369,7 +374,19 @@ Generate a flashcard if ANY educational value exists. MODE: ${isCheatMode ? 'CHE
             'en-US': 'English',
             'fr-FR': 'French',
             'es-ES': 'Spanish',
-            'it-IT': 'Italian'
+            'it-IT': 'Italian',
+            'pt-PT': 'Portuguese',
+            'nl-NL': 'Dutch',
+            'sv-SE': 'Swedish',
+            'no-NO': 'Norwegian',
+            'fi-FI': 'Finnish',
+            'da-DK': 'Danish',
+            'ru-RU': 'Russian',
+            'zh-CN': 'Chinese',
+            'ja-JP': 'Japanese',
+            'ko-KR': 'Korean',
+            'ar-SA': 'Arabic',
+            'el-GR': 'Greek'
         };
         return names[languageCode] || 'Unknown';
     }
