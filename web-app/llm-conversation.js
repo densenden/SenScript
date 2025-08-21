@@ -12,38 +12,51 @@ class LLMConversation {
     
     getSystemPrompt() {
         if (!this.systemPrompt) {
-            this.systemPrompt = `You are an intelligent meeting assistant that creates educational flashcards from conversation snippets.
+            this.systemPrompt = `You are SenScript's intelligent flashcard generator, optimized for creating actionable study cards from educational and professional content.
 
-Your role:
-1. Analyze each new transcript segment
-2. Determine if it contains educational value or a question to be answered
-3. Generate flashcards ONLY for worthy content
-4. Maintain context from previous segments
-5. Avoid creating duplicate cards for similar content
+PRIORITY: Generate exactly 1 card per worthy transcript segment. Never skip valid educational content.
 
-Output format:
-- If content is worthy: Return JSON flashcard
-- If content is trivial: Return {"skip": true, "reason": "brief explanation"}
+TARGET CATEGORIES (use these specific names):
+- "MEETING TIP" - Professional meeting strategies and responses
+- "PRESENTATION TIP" - Public speaking and presentation advice  
+- "INTERVIEW TIP" - Job interview preparation and answers
+- "QUICK WIN" - Easy-to-remember facts, formulas, memory tricks
+- "KEY FACTS" - Important educational concepts and principles
+- "WHAT TO SAY" - Specific phrases, responses, or explanations
+- "AVOID THIS" - Common mistakes and what not to do
+- "CONCEPT" - Complex ideas requiring deeper understanding
+- "FACT" - Straightforward factual information
 
-Flashcard JSON format:
+CARD REQUIREMENTS:
+1. Use SPECIFIC categories from the list above (not generic ones)
+2. Create practical, actionable content
+3. Always generate a card for educational content - be generous, not restrictive
+
+CARD STYLE - Choose based on mode in user message:
+- CHEAT CARD MODE: ALWAYS use bullet points starting with emojis (•🎯, •⚡, •📝). Keep each bullet under 15 words. Make scannable and actionable.
+- FLASH CARD MODE: NEVER use emojis or bullet points. Write in complete paragraph form with detailed explanations.
+
+JSON FORMAT:
 {
-  "category": "Question|Definition|Concept|Fact",
-  "front": "Clear, concise question or term",
-  "back": "Detailed educational explanation",
-  "confidence": 0-100,
+  "category": "EXACT category name from list above",
+  "front": "Clear question or scenario (what the user needs to know)",
+  "back": "[Format based on requested card mode - structured bullets for cheat cards, plain text for flash cards]",
+  "confidence": 85-95 (be confident for educational content),
+  "cardType": "cheat" or "flash" (based on mode in user message),
   "skip": false
 }
 
-Remember:
-- Maintain language consistency with input
-- Reference previous context when relevant
-- Skip greetings, fillers, and repetitive content
-- Focus on educational value`;
+SKIP ONLY IF:
+- Pure filler words (um, ah, okay, yes, no)
+- Incomplete sentences with no educational value
+- Repetitive greetings or social pleasantries
+
+LANGUAGE: Always respond in the same language as the input transcript.`;
         }
         return this.systemPrompt;
     }
     
-    async processTranscript(sessionId, transcript, language, languageFlag) {
+    async processTranscript(sessionId, transcript, language, languageFlag, cardMode = null) {
         // Get or create conversation for this session
         let conversation = this.conversations.get(sessionId);
         
@@ -57,13 +70,39 @@ Remember:
             this.updateConversationLanguage(conversation, language, languageFlag);
         }
         
+        // Get current card mode from parameter or session
+        const isCheatMode = cardMode === 'cheat' || (cardMode === null && this.getCardMode());
+        const modeInstruction = isCheatMode ? 
+            'CHEAT CARD MODE - MANDATORY: Use bullet points with emojis (•🎯, •⚡, •📝) for structured, scannable tips. Each bullet should be actionable and memorable.' :
+            'FLASH CARD MODE - MANDATORY: Use plain text paragraphs without emojis or bullet points. Write in complete sentences with detailed explanations.';
+
         // Add user message with transcript
         const userMessage = {
             role: 'user',
             content: `New transcript segment (${this.getLanguageName(language)}):
 "${transcript}"
 
-Analyze this segment considering previous context. Generate a flashcard if educational value exists, or return skip:true if trivial.`
+CARD MODE: ${modeInstruction}
+
+FORMAT EXAMPLE for ${isCheatMode ? 'CHEAT' : 'FLASH'} cards:
+${isCheatMode ? 
+`"back": "• 🎯 Main concept with clear action\n• ⚡ Memory trick or tip\n• 📝 Quick practical advice"` :
+`"back": "Detailed explanation in paragraph form. Provide comprehensive information with clear reasoning and examples. Write in complete sentences without bullet points or emojis."`}
+
+MANDATORY: Select the most appropriate category from this EXACT list:
+- MEETING TIP (for professional meeting advice)
+- PRESENTATION TIP (for public speaking)  
+- INTERVIEW TIP (for job interviews)
+- QUICK WIN (for memory tricks, formulas, mnemonics)
+- KEY FACTS (for educational concepts)
+- WHAT TO SAY (for specific phrases/responses)
+- AVOID THIS (for common mistakes)
+- CONCEPT (for complex ideas only)
+- FACT (for simple factual info only)
+
+Use the EXACT category name. Include "cardType": "${isCheatMode ? 'cheat' : 'flash'}" in response.
+
+Generate a flashcard if ANY educational value exists. MODE: ${isCheatMode ? 'CHEAT' : 'FLASH'}`
         };
         
         conversation.messages.push(userMessage);
@@ -217,8 +256,8 @@ Analyze this segment considering previous context. Generate a flashcard if educa
             body: JSON.stringify({
                 model: provider.model,
                 messages: messages,
-                max_tokens: 150, // Reduced for efficiency
-                temperature: 0.5  // Lower for consistency
+                max_tokens: 250, // Increased for comprehensive cards
+                temperature: 0.3  // Lower for consistency
             })
         });
         
@@ -266,8 +305,8 @@ Analyze this segment considering previous context. Generate a flashcard if educa
                 model: provider.model,
                 system: systemPrompt,
                 messages: anthropicMessages,
-                max_tokens: 150,
-                temperature: 0.5
+                max_tokens: 250,
+                temperature: 0.3
             })
         });
         
@@ -300,8 +339,8 @@ Analyze this segment considering previous context. Generate a flashcard if educa
             body: JSON.stringify({
                 model: provider.model,
                 messages: messages,
-                max_tokens: 150,
-                temperature: 0.5
+                max_tokens: 250,
+                temperature: 0.3
             })
         });
         
@@ -356,6 +395,25 @@ Analyze this segment considering previous context. Generate a flashcard if educa
         this.conversations.delete(sessionId);
     }
     
+    getCardMode() {
+        // Try to get the current mode from the app instance
+        // In interview mode (CheatCards), return true for cheat mode
+        if (typeof window !== 'undefined' && window.app) {
+            return window.app.apiSettings?.interviewMode || false;
+        }
+        return false;
+    }
+    
+    /**
+     * Reset conversation when mode changes to ensure fresh generation
+     */
+    resetConversationForModeChange(sessionId) {
+        if (this.conversations.has(sessionId)) {
+            console.log('🔄 [MODE-CHANGE] Resetting conversation for fresh card generation');
+            this.conversations.delete(sessionId);
+        }
+    }
+
     clearAllSessions() {
         this.conversations.clear();
     }

@@ -148,7 +148,7 @@ function estimateTokens(text) {
 }
 
 // Intelligent flashcard generation with conversation context
-async function generateFlashcard(sessionId, transcript, language, languageFlag) {
+async function generateFlashcard(sessionId, transcript, language, languageFlag, cardMode = 'flash') {
     // Apply user settings
     applyUserKeys(sessionId);
     
@@ -174,14 +174,13 @@ async function generateFlashcard(sessionId, transcript, language, languageFlag) 
         const interviewMode = userSettings.interviewMode || false;
         // Interview mode setting applied
         
-        // Use conversation-based approach for efficiency
+        // Use conversation-based approach for efficiency  
         const result = await llmConversation.processTranscript(
             sessionId,
             transcript,
             language,
             languageFlag,
-            outputLanguage,  // Pass the output language override
-            interviewMode    // Pass the interview mode setting
+            cardMode         // Pass the card mode directly from request
         );
         
         // Track usage
@@ -359,12 +358,12 @@ const server = http.createServer(async (req, res) => {
 
         req.on('end', async () => {
             try {
-                const { sessionId, transcript, language, languageFlag } = JSON.parse(body);
+                const { sessionId, transcript, language, languageFlag, cardMode } = JSON.parse(body);
                 
                 const session = sessionId || 'default';
-                console.log('[API] Processing for session:', session, transcript.substring(0, 50) + '...', 'Language:', language);
+                console.log('[API] Processing for session:', session, transcript.substring(0, 50) + '...', 'Language:', language, 'Mode:', cardMode || 'flash');
                 
-                const cardData = await generateFlashcard(session, transcript, language, languageFlag);
+                const cardData = await generateFlashcard(session, transcript, language, languageFlag, cardMode);
                 
                 if (cardData) {
                     res.writeHead(200, { 'Content-Type': 'application/json' });

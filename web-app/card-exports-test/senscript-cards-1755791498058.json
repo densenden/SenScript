@@ -1,0 +1,102 @@
+{
+  "cards": [
+    {
+      "category": "Fact",
+      "front": "What is the memory trick for trigonometry involving SOHCAHTOA?",
+      "back": "The memory trick for trigonometry is SOHCAHTOA, which stands for sine equals opposite over hypotenuse, cosine equals adjacent over hypotenuse, and tangent equals opposite over adjacent. A common mnemonic to remember this is 'Some Old Hippie Caught Another Hippie Tripping On Acid'.",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791483627_rkphu131l",
+      "timestamp": "17:51:23",
+      "originalText": "For trigonometry I always use the memory trick SOHCAHTOA which stands for sine equals opposite over hypotenuse cosine equals adjacent over hypotenuse and tangent equals opposite over adjacent. My teacher taught us the phrase Some Old Hippie Caught Another Hippie Tripping On Acid to remember it.",
+      "source": "card-engine"
+    },
+    {
+      "category": "Concept",
+      "front": "What are common mistakes students make in physics exams regarding force equations?",
+      "back": "Common mistakes include confusing the general force equation F=ma with the weight-specific equation F=mg. Students also forget to check their units and ensure that their final answer aligns with real-world expectations.",
+      "confidence": 85,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791481311_eru5r0wdq",
+      "timestamp": "17:51:21",
+      "originalText": "In physics class the teacher warned us about common mistakes on the exam. Students often confuse F equals ma which is the general force equation with F equals mg which is specifically for weight. Also people forget to check their units and whether their final answer actually makes sense in the real world.",
+      "source": "card-engine"
+    },
+    {
+      "category": "Fact",
+      "front": "What were some of the interconnected causes of World War II?",
+      "back": "The causes of World War II included the harshness of the Treaty of Versailles after WWI, the global economic depression, and the rise of totalitarian regimes in Germany, Italy, and Japan. These factors collectively contributed to the outbreak of the war.",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791479106_hx8xz0b2h",
+      "timestamp": "17:51:19",
+      "originalText": "For the history exam on World War II causes I need to remember that it wasn't just one single factor but multiple interconnected causes. The harshness of the Treaty of Versailles after WWI the global economic depression and the rise of totalitarian regimes in Germany Italy and Japan all contributed to the outbreak of the war.",
+      "source": "card-engine"
+    },
+    {
+      "category": "Concept",
+      "front": "What are the trends in atomic radius and ionization energy on the periodic table?",
+      "back": "Atomic radius decreases as you move from left to right across a period and increases as you go down a group. On the other hand, ionization energy increases from left to right across a period and decreases as you move down a group.",
+      "confidence": 95,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791476957_o4xdgm6a0",
+      "timestamp": "17:51:16",
+      "originalText": "In chemistry class we learned about periodic table trends today. Atomic radius decreases as you go from left to right across a period and increases as you go from top to bottom down a group. Ionization energy shows the opposite pattern it increases left to right and decreases top to bottom.",
+      "source": "card-engine"
+    },
+    {
+      "category": "Fact",
+      "front": "What is the equation for photosynthesis?",
+      "back": "The equation for photosynthesis is: 6 carbon dioxide + 6 water + light energy → glucose + 6 oxygen. A memory trick to remember this is 'six and six make sugar and six'.",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791474519_67fr2gtec",
+      "timestamp": "17:51:14",
+      "originalText": "For the biology test tomorrow I need to remember the photosynthesis equation. It's six carbon dioxide plus six water plus light energy creates glucose plus six oxygen. The memory trick I use is six and six make sugar and six.",
+      "source": "card-engine"
+    },
+    {
+      "category": "Concept",
+      "front": "How should you approach answering the 'Tell me about yourself' question in an interview?",
+      "back": "The best strategy is to keep your response structured, professional, and relevant to the specific job you're applying for. Focus on your professional background and experiences that align with the job requirements.",
+      "confidence": 95,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791472044_5ckyqpqev",
+      "timestamp": "17:51:12",
+      "originalText": "The tell me about yourself question is probably the most common interview question and people often struggle with it because they don't know whether to talk about personal life or professional background. The best strategy is to keep it structured professional and relevant to the specific job you're applying for.",
+      "source": "card-engine"
+    },
+    {
+      "category": "Concept",
+      "front": "What should you do if you don't immediately know the answer to a question during a presentation's Q&A session?",
+      "back": "The key is to buy yourself time to think instead of immediately saying 'I don't know' or making something up. This allows you to gather your thoughts and provide a more thoughtful response.",
+      "confidence": 85,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791469881_cuo7h7bub",
+      "timestamp": "17:51:09",
+      "originalText": "During presentations the Q&A session can be really challenging especially when someone asks a question that you don't immediately know the answer to. The key is to buy yourself time to think rather than just saying I don't know or making something up on the spot.",
+      "source": "card-engine"
+    },
+    {
+      "category": "Concept",
+      "front": "How should you respond when asked to take the lead on a project?",
+      "back": "The best approach is to show enthusiasm while also clarifying the expectations in terms of scope and timeline. This demonstrates your interest and willingness to lead effectively.",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755791468123_arlh7fz5c",
+      "timestamp": "17:51:08",
+      "originalText": "So in today's meeting someone asked me can you take the lead on this project and I wasn't sure how to respond professionally. I think the best approach would be to show enthusiasm while also clarifying what exactly they expect from me in terms of scope and timeline.",
+      "source": "card-engine"
+    }
+  ],
+  "exported": "2025-08-21T15:51:38.054Z",
+  "total": 8
+}

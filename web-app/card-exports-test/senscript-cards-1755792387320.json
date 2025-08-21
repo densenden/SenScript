@@ -1,0 +1,66 @@
+{
+  "cards": [
+    {
+      "category": "MEETING TIP",
+      "front": "Wie sollte man professionell auf die Bitte reagieren, die Projektleitung zu übernehmen?",
+      "back": "• 🤝 Zeige Enthusiasmus und Klarheit \n• 📅 Kläre Umfang und Zeitlinie ab \n• 🚀 Strukturierte und professionelle Antwort geben",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755792360118_aey4sy25v",
+      "timestamp": "18:06:00",
+      "originalText": "In deutschen Geschäftsmeetings ist es wichtig professionell und strukturiert zu antworten wenn jemand fragt ob du die Projektleitung übernehmen kannst. Am besten zeigst du Enthusiasmus aber klärst gleichzeitig den Umfang und die Zeitlinie ab.",
+      "source": "card-engine"
+    },
+    {
+      "category": "QUICK WIN",
+      "front": "What is the memory trick for trigonometry involving sine, cosine, and tangent?",
+      "back": "• 🌈 SOHCAHTOA: Sine=Opposite/Hypotenuse, Cosine=Adjacent/Hypotenuse, Tangent=Opposite/Adjacent \n• 🧠 Mnemonic: Some Old Hippie Caught Another Hippie Tripping On Acid",
+      "confidence": 95,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755792357803_683so2lij",
+      "timestamp": "18:05:57",
+      "originalText": "For trigonometry I always use the memory trick SOHCAHTOA which stands for sine equals opposite over hypotenuse cosine equals adjacent over hypotenuse and tangent equals opposite over adjacent. My teacher taught us the phrase Some Old Hippie Caught Another Hippie Tripping On Acid to remember it.",
+      "source": "card-engine"
+    },
+    {
+      "category": "AVOID THIS",
+      "front": "What are common mistakes students make in physics exams?",
+      "back": "• ❌ Confusing F=ma with F=mg \n• 📏 Forgetting to check units \n• 🌎 Ensuring final answer makes sense in real world",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755792355853_t2tlcehlb",
+      "timestamp": "18:05:55",
+      "originalText": "In physics class the teacher warned us about common mistakes on the exam. Students often confuse F equals ma which is the general force equation with F equals mg which is specifically for weight. Also people forget to check their units and whether their final answer actually makes sense in the real world.",
+      "source": "card-engine"
+    },
+    {
+      "category": "KEY FACTS",
+      "front": "What were some of the interconnected causes of World War II?",
+      "back": "• ⚔️ Harsh Treaty of Versailles \n• 🌍 Global economic depression \n• 🇩🇪🇮🇹🇯🇵 Rise of totalitarian regimes in Germany, Italy, and Japan",
+      "confidence": 85,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755792354070_jvevy95gc",
+      "timestamp": "18:05:54",
+      "originalText": "For the history exam on World War II causes I need to remember that it wasn't just one single factor but multiple interconnected causes. The harshness of the Treaty of Versailles after WWI the global economic depression and the rise of totalitarian regimes in Germany Italy and Japan all contributed to the outbreak of the war.",
+      "source": "card-engine"
+    },
+    {
+      "category": "KEY FACTS",
+      "front": "What are the trends for atomic radius and ionization energy on the periodic table?",
+      "back": "• 🔍 Atomic radius decreases left to right and increases top to bottom. \n• ⚛️ Ionization energy increases left to right and decreases top to bottom. \n• 📊 Remember: ARI - Atomic Radius Increase; IEI - Ionization Energy Increase",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "id": "card_1755792351634_n09zv3z3a",
+      "timestamp": "18:05:51",
+      "originalText": "In chemistry class we learned about periodic table trends today. Atomic radius decreases as you go from left to right across a period and increases as you go from top to bottom down a group. Ionization energy shows the opposite pattern it increases left to right and decreases top to bottom.",
+      "source": "card-engine"
+    }
+  ],
+  "exported": "2025-08-21T16:06:27.317Z",
+  "total": 5
+}

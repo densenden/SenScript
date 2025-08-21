@@ -7,124 +7,124 @@
  */
 
 const testTranscripts = [
-    // Test 1: MEETING TIP - "How to handle 'Can you take the lead on this?'"
+    // Test 1: MEETING TIP - English negotiation scenario
     {
-        id: 'meeting_leadership',
+        id: 'meeting_negotiation',
         category: 'MEETING TIP',
-        text: "So in today's meeting someone asked me can you take the lead on this project and I wasn't sure how to respond professionally. I think the best approach would be to show enthusiasm while also clarifying what exactly they expect from me in terms of scope and timeline.",
-        expectedCardFront: "How to handle \"Can you take the lead on this?\"",
+        text: "During budget negotiations, when someone says we can't afford this feature, I've learned to ask 'What would it take to make this possible?' instead of accepting a no. This shifts the conversation from limitations to creative problem-solving and often reveals alternative approaches.",
+        expectedCardFront: "How to handle budget rejections in meetings",
         expectedCategory: "MEETING TIP",
         language: 'en-US',
-        difficulty: 'medium',
+        difficulty: 'advanced',
         shouldGenerate: true
     },
     
-    // Test 2: PRESENTATION TIP - "Handling difficult Q&A questions"  
+    // Test 2: PRESENTATION TIP - Spanish business context
     {
-        id: 'presentation_qa',
+        id: 'presentation_spanish',
         category: 'PRESENTATION TIP',
-        text: "During presentations the Q&A session can be really challenging especially when someone asks a question that you don't immediately know the answer to. The key is to buy yourself time to think rather than just saying I don't know or making something up on the spot.",
-        expectedCardFront: "Handling difficult Q&A questions",
+        text: "En las presentaciones de negocio en español, es crucial usar el subjuntivo correctamente cuando presentas hipótesis o recomendaciones. Por ejemplo, 'Sugiero que consideremos esta opción' suena mucho más profesional que el indicativo.",
+        expectedCardFront: "Presentaciones profesionales en español",
         expectedCategory: "PRESENTATION TIP",
-        language: 'en-US',
+        language: 'es-ES',
         difficulty: 'medium',
         shouldGenerate: true
     },
     
-    // Test 3: INTERVIEW TIP - "How to answer 'Tell me about yourself'"
+    // Test 3: INTERVIEW TIP - Technical interview scenario
     {
-        id: 'interview_intro',
+        id: 'technical_interview',
         category: 'INTERVIEW TIP', 
-        text: "The tell me about yourself question is probably the most common interview question and people often struggle with it because they don't know whether to talk about personal life or professional background. The best strategy is to keep it structured professional and relevant to the specific job you're applying for.",
-        expectedCardFront: "How to answer \"Tell me about yourself\"?",
+        text: "When they ask about a technology you haven't used, don't just say you don't know it. Instead say 'I haven't worked with that specific technology, but I have experience with similar tools like X and Y, and I'm confident I could quickly learn it because...' then explain your learning approach.",
+        expectedCardFront: "Handling unknown tech in interviews",
         expectedCategory: "INTERVIEW TIP",
         language: 'en-US',
-        difficulty: 'easy',
+        difficulty: 'hard',
         shouldGenerate: true
     },
     
-    // Test 4: QUICK WIN - Biology photosynthesis equation
+    // Test 4: QUICK WIN - French grammar rule
     {
-        id: 'biology_photosynthesis',
+        id: 'french_grammar',
         category: 'QUICK WIN',
-        text: "For the biology test tomorrow I need to remember the photosynthesis equation. It's six carbon dioxide plus six water plus light energy creates glucose plus six oxygen. The memory trick I use is six and six make sugar and six.",
-        expectedCardFront: "Biology test: Photosynthesis equation",
+        text: "Pour retenir l'accord du participe passé avec être, j'utilise la phrase mnémotechnique 'Avec être, toujours s'accorder comme un couple amoureux.' Exemple: elle est venue, ils sont partis, nous sommes arrivés.",
+        expectedCardFront: "Accord du participe passé avec être",
         expectedCategory: "QUICK WIN", 
-        language: 'en-US',
+        language: 'fr-FR',
         difficulty: 'easy',
         shouldGenerate: true
     },
     
-    // Test 5: KEY FACTS - Chemistry periodic table trends
+    // Test 5: KEY FACTS - Medical terminology
     {
-        id: 'chemistry_trends',
+        id: 'medical_terminology',
         category: 'KEY FACTS',
-        text: "In chemistry class we learned about periodic table trends today. Atomic radius decreases as you go from left to right across a period and increases as you go from top to bottom down a group. Ionization energy shows the opposite pattern it increases left to right and decreases top to bottom.",
-        expectedCardFront: "Chemistry test: Periodic table trends",
+        text: "In medical terminology, understanding root words is essential. 'Cardio' refers to heart, 'pulmonary' to lungs, 'hepatic' to liver, and 'renal' to kidneys. These roots appear in hundreds of medical terms, so memorizing them early saves enormous time later in medical studies.",
+        expectedCardFront: "Essential medical root words",
         expectedCategory: "KEY FACTS",
         language: 'en-US', 
         difficulty: 'medium',
         shouldGenerate: true
     },
     
-    // Test 6: WHAT TO SAY - History World War II causes
+    // Test 6: WHAT TO SAY - Customer service scenario
     {
-        id: 'history_wwii',
+        id: 'customer_service',
         category: 'WHAT TO SAY',
-        text: "For the history exam on World War II causes I need to remember that it wasn't just one single factor but multiple interconnected causes. The harshness of the Treaty of Versailles after WWI the global economic depression and the rise of totalitarian regimes in Germany Italy and Japan all contributed to the outbreak of the war.",
-        expectedCardFront: "History test: World War II causes",
+        text: "When a customer is angry about a delayed order, never start with 'I understand your frustration' because it sounds scripted. Instead try 'That's absolutely not the experience we want for you. Let me see exactly what happened and how we can fix this right now.'",
+        expectedCardFront: "Responding to angry customers about delays",
         expectedCategory: "WHAT TO SAY",
         language: 'en-US',
-        difficulty: 'hard', 
+        difficulty: 'medium', 
         shouldGenerate: true
     },
     
-    // Test 7: AVOID THIS - Physics common formula mistakes
+    // Test 7: AVOID THIS - German cultural business mistake
     {
-        id: 'physics_mistakes',
+        id: 'german_business_culture',
         category: 'AVOID THIS',
-        text: "In physics class the teacher warned us about common mistakes on the exam. Students often confuse F equals ma which is the general force equation with F equals mg which is specifically for weight. Also people forget to check their units and whether their final answer actually makes sense in the real world.",
-        expectedCardFront: "Physics test: Common formula mistakes", 
+        text: "Bei deutschen Geschäftsterminen solltest du niemals zu spät kommen, auch nicht 'nur' fünf Minuten. Pünktlichkeit wird hier als Zeichen von Respekt und Professionalität gesehen. Plane lieber 10 Minuten früher an und warte im Auto oder Café.",
+        expectedCardFront: "Pünktlichkeit in deutschen Meetings",
         expectedCategory: "AVOID THIS",
-        language: 'en-US',
-        difficulty: 'medium',
+        language: 'de-DE',
+        difficulty: 'cultural',
         shouldGenerate: true
     },
     
-    // Test 8: QUICK WIN - Math trigonometry SOHCAHTOA
+    // Test 8: CONCEPT - Japanese language learning strategy
     {
-        id: 'math_trigonometry',
+        id: 'japanese_learning',
+        category: 'CONCEPT',
+        text: "日本語を学ぶ時、漢字の部首（radical）を理解することが重要です。例えば「氵」(さんずい)は水に関する漢字に使われます：海、川、湖。部首を覚えると、新しい漢字の意味を推測できるようになります。",
+        expectedCardFront: "漢字の部首学習法",
+        expectedCategory: "CONCEPT",
+        language: 'ja-JP',
+        difficulty: 'advanced',
+        shouldGenerate: true
+    },
+    
+    // Test 9: QUICK WIN - Programming debugging tip
+    {
+        id: 'debugging_technique',
         category: 'QUICK WIN',
-        text: "For trigonometry I always use the memory trick SOHCAHTOA which stands for sine equals opposite over hypotenuse cosine equals adjacent over hypotenuse and tangent equals opposite over adjacent. My teacher taught us the phrase Some Old Hippie Caught Another Hippie Tripping On Acid to remember it.",
-        expectedCardFront: "Math test: Trigonometry memory trick",
+        text: "The rubber duck debugging method works because explaining your code line by line to an inanimate object forces you to slow down and think through the logic. I keep a small rubber duck on my desk and it's helped me catch bugs faster than code reviews sometimes.",
+        expectedCardFront: "Rubber duck debugging method",
         expectedCategory: "QUICK WIN",
         language: 'en-US',
-        difficulty: 'easy',
+        difficulty: 'practical',
         shouldGenerate: true
     },
     
-    // Test 9: German test input
+    // Test 10: FACT - Italian cooking technique
     {
-        id: 'german_business',
-        category: 'MEETING TIP',
-        text: "In deutschen Geschäftsmeetings ist es wichtig professionell und strukturiert zu antworten wenn jemand fragt ob du die Projektleitung übernehmen kannst. Am besten zeigst du Enthusiasmus aber klärst gleichzeitig den Umfang und die Zeitlinie ab.",
-        expectedCardFront: "Projektleitung übernehmen",
-        expectedCategory: "MEETING TIP",
-        language: 'de-DE',
-        difficulty: 'medium',
+        id: 'italian_cooking',
+        category: 'FACT',
+        text: "Nel risotto autentico, non si deve mai lavare il riso prima della cottura perché l'amido superficiale è essenziale per creare la cremosità. Il segreto è tostare il riso per due minuti prima di aggiungere il brodo caldo, poco alla volta, mescolando costantemente.",
+        expectedCardFront: "Tecnica del risotto autentico",
+        expectedCategory: "FACT",
+        language: 'it-IT',
+        difficulty: 'cultural',
         shouldGenerate: true
-    },
-    
-    // Test 10: Invalid/low-quality input that should be skipped
-    {
-        id: 'invalid_input',
-        category: 'SKIP',
-        text: "um ja okay hmm",
-        expectedCardFront: null,
-        expectedCategory: null,
-        language: 'en-US',
-        difficulty: 'skip',
-        shouldGenerate: false
     }
 ];
 

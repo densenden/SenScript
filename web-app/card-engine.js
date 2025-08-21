@@ -150,16 +150,20 @@ class CardGenerationEngine {
             const cardData = await this.callCardAPI(text, language);
             
             // Step 5: Post-process and validate
-            if (cardData && cardData.success !== false) {
+            if (cardData && cardData.success !== false && !cardData.skip) {
                 this.stats.successfulCards++;
                 const responseTime = Date.now() - startTime;
                 this.updateAverageResponseTime(responseTime);
                 
                 console.log(`✅ [CARD-ENGINE] Card generated in ${responseTime}ms`);
+                console.log(`🎯 [CARD-ENGINE] Card data:`, cardData);
                 return cardData;
             } else {
                 this.stats.skippedCards++;
-                return cardData || { success: false, reason: 'api_declined', skip: true };
+                const reason = cardData?.reason || cardData?.error || 'api_declined';
+                console.log(`⏭️ [CARD-ENGINE] Card skipped: ${reason}`);
+                console.log(`🔍 [CARD-ENGINE] Full response:`, cardData);
+                return { success: false, reason, skip: true };
             }
             
         } catch (error) {
@@ -201,12 +205,17 @@ class CardGenerationEngine {
      * Fast, optimized API call with retry logic
      */
     async callCardAPI(text, language) {
+        // Get current mode from the app instance
+        const currentMode = (typeof window !== 'undefined' && window.app) ? 
+            (window.app.apiSettings?.interviewMode ? 'cheat' : 'flash') : 'flash';
+            
         const payload = {
             sessionId: this.sessionId,
             transcript: text,
             language: language.lang,
             textConfidence: language.confidence,
-            languageFlag: this.getLanguageFlag(language.lang)
+            languageFlag: this.getLanguageFlag(language.lang),
+            cardMode: currentMode // Add current mode to payload
         };
         
         const maxRetries = 2;
@@ -226,6 +235,7 @@ class CardGenerationEngine {
                 }
                 
                 const result = await response.json();
+                console.log(`📥 [CARD-ENGINE] API response:`, result);
                 return result;
                 
             } catch (error) {

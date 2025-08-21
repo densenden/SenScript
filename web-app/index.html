@@ -20,6 +20,7 @@
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
+            font-size: 1.2em; /* 1.2x bigger body font */
         }
         
         /* iOS 16 Glass Morphism */
@@ -1019,6 +1020,95 @@
             100% { background: rgba(59, 130, 246, 0); }
         }
         
+        /* Test Transcripts Button Styling - Enhanced Visibility */
+        .test-progress-dots {
+            display: flex !important;
+            gap: 6px !important;
+            justify-content: center !important;
+        }
+        
+        .test-progress-dots .test-dot {
+            width: 8px !important;
+            height: 8px !important;
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .test-progress-dots .test-dot.active {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6) !important;
+            animation: test-dot-pulse 0.8s ease-in-out infinite !important;
+        }
+        
+        .test-progress-dots .test-dot.completed {
+            background: #10b981 !important;
+            border-color: #10b981 !important;
+            transform: scale(1.2) !important;
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.5) !important;
+        }
+        
+        @keyframes test-dot-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        
+        /* Test button active state matching audio source button */
+        #testTranscriptsBtn.active {
+            background: rgba(59, 130, 246, 0.2) !important;
+            border-color: rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        #testTranscriptsBtn.active .button-text {
+            color: #3b82f6 !important;
+        }
+        
+        /* Controls section layout adjustments */
+        .controls-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        /* Subtle waving animation for transcript lines 1 and 2 */
+        .transcript-row.line-1,
+        .transcript-row.line-2 {
+            animation: subtle-wave 3s ease-in-out infinite;
+        }
+        
+        .transcript-row.line-2 {
+            animation-delay: 0.5s; /* Offset for natural wave effect */
+        }
+        
+        @keyframes subtle-wave {
+            0%, 100% { transform: translateY(0) rotateZ(0deg); }
+            25% { transform: translateY(-0.5px) rotateZ(0.2deg); }
+            50% { transform: translateY(0) rotateZ(0deg); }
+            75% { transform: translateY(0.5px) rotateZ(-0.2deg); }
+        }
+        
+        /* Horizontal flip animation for interim text */
+        .transcript-row.line-3.building .text {
+            animation: horizontal-flip 0.4s ease-in-out;
+        }
+        
+        @keyframes horizontal-flip {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            50% { transform: rotateY(90deg); opacity: 0.7; }
+            100% { transform: rotateY(0deg); opacity: 1; }
+        }
+        
+        /* Monospace font for test transcript details */
+        .transcript-row.test-detail .text {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace !important;
+            font-size: 15px !important;
+            line-height: 1.4 !important;
+            letter-spacing: 0.02em !important;
+        }
+        
         /* Placeholder styling */
         .transcript-row .placeholder {
             color: rgba(255, 255, 255, 0.3);
@@ -1264,6 +1354,151 @@
         /* Latest card should be on top */
         .card:first-child {
             z-index: 10; /* Highest z-index for newest card */
+        }
+        
+        /* Card Type Based Styling */
+        .card[data-card-type="cheat"] {
+            background: linear-gradient(135deg, rgba(255, 153, 102, 0.25) 0%, rgba(255, 204, 102, 0.2) 100%);
+            border: 2px solid rgba(255, 153, 102, 0.4);
+            box-shadow: 0 12px 40px rgba(255, 153, 102, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .light .card[data-card-type="cheat"] {
+            background: linear-gradient(135deg, rgba(255, 153, 102, 0.15) 0%, rgba(255, 204, 102, 0.1) 100%);
+            border: 2px solid rgba(255, 153, 102, 0.3);
+            box-shadow: 0 12px 40px rgba(255, 153, 102, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Larger fonts for cheat cards */
+        .card[data-card-type="cheat"] .card-front {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+        }
+        
+        .card[data-card-type="cheat"] .card-back {
+            font-size: 16px !important;
+            line-height: 1.5 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Larger fonts for flash cards too */
+        .card[data-card-type="flash"] .card-front {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            line-height: 1.4 !important;
+        }
+        
+        .card[data-card-type="flash"] .card-back {
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            font-weight: 400 !important;
+        }
+        
+        /* Enhanced emoji visibility in cheat card mode */
+        .card[data-card-type="cheat"] .card-back li,
+        .card[data-card-type="cheat"] .card-back p {
+            font-size: 16px !important;
+            margin: 8px 0 !important;
+        }
+        
+        /* Card hover effects */
+        .card:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card[data-card-type="cheat"]:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 20px 60px rgba(255, 153, 102, 0.25), 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Category-specific colors for cheat cards */
+        .cheat-card-mode .card[data-category="MEETING TIP"] {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(147, 197, 253, 0.2) 100%);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="PRESENTATION TIP"] {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(110, 231, 183, 0.2) 100%);
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="INTERVIEW TIP"] {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(196, 181, 253, 0.2) 100%);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="QUICK WIN"] {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(134, 239, 172, 0.2) 100%);
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 12px 40px rgba(34, 197, 94, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="AVOID THIS"] {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(252, 165, 165, 0.2) 100%);
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="KEY FACTS"] {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(251, 191, 36, 0.2) 100%);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="WHAT TO SAY"] {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(221, 214, 254, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 12px 40px rgba(168, 85, 247, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Interactive card button styling */
+        .card .llm-chat-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card .llm-chat-btn:hover {
+            background: rgba(59, 130, 246, 0.25) !important;
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+        
+        .card .llm-chat-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Enhanced styling in cheat card mode */
+        .cheat-card-mode .card .llm-chat-btn {
+            font-size: 12px !important;
+            padding: 8px 16px !important;
+            font-weight: 700 !important;
+            background: rgba(59, 130, 246, 0.2) !important;
+            border: 2px solid rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        .cheat-card-mode .card .llm-chat-btn:hover {
+            background: rgba(59, 130, 246, 0.35) !important;
+            border-color: rgba(59, 130, 246, 0.6) !important;
+            transform: translateY(-2px) scale(1.05);
+        }
+        
+        /* Card actions container styling */
+        .card .card-actions {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        
+        .light .card .card-actions {
+            border-top-color: rgba(0, 0, 0, 0.1);
         }
         
         @keyframes cardSlideFromLeft {
@@ -3517,6 +3752,27 @@
                 </div>
             </div>
             
+            <!-- Test Transcripts Button -->
+            <div class="test-section" style="margin-bottom: 12px;">
+                <button id="testTranscriptsBtn" class="audio-source-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px; position: relative;">
+                    <div class="button-content" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <span class="button-text">Test Transcripts</span>
+                        <div class="audio-level-dots test-progress-dots" style="display: flex; gap: 4px; justify-content: center;">
+                            <div class="level-dot test-dot" data-index="0"></div>
+                            <div class="level-dot test-dot" data-index="1"></div>
+                            <div class="level-dot test-dot" data-index="2"></div>
+                            <div class="level-dot test-dot" data-index="3"></div>
+                            <div class="level-dot test-dot" data-index="4"></div>
+                            <div class="level-dot test-dot" data-index="5"></div>
+                            <div class="level-dot test-dot" data-index="6"></div>
+                            <div class="level-dot test-dot" data-index="7"></div>
+                            <div class="level-dot test-dot" data-index="8"></div>
+                            <div class="level-dot test-dot" data-index="9"></div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
             <!-- Settings button at absolute bottom -->
             <div style="margin-top: auto;">
                 <button id="settingsBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;">

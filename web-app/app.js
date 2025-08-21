@@ -69,6 +69,7 @@ class SenScript {
         this.els = {
             recordBtn: document.getElementById('recordBtn'),
             mobileRecordBtn: document.getElementById('mobileRecordBtn'),
+            testTranscriptsBtn: document.getElementById('testTranscriptsBtn'),
             recordDot: document.getElementById('recordDot'),
             recordText: document.getElementById('recordText'),
             transcript: document.getElementById('transcript'),
@@ -142,6 +143,19 @@ class SenScript {
             this.els.mobileRecordBtn.onclick = () => {
                 // Mobile listen button clicked
                 this.toggleListening();
+            };
+        }
+        
+        // Test transcripts button
+        if (this.els.testTranscriptsBtn) {
+            this.testRunning = false;
+            this.els.testTranscriptsBtn.onclick = () => {
+                console.log('🧪 [TEST-BTN] Test transcripts button clicked');
+                if (this.testRunning) {
+                    this.stopTest();
+                } else {
+                    this.runVisualCardGenerationTests();
+                }
             };
         }
         
@@ -230,7 +244,12 @@ class SenScript {
         
         // Make test function available globally for console access  
         window.testCards = () => this.runCardGenerationTests();
-        console.log('🧪 [DEBUG] Card testing available: Run testCards() in console');
+        window.resetAllCaches = () => this.resetAllCaches();
+        window.app = this;
+        console.log('🧪 [DEBUG] Available console commands:');
+        console.log('  testCards() - Run card generation tests');
+        console.log('  resetAllCaches() - Clear all caches for fresh generation');
+        console.log('  app.resetCardEngine() - Reset card engine only');
     }
     
     setupAutoRestart() {
@@ -971,11 +990,19 @@ class SenScript {
             cardData.originalText = originalText;
             cardData.source = 'card-engine';
             
+            // Ensure cardType is set - use current mode if not provided by LLM
+            if (!cardData.cardType) {
+                cardData.cardType = this.apiSettings.interviewMode ? 'cheat' : 'flash';
+                console.log('🎯 [CARD-TYPE] Set cardType to:', cardData.cardType, 'based on current mode');
+            }
+            
             // Add to cards array
             this.cards.unshift(cardData);
             
             // Update UI
-            this.updateCardsDisplay();
+            this.renderCard(cardData);
+            this.updateCardCount();
+            this.els.exportBtn.disabled = false;
             this.setStatus('ai', 'green');
             
             console.log('✅ [CARD-ENGINE] Card added successfully:', cardData.category, '|', cardData.front);
@@ -984,6 +1011,199 @@ class SenScript {
             console.error('❌ [CARD-ENGINE] Failed to handle card result:', error);
             this.setStatus('ai', 'red');
         }
+    }
+    
+    /**
+     * Stop test gracefully
+     */
+    stopTest() {
+        this.testRunning = false;
+        this.testAborted = true;
+        
+        // Reset button state
+        if (this.els.testTranscriptsBtn) {
+            this.els.testTranscriptsBtn.classList.remove('active');
+        }
+        
+        // Reset dots
+        const testDots = document.querySelectorAll('.test-dot');
+        testDots.forEach(dot => {
+            dot.classList.remove('active', 'completed');
+        });
+        
+        this.showTranscriptMessage('Test stopped', 'warning');
+        console.log('🛑 [TEST] Test stopped by user');
+    }
+    
+    /**
+     * Visual card generation tests with progress indicator
+     */
+    async runVisualCardGenerationTests() {
+        if (!window.TestTranscripts) {
+            console.error('❌ [TEST] TestTranscripts module not loaded');
+            this.showTranscriptMessage('Test module not loaded', 'error');
+            return;
+        }
+        
+        if (!this.cardEngine) {
+            console.error('❌ [TEST] Card engine not initialized');
+            this.showTranscriptMessage('Card engine not ready', 'error');
+            return;
+        }
+        
+        // Set test running state
+        this.testRunning = true;
+        this.testAborted = false;
+        
+        // Set button active state
+        if (this.els.testTranscriptsBtn) {
+            this.els.testTranscriptsBtn.classList.add('active');
+        }
+        
+        const testTranscripts = window.TestTranscripts.getValidTestTranscripts();
+        const testDots = document.querySelectorAll('.test-dot');
+        
+        // Reset all dots
+        testDots.forEach(dot => {
+            dot.classList.remove('active', 'completed');
+        });
+        
+        this.showTranscriptMessage('Starting card generation tests...', 'info');
+        
+        // Check if we have API keys
+        if (!this.apiSettings?.apiKeys?.openai && 
+            !this.apiSettings?.apiKeys?.anthropic && 
+            !this.apiSettings?.apiKeys?.deepseek) {
+            this.showTranscriptMessage('Note: Add API key in Settings for actual card generation', 'warning');
+        }
+        
+        for (let i = 0; i < Math.min(testTranscripts.length, 10); i++) {
+            // Check if test was stopped
+            if (this.testAborted) {
+                console.log('🛑 [TEST] Test aborted at step', i + 1);
+                break;
+            }
+            
+            const test = testTranscripts[i];
+            const dot = testDots[i];
+            
+            if (dot) {
+                dot.classList.add('active');
+            }
+            
+            // Show current test in transcript with monospace font
+            this.showTranscriptMessage(`Test ${i + 1}/10: ${test.expectedCategory}`, 'test');
+            this.showTranscriptMessage(test.text.substring(0, 120) + '...', 'transcript');
+            
+            // Log AI call status
+            console.log(`🔄 [TEST-${i + 1}] Starting AI call for: "${test.text.substring(0, 50)}..."`);
+            console.log(`🎯 [TEST-${i + 1}] Expected: ${test.expectedCategory}`);
+            
+            try {
+                const detection = {
+                    lang: test.language,
+                    confidence: 95,
+                    flag: this.cardEngine.getLanguageFlag(test.language)
+                };
+                
+                const result = await this.cardEngine.generateCard(test.text, detection);
+                
+                if (this.testAborted) break; // Check again after async operation
+                
+                if (result && !result.skip) {
+                    this.handleCardGenerationResult(result, test.text);
+                    this.showTranscriptMessage(`Generated: ${result.card?.category || result.category}`, 'success');
+                    
+                    if (dot) {
+                        dot.classList.remove('active');
+                        dot.classList.add('completed');
+                    }
+                } else {
+                    console.log(`🔍 [TEST] Full result object:`, result);
+                    
+                    // Check if this is an API key issue
+                    if (result?.reason?.includes('API') || result?.error?.includes('key')) {
+                        this.showTranscriptMessage(`Error: Missing API key`, 'error');
+                    } else {
+                        this.showTranscriptMessage(`Skipped: ${result?.reason || 'not worthy'}`, 'warning');
+                    }
+                    
+                    if (dot) {
+                        dot.classList.remove('active');
+                    }
+                }
+                
+                // Delay between tests (but check for abort)
+                for (let j = 0; j < 8; j++) {
+                    if (this.testAborted) break;
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+            } catch (error) {
+                console.error(`❌ [TEST-${i + 1}] ERROR:`, error);
+                
+                // Show specific error messages
+                let errorMsg = error.message;
+                if (errorMsg.includes('401') || errorMsg.includes('API key') || errorMsg.includes('500')) {
+                    errorMsg = 'API key required';
+                    this.showTranscriptMessage('Add valid API key in Settings', 'error');
+                } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+                    errorMsg = 'Network error';
+                } else if (errorMsg.includes('timeout')) {
+                    errorMsg = 'Request timeout';
+                }
+                
+                this.showTranscriptMessage(`Test ${i + 1} failed: ${errorMsg}`, 'error');
+                
+                if (dot) {
+                    dot.classList.remove('active');
+                }
+            }
+        }
+        
+        // Finalize test
+        this.testRunning = false;
+        
+        // Reset button state
+        if (this.els.testTranscriptsBtn) {
+            this.els.testTranscriptsBtn.classList.remove('active');
+        }
+        
+        if (!this.testAborted) {
+            // Show completion
+            this.showTranscriptMessage('Test sequence completed', 'success');
+            setTimeout(() => {
+                const completedCount = document.querySelectorAll('.test-dot.completed').length;
+                this.showTranscriptMessage(`Results: ${completedCount}/10 tests generated cards`, 'info');
+            }, 1000);
+        }
+    }
+    
+    /**
+     * Show message in transcript window
+     */
+    showTranscriptMessage(message, type = 'info') {
+        if (!this.els.transcript) return;
+        
+        const typeClasses = {
+            'info': 'line-3 current',
+            'test': 'line-2 previous', 
+            'transcript': 'line-1 old test-detail',
+            'success': 'line-3 current',
+            'warning': 'line-3 current',
+            'error': 'line-3 current'
+        };
+        
+        const className = typeClasses[type] || 'line-3 current';
+        
+        this.els.transcript.innerHTML = `
+            <div class="transcript-rows enhanced">
+                <div class="transcript-row ${className}">
+                    <span class="time">${new Date().toLocaleTimeString()}</span>
+                    <span class="text">${message}</span>
+                </div>
+            </div>
+        `;
     }
     
     /**
@@ -1539,10 +1759,33 @@ class SenScript {
         if (this.apiSettings.interviewMode) {
             // Flip to show CheatCards (back side)
             this.els.cardsModeToggle.style.transform = 'rotateY(180deg)';
+            console.log('🎯 [MODE] Switched to CheatCards mode - new cards will have emoji structure');
         } else {
             // Flip to show FlashCards (front side)
             this.els.cardsModeToggle.style.transform = 'rotateY(0deg)';
+            console.log('📚 [MODE] Switched to FlashCards mode - new cards will have plain text');
         }
+        
+        // Reset caches to ensure fresh generation with new mode
+        this.resetCachesForModeChange();
+    }
+    
+    /**
+     * Reset all caches when mode changes to ensure different card styles
+     */
+    resetCachesForModeChange() {
+        // Reset card engine cache
+        if (this.cardEngine) {
+            this.cardEngine.reset();
+            console.log('🔄 [MODE-CHANGE] Card engine cache reset');
+        }
+        
+        // Reset LLM conversation cache
+        if (this.llmConversation) {
+            this.llmConversation.resetConversationForModeChange(this.sessionId);
+        }
+        
+        console.log('✨ [MODE-CHANGE] All caches reset - next cards will use new mode styling');
     }
 
     updateLanguageIndicator() {
@@ -1833,21 +2076,28 @@ class SenScript {
                 if (average > 10) {
                     // Reduced threshold for better sensitivity
                     
-                    if (this.els.transcript && average > 30) {
+                    // Only show audio levels if no real transcription is happening
+                    if (this.els.transcript && average > 50 && 
+                        (!this.transcriptState || !this.transcriptState.line3.text)) {
                         const timestamp = new Date().toLocaleTimeString();
-                        this.els.transcript.innerHTML = `
-                            <div class="transcript-rows">
-                                <div class="transcript-row current">
-                                    🔊 Tab Audio Active - Level: ${average.toFixed(1)}
+                        // Use enhanced transcript display but don't overwrite active transcription
+                        if (!this.isListening || this.transcriptLines.length === 0) {
+                            this.els.transcript.innerHTML = `
+                                <div class="transcript-rows">
+                                    <div class="transcript-row line-3 current">
+                                        <span class="time">...</span>
+                                        <span class="text">🔊 Tab Audio Active - Level: ${average.toFixed(1)}</span>
+                                    </div>
+                                    <div class="transcript-row line-2 previous">
+                                        <span class="text">Listening for speech in tab audio...</span>
+                                    </div>
+                                    <div class="transcript-row line-1 old">
+                                        <span class="time">${timestamp}</span>
+                                        <span class="text">Audio detection active</span>
+                                    </div>
                                 </div>
-                                <div class="transcript-row previous">
-                                    Listening for speech in tab audio...
-                                </div>
-                                <div class="transcript-row old">
-                                    ${timestamp}
-                                </div>
-                            </div>
-                        `;
+                            `;
+                        }
                     }
                 }
             }
@@ -2474,15 +2724,21 @@ class SenScript {
     renderCard(card) {
         const cardEl = document.createElement('div');
         cardEl.className = 'card new-card';
+        // Add data-category attribute for cheat card styling
+        cardEl.setAttribute('data-category', card.category || 'DEFAULT');
+        // Add data-card-type for styling
+        cardEl.setAttribute('data-card-type', card.cardType || 'flash');
+        // Make the whole card clickable
+        cardEl.style.cursor = 'pointer';
         
         // Add confidence indicator, source, provider, and language flag
         const sourceCircle = card.source === 'AI' ? 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
         const confidenceText = card.confidence ? ` ${card.confidence}%` : '';
-        const languageFlag = card.flag ? ` ${card.flag}` : '';
+        const languageFlag = (card.flag && card.flag !== 'undefined') ? ` ${card.flag}` : '';
         // Show the AI provider (e.g., "GPT-4" or "Claude")
-        const providerText = card.provider ? ` • ${card.provider.charAt(0).toUpperCase() + card.provider.slice(1)}` : '';
+        const providerText = (card.provider && card.provider !== 'undefined') ? ` • ${card.provider.charAt(0).toUpperCase() + card.provider.slice(1)}` : '';
         
         // Generate source link if available
         let sourceHtml = '';
@@ -2496,10 +2752,15 @@ class SenScript {
             </div>`;
         }
         
+        // Format the back content with proper line breaks for cheat cards
+        const formattedBack = card.cardType === 'cheat' && card.back ? 
+            card.back.replace(/\\n/g, '<br>').replace(/\n/g, '<br>') : 
+            (card.back || 'No answer');
+
         cardEl.innerHTML = `
             <div class="card-header">${card.category || 'Card'}${languageFlag} • ${card.time}${providerText}${sourceCircle}${confidenceText}</div>
             <div class="card-front">${card.front || 'No question'}</div>
-            <div class="card-back">${card.back || 'No answer'}</div>
+            <div class="card-back">${formattedBack}</div>
             ${sourceHtml}
         `;
         
@@ -2507,6 +2768,22 @@ class SenScript {
         const existingCards = Array.from(this.els.cardsContainer.children);
         existingCards.forEach(existingCard => {
             existingCard.classList.add('push-down');
+        });
+        
+        // Add event listener for whole card click
+        cardEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('🔗 [CLICK] Card clicked:', card.category, '|', card.front);
+            this.openLLMChat(card);
+        });
+        
+        // Add hover effect for clickable indication
+        cardEl.addEventListener('mouseenter', () => {
+            cardEl.style.transform = 'translateY(-2px) scale(1.02)';
+        });
+        
+        cardEl.addEventListener('mouseleave', () => {
+            cardEl.style.transform = 'translateY(0) scale(1)';
         });
         
         // Insert new card at top
@@ -2536,6 +2813,194 @@ class SenScript {
             this.cards = this.cards.slice(0, 10); // Keep latest 10 cards in memory
             // Memory cleaned - kept latest 10 cards
         }
+    }
+    
+    /**
+     * Open LLM chat interface with pre-filled prompt based on card content
+     */
+    openLLMChat(card) {
+        console.log('🔗 [INTERACTIVE] Opening LLM chat for card:', card.category, '|', card.front);
+        
+        // Generate contextual prompt based on card content
+        const prompt = this.generateLLMPrompt(card);
+        
+        // Determine best LLM provider based on card provider or availability
+        const targetProvider = this.selectLLMProvider(card);
+        
+        // Generate appropriate chat URL
+        const chatUrl = this.generateChatUrl(targetProvider, prompt);
+        
+        // Copy prompt to clipboard and open chat
+        if (chatUrl) {
+            // Copy prompt to clipboard
+            const decodedPrompt = decodeURIComponent(prompt);
+            navigator.clipboard.writeText(decodedPrompt).then(() => {
+                console.log('📋 [INTERACTIVE] Prompt copied to clipboard');
+            }).catch(err => {
+                console.warn('⚠️ [INTERACTIVE] Failed to copy prompt:', err);
+            });
+            
+            // Open chat in new tab
+            window.open(chatUrl, '_blank');
+            console.log('✅ [INTERACTIVE] Opened chat with:', targetProvider, 'for topic:', card.front);
+            
+            // Show notification
+            this.showNotification(`Opening ${targetProvider.toUpperCase()} chat - prompt copied to clipboard!`, 'info');
+        } else {
+            console.warn('⚠️ [INTERACTIVE] No available LLM provider for chat');
+            this.showNotification('No LLM provider available for deep dive', 'warning');
+        }
+    }
+    
+    /**
+     * Generate contextual prompt for LLM chat based on card content
+     */
+    generateLLMPrompt(card) {
+        const category = card.category || 'General';
+        const front = card.front || 'Unknown topic';
+        const back = card.back || '';
+        
+        // Create focused prompts based on category
+        const categoryPrompts = {
+            'MEETING TIP': `I want to learn more about professional meeting strategies. Specifically about: "${front}"\n\nCurrent knowledge: ${back}\n\nPlease provide detailed advice, examples, and advanced techniques for handling similar situations in professional meetings.`,
+            
+            'PRESENTATION TIP': `Help me improve my presentation skills regarding: "${front}"\n\nWhat I know: ${back}\n\nPlease give me comprehensive guidance, practical examples, and advanced strategies for better presentations.`,
+            
+            'INTERVIEW TIP': `I'm preparing for job interviews and need deeper insights about: "${front}"\n\nCurrent understanding: ${back}\n\nPlease provide detailed advice, example answers, and strategies for excelling in this interview scenario.`,
+            
+            'QUICK WIN': `I want to master this concept quickly: "${front}"\n\nBasic info: ${back}\n\nPlease provide additional memory techniques, practice methods, and deeper understanding of this topic.`,
+            
+            'KEY FACTS': `Help me understand this important concept thoroughly: "${front}"\n\nCurrent knowledge: ${back}\n\nPlease explain the broader context, related concepts, and practical applications.`,
+            
+            'WHAT TO SAY': `I need help with communication in this scenario: "${front}"\n\nCurrent approach: ${back}\n\nPlease provide alternative phrasings, examples, and communication strategies for this situation.`,
+            
+            'AVOID THIS': `I want to understand and avoid these mistakes: "${front}"\n\nWhat I know: ${back}\n\nPlease explain why these mistakes happen, how to prevent them, and what to do instead.`,
+            
+            'CONCEPT': `Help me deeply understand this concept: "${front}"\n\nCurrent knowledge: ${back}\n\nPlease provide detailed explanations, examples, and connections to related ideas.`,
+            
+            'FACT': `I want to learn more about: "${front}"\n\nBasic info: ${back}\n\nPlease provide additional context, related information, and practical applications.`
+        };
+        
+        const prompt = categoryPrompts[category] || 
+            `Please help me learn more about: "${front}"\n\nCurrent knowledge: ${back}\n\nProvide detailed information, examples, and practical guidance on this topic.`;
+            
+        return encodeURIComponent(prompt);
+    }
+    
+    /**
+     * Select best LLM provider for chat based on card provider or availability
+     */
+    selectLLMProvider(card) {
+        // Prefer the same provider that generated the card
+        const cardProvider = card.provider || card.source;
+        
+        // Check if we have API keys available
+        const hasOpenAI = this.apiSettings?.apiKeys?.openai || process.env.OPENAI_API_KEY;
+        const hasAnthropic = this.apiSettings?.apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY;
+        const hasDeepSeek = this.apiSettings?.apiKeys?.deepseek || process.env.DEEPSEEK_API_KEY;
+        
+        // Priority order: Same provider → OpenAI → Anthropic → DeepSeek → Public interfaces
+        if (cardProvider === 'openai' && hasOpenAI) return 'openai';
+        if (cardProvider === 'anthropic' && hasAnthropic) return 'anthropic';
+        if (cardProvider === 'deepseek' && hasDeepSeek) return 'deepseek';
+        
+        // Fallback to available providers
+        if (hasOpenAI) return 'openai';
+        if (hasAnthropic) return 'anthropic';
+        if (hasDeepSeek) return 'deepseek';
+        
+        // Ultimate fallback to public interfaces
+        return 'chatgpt-web';
+    }
+    
+    /**
+     * Generate chat URL for specific LLM provider
+     */
+    generateChatUrl(provider, prompt) {
+        // Note: Most LLM chat interfaces don't support direct URL prompt parameters
+        // We'll open the chat interface and the user can paste the prompt
+        const urls = {
+            'openai': `https://chat.openai.com/`,
+            'anthropic': `https://claude.ai/chat`, 
+            'deepseek': `https://chat.deepseek.com/`,
+            'chatgpt-web': `https://chat.openai.com/`,
+            'claude-web': `https://claude.ai/chat`
+        };
+        
+        return urls[provider] || urls['chatgpt-web'];
+    }
+    
+    /**
+     * Show notification to user
+     */
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            max-width: 300px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(350px);
+        `;
+        
+        // Set background based on type
+        const backgrounds = {
+            'info': 'rgba(59, 130, 246, 0.9)',
+            'success': 'rgba(34, 197, 94, 0.9)',
+            'warning': 'rgba(245, 158, 11, 0.9)',
+            'error': 'rgba(239, 68, 68, 0.9)'
+        };
+        
+        notification.style.background = backgrounds[type] || backgrounds['info'];
+        notification.style.color = 'white';
+        notification.textContent = message;
+        
+        // Add to DOM
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(350px)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    /**
+     * Reset card engine cache - useful for testing
+     */
+    resetCardEngine() {
+        if (this.cardEngine) {
+            this.cardEngine.reset();
+            console.log('🔄 [RESET] Card engine cache cleared for fresh testing');
+            this.showNotification('Card engine cache reset', 'success');
+        }
+    }
+    
+    /**
+     * Global function to reset all caches and force fresh card generation
+     */
+    resetAllCaches() {
+        this.resetCachesForModeChange();
+        this.showNotification('All caches reset - ready for fresh card generation!', 'success');
     }
     
     updateCardCount() {
@@ -3268,11 +3733,18 @@ class SenScript {
             return;
         }
         
+        // Ensure we start the correct audio source
+        console.log('[Control] 🔧 Final audio source check before starting:', this.currentAudioSource);
+        
         if (this.currentAudioSource === 'system') {
             console.log('[Control] ✅ Starting SYSTEM AUDIO (screen sharing)');
             this.startSystemAudio();
-        } else {
+        } else if (this.currentAudioSource === 'microphone') {
             console.log('[Control] ✅ Starting MICROPHONE');
+            this.startMicrophone();
+        } else {
+            console.error('[Control] ❌ Unknown audio source:', this.currentAudioSource, '- defaulting to microphone');
+            this.currentAudioSource = 'microphone';
             this.startMicrophone();
         }
     }
@@ -4303,7 +4775,19 @@ class SenScript {
         const data = {
             cards: this.cards,
             exported: new Date().toISOString(),
-            total: this.cards.length
+            total: this.cards.length,
+            settings: {
+                currentMode: this.apiSettings.interviewMode ? 'cheat' : 'flash',
+                outputLanguage: this.apiSettings.outputLanguage,
+                education: this.apiSettings.education,
+                interviewMode: this.apiSettings.interviewMode
+            },
+            metadata: {
+                cardTypes: {
+                    cheat: this.cards.filter(c => c.cardType === 'cheat').length,
+                    flash: this.cards.filter(c => c.cardType === 'flash').length
+                }
+            }
         };
         
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
