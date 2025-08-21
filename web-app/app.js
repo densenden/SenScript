@@ -2,7 +2,7 @@
 // GOAL NUMBER 1: CARD CREATION SPEED
 class SenScript {
     constructor() {
-        console.log('[SenScript] Initializing...');
+        // SenScript initializing
         
         this.recognition = null;
         this.isListening = false;
@@ -24,7 +24,7 @@ class SenScript {
         // Start with auto-detection
         this.currentLang = 'auto';
         this.fallbackLang = navigator.language || 'de-DE';
-        console.log('[Language] Multi-language mode enabled, fallback:', this.fallbackLang);
+        // Multi-language mode enabled
         this.lastSentenceProcessed = 0;  // Timestamp of last sentence processing
         this.sessionId = `session_${Date.now()}`;
         
@@ -59,7 +59,7 @@ class SenScript {
     }
     
     init() {
-        console.log('[SenScript] Setting up UI...');
+        // Setting up UI
         
         // Get elements
         this.els = {
@@ -129,14 +129,14 @@ class SenScript {
         
         // Add event listeners
         this.els.recordBtn.onclick = () => {
-            console.log('[UI] Listen button clicked');
+            // Listen button clicked
             this.toggleListening();
         };
         
         // Mobile listen button  
         if (this.els.mobileRecordBtn) {
             this.els.mobileRecordBtn.onclick = () => {
-                console.log('[UI] Mobile listen button clicked');
+                // Mobile listen button clicked
                 this.toggleListening();
             };
         }
@@ -144,7 +144,7 @@ class SenScript {
         // Mobile settings button
         if (this.els.mobileSettingsBtn) {
             this.els.mobileSettingsBtn.onclick = () => {
-                console.log('[UI] Mobile settings button clicked');
+                // Mobile settings button clicked
                 this.showSettings();
             };
         }
@@ -185,7 +185,7 @@ class SenScript {
         this.els.settingsModal.onclick = (e) => {
             // Only close if clicking directly on the modal backdrop
             if (e.target.classList.contains('settings-modal')) {
-                console.log('[Settings] Modal backdrop clicked - closing');
+                // Modal backdrop clicked - closing
                 this.closeSettings();
             }
         };
@@ -193,7 +193,7 @@ class SenScript {
         // Simple content click prevention
         if (this.els.settingsContent) {
             this.els.settingsContent.addEventListener('click', (e) => {
-                console.log('[Settings] Content area clicked, should NOT close modal');
+                // Content area clicked, modal stays open
                 // Don't prevent anything - let the modal onclick handler deal with it
             });
         }
@@ -219,18 +219,18 @@ class SenScript {
         // Auto-restart functionality after page reload
         this.setupAutoRestart();
         
-        console.log('[SenScript] Ready!');
+        // SenScript ready!
     }
     
     setupAutoRestart() {
-        console.log('[AutoRestart] Setting up auto-restart functionality');
+        // Setting up auto-restart functionality
         
         // Check if we should auto-restart based on saved state
         const autoRestart = localStorage.getItem('senscript_auto_restart');
         const lastAudioSource = localStorage.getItem('senscript_last_audio_source');
         
         if (autoRestart === 'true' && lastAudioSource) {
-            console.log(`[AutoRestart] Auto-restarting with ${lastAudioSource} after page reload`);
+            // Auto-restarting after page reload
             
             // Set the audio source
             this.currentAudioSource = lastAudioSource;
@@ -242,7 +242,7 @@ class SenScript {
             
             // Auto-start after a short delay to allow everything to initialize
             setTimeout(() => {
-                console.log('[AutoRestart] Starting listening automatically...');
+                // Starting listening automatically
                 this.startListening();
             }, 1000);
         }
@@ -252,7 +252,7 @@ class SenScript {
         this.startListening = () => {
             localStorage.setItem('senscript_auto_restart', 'true');
             localStorage.setItem('senscript_last_audio_source', this.currentAudioSource);
-            console.log(`[AutoRestart] Saved state: ${this.currentAudioSource}`);
+            // Saved state for auto-restart
             return originalStartListening();
         };
         
@@ -261,13 +261,13 @@ class SenScript {
         this.stopListening = () => {
             localStorage.removeItem('senscript_auto_restart');
             localStorage.removeItem('senscript_last_audio_source');
-            console.log('[AutoRestart] Cleared auto-restart state');
+            // Cleared auto-restart state
             return originalStopListening();
         };
     }
     
     resetAllStates() {
-        console.log('[Reset] 🔄 Resetting all states...');
+        // Resetting all states
         
         // Reset flags
         this.isListening = false;
@@ -295,16 +295,16 @@ class SenScript {
         this.setStatus('audio', 'red');
         this.setStatus('ai', 'yellow');
         
-        console.log('[Reset] ✅ All states reset');
+        // All states reset
     }
     
     setupSpeechRecognition() {
-        console.log('[Speech] 🔧 Setting up fresh recognition...');
+        // Setting up fresh recognition
         
         // Always check support first
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            console.error('[Speech] ❌ Speech Recognition not supported');
+            console.error('Speech Recognition not supported in this browser');
             this.setStatus('speech', 'red');
             return false;
         }
@@ -314,9 +314,9 @@ class SenScript {
             try {
                 this.recognition.abort();
                 this.recognition = null;
-                console.log('[Speech] 🧹 Cleaned up old recognition');
+                // Cleaned up old recognition
             } catch (e) {
-                console.log('[Speech] 🧹 Old recognition already clean');
+                // Old recognition already clean
             }
         }
         
@@ -327,90 +327,80 @@ class SenScript {
         this.recognition.lang = this.getOptimalLanguage();
         this.recognition.maxAlternatives = 1;
         
-        console.log(`🎤 [SETUP] Fresh recognition created for: ${this.recognition.lang}`);
+        // Fresh recognition created
         
         // ENHANCED DEBUG: Track speech recognition lifecycle
         this.recognition.onstart = () => {
             this.isListening = true;
             this.restartAttempts = 0;
             this.updateListeningUI();
-            console.log(`✅ [START] Recognition ACTIVE - listening for speech input`);
-            console.log(`📊 [DEBUG] Recognition state:`, {
-                continuous: this.recognition.continuous,
-                interimResults: this.recognition.interimResults,
-                lang: this.recognition.lang,
-                shouldBeListening: this.shouldBeListening
-            });
+            // Recognition ACTIVE - listening for speech input
         };
         
         this.recognition.onresult = (event) => {
-            console.log(`📝 [RESULT] Speech detected! Processing ${event.results.length} results`);
-            for (let i = 0; i < event.results.length; i++) {
-                const result = event.results[i];
-                console.log(`   Result ${i}: "${result[0].transcript}" (final: ${result.isFinal})`);
-            }
+            // Speech detected - processing results
             this.handleSpeechResultOptimized(event);
         };
         
         // ENHANCED: Add onspeechstart and onspeechend for debugging
         this.recognition.onspeechstart = () => {
-            console.log(`🗣️  [SPEECH-START] Audio input detected!`);
+            // Audio input detected
             
             // Set a timer to check if we get results within 3 seconds
             setTimeout(() => {
-                console.log(`⏰ [RESULT-CHECK] 3 seconds after speech start - checking for results...`);
-                console.log(`📊 [STATE-CHECK]:`, {
+                // Checking for results after 3 seconds
+                const stateCheck = {
                     isListening: this.isListening,
                     shouldBeListening: this.shouldBeListening,
                     recognitionLang: this.recognition?.lang,
                     pendingSentence: this.pendingSentence,
                     transcript: this.transcript.length
-                });
+                };
                 
                 // If no results after 3 seconds, try switching language
                 if (this.pendingSentence === '' && this.transcript.length === 0) {
-                    console.log(`🔄 [LANGUAGE-FIX] No results in German, trying English...`);
+                    // No results in German, trying English
                     this.recognition.lang = 'en-US';
-                    console.log(`🌐 [LANGUAGE-SWITCH] Switched to English for better recognition`);
+                    // Switched to English for better recognition
                 }
             }, 3000);
         };
         
         this.recognition.onspeechend = () => {
-            console.log(`🔇 [SPEECH-END] Audio input stopped`);
+            // Audio input stopped
         };
         
         this.recognition.onaudiostart = () => {
-            console.log(`🎵 [AUDIO-START] Microphone started capturing audio`);
+            // Microphone started capturing audio
         };
         
         this.recognition.onaudioend = () => {
-            console.log(`🔇 [AUDIO-END] Microphone stopped capturing audio`);
+            // Microphone stopped capturing audio
         };
         
         this.recognition.onnomatch = () => {
-            console.log(`❓ [NO-MATCH] Speech heard but not recognized`);
+            // Speech heard but not recognized
         };
         
         this.recognition.onerror = (event) => {
-            console.error(`❌ [ERROR] ${event.error}`);
+            console.error(`Speech recognition error: ${event.error}`);
             
             // Handle critical errors
             if (event.error === 'not-allowed') {
                 this.shouldBeListening = false;
                 this.setStatus('speech', 'red');
                 this.setStatus('mic', 'red');
-                console.error('🚫 [ERROR] Microphone permission denied!');
+                console.error('Microphone permission denied');
                 return;
             }
             
             if (event.error === 'no-speech') {
-                console.warn('🔇 [WARNING] No speech detected within timeout');
+                // No speech detected within timeout
             }
             
             // For other errors, let onend handle restart
             if (event.error !== 'no-speech') {
-                console.warn(`⚠️ [ERROR] ${event.error} - will recreate recognition`);
+                // Error - will recreate recognition
                 this.needsRecreation = true;
             }
         };
@@ -418,7 +408,7 @@ class SenScript {
         this.recognition.onend = () => {
             this.isListening = false;
             this.updateListeningUI();
-            console.log(`🛑 [END] Recognition stopped`);
+            // Recognition stopped
             
             // Only restart if we should be listening
             if (this.shouldBeListening) {
@@ -494,7 +484,7 @@ class SenScript {
     }
     
     handleSpeechResultOptimized(event) {
-        console.log(`🎯 [RESULT-HANDLER] Processing speech results - resultIndex: ${event.resultIndex}, total results: ${event.results.length}`);
+        // Processing speech results
         
         let final = '';
         let interim = '';
@@ -504,7 +494,7 @@ class SenScript {
             const result = event.results[i];
             const text = result[0].transcript;
             
-            console.log(`   Result ${i}: "${text}" (final: ${result.isFinal})`);
+            // Result processing
             
             if (result.isFinal) {
                 final += text + ' ';
@@ -513,10 +503,10 @@ class SenScript {
             }
         }
         
-        console.log(`🎯 [RESULT-SUMMARY] Final: "${final.trim()}", Interim: "${interim.trim()}"`);
+        // Processing final and interim results
         
         if (final.trim() || interim.trim()) {
-            console.log(`📝 [PROCESSING] About to process text...`);
+            // Processing text
         }
         
         // LIVE LANGUAGE DETECTION: Detect language from speech results
@@ -526,7 +516,7 @@ class SenScript {
             
             // Switch recognition language if different from current
             if (detectedLang !== this.recognition.lang) {
-                console.log(`🌐 [LIVE-LANG] Detected ${detectedLang}, switching from ${this.recognition.lang}`);
+                // Language switch detected
                 this.recognition.lang = detectedLang;
             }
         }
@@ -766,7 +756,7 @@ class SenScript {
             }
         }
         
-        console.log(`[Language] Text: "${text.substring(0, 30)}..." - ${detectedLang} ${flag} (${maxScore.toFixed(0)}%)`);
+        // Language detected
         
         return { lang: detectedLang, confidence: maxScore, flag: flag };
     }
@@ -826,7 +816,7 @@ class SenScript {
         
         // KONTINUIERLICHE Frühtrennung für smooth processing (VERY AGGRESSIVE)
         if (this.pendingSentence.length > 60) { // Much more aggressive - prevent long buildup
-            console.log('[Segment] Kontinuierliche Früh-Trennung (>60 chars) - PREVENTING LONG SENTENCES');
+            // Early segmentation for long sentences
             const midPoint = Math.floor(this.pendingSentence.length / 2);
             const spaceIndex = this.pendingSentence.indexOf(' ', midPoint);
             
@@ -876,7 +866,7 @@ class SenScript {
         
         if (shouldProcess) {
             const reason = hasEndPunctuation ? 'sentence-end' : 'too-long';
-            console.log(`🎯 [SPLIT] ${reason} at ${text.length} chars`);
+            // Text split
         }
         
         return shouldProcess;
@@ -890,14 +880,14 @@ class SenScript {
         
         // DYNAMIC LANGUAGE SWITCHING: Update per segment with LOW threshold
         if (detection.confidence > 5 && detection.lang !== this.currentLang) {
-            console.log(`🔄 [LANG-SWITCH] ${this.currentLang} → ${detection.lang} (${detection.confidence}% confidence)`);
+            // Language switch
             this.currentLang = detection.lang;
             if (this.recognition) {
                 this.recognition.lang = detection.lang;
-                console.log(`🎤 [SPEECH-UPDATE] Recognition language switched to: ${detection.lang}`);
+                // Recognition language updated
             }
         } else if (detection.confidence > 0) {
-            console.log(`🌍 [LANG-KEEP] Staying with ${this.currentLang} (detected: ${detection.lang} at ${detection.confidence}%)`);
+            // Keeping current language
         }
         
         // Update UI display with flag - IMMER aktualisieren, auch bei niedriger Konfidenz
@@ -919,7 +909,7 @@ class SenScript {
         }
         this.els.langCode.textContent = displayLang;
         
-        console.log(`🌍 [${timestamp}] [UI-UPDATE] Sprachanzeige aktualisiert: ${displayFlag} ${displayLang} (${detection.confidence}%)`);
+        // UI language display updated
         
         // Stelle sicher dass Recognition Language auch gesetzt ist
         if (this.recognition && this.currentLang) {
@@ -928,14 +918,14 @@ class SenScript {
         
         // Create card immediately if sentence is worthy - NON-BLOCKING for continuous speech!
         if (this.isTextWorthyOfCard(sentence)) {
-            console.log(`🎯 [${timestamp}] [WORTHY] Text passed worthiness check - creating card ASYNCHRONOUSLY...`);
+            // Creating card asynchronously
             // Run card creation in background without blocking speech recognition
             this.createCard(sentence, detection).catch(error => {
-                console.error(`❌ [${timestamp}] [CARD-ERROR] Background card creation failed:`, error);
+                // Background card creation failed
                 this.setStatus('ai', 'red');
             });
         } else {
-            console.log(`🚫 [${timestamp}] [NOT-WORTHY] Text failed worthiness check - no card created`);
+            // Text not worthy of card
         }
     }
     
@@ -1551,25 +1541,53 @@ class SenScript {
     }
     
     setupSystemAudioProcessing(stream) {
-        console.log('[Audio] 🔄 Setting up system audio processing for speech recognition...');
+        console.log('[Audio] 🔄 Setting up system audio processing for tab audio...');
         
         try {
-            // Create audio processing pipeline for system audio transcription
-            console.log('[Audio] 🎧 System audio transcription active...');
+            // Get audio tracks from the stream
+            const audioTracks = stream.getAudioTracks();
+            console.log('[Audio] Audio tracks found:', audioTracks.length);
             
-            // Use modern approach instead of deprecated ScriptProcessorNode
-            // For now, use the Web Speech API fallback immediately since AudioWorkletNode 
-            // would require a separate worklet file
-            console.log('[Audio] 🎧 Using immediate Web Speech API for system audio transcription...');
+            if (audioTracks.length > 0) {
+                console.log('[Audio] 🎧 Tab audio track:', audioTracks[0].label);
+                
+                // Set up fresh recognition for tab audio
+                if (!this.recognition) {
+                    this.setupSpeechRecognition();
+                }
+                
+                // Start Web Speech API - it might work with tab audio in Chrome
+                if (this.recognition && !this.isListening) {
+                    try {
+                        this.recognition.start();
+                        this.isListening = true;
+                        this.shouldBeListening = true;
+                        console.log('[Audio] ✅ Speech recognition started for tab audio');
+                        
+                        // Update transcript display
+                        if (this.els.transcript) {
+                            this.els.transcript.innerHTML = `
+                                <div class="transcript-rows">
+                                    <div class="transcript-row current">
+                                        🔊 Tab Audio Active - Listening...
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        if (error.name === 'InvalidStateError') {
+                            // Recognition already started
+                            this.isListening = true;
+                            console.log('[Audio] Recognition already running');
+                        } else {
+                            console.error('[Audio] Failed to start recognition:', error);
+                        }
+                    }
+                }
+            }
             
-            // Buffer for tracking audio activity
-            this.systemAudioBuffer = [];
-            this.lastProcessTime = Date.now();
-            
-            // Start Web Speech API immediately for system audio transcription
-            this.useWebSpeechAPIFallback();
-            
-            console.log('[Audio] ✅ System audio transcription pipeline active');
+            // Also start audio level monitoring
+            this.fallbackToAudioLevelDisplay();
             
         } catch (error) {
             console.error('[Audio] Failed to setup system audio processing:', error);
@@ -1618,28 +1636,21 @@ class SenScript {
     }
     
     useWebSpeechAPIFallback() {
-        console.log('[SystemAudio] 🔄 Using Web Speech API as fallback...');
-        
-        // Start Web Speech API in parallel to capture any leaking system audio through mic
-        if (!this.recognition) {
-            this.setupSpeechRecognition();
-        }
-        
-        if (this.recognition && !this.isListening) {
-            try {
-                this.recognition.start();
-                console.log('[SystemAudio] ✅ Web Speech API fallback started');
-            } catch (error) {
-                console.log('[SystemAudio] ⚠️ Web Speech API fallback failed:', error);
-                this.fallbackToAudioLevelDisplay();
-            }
-        }
+        // Note: Web Speech API cannot capture system audio, only microphone
+        // This function is kept for compatibility but won't work for system audio
+        console.log('[SystemAudio] ⚠️ Web Speech API cannot capture system audio');
+        this.fallbackToAudioLevelDisplay();
     }
     
     fallbackToAudioLevelDisplay() {
-        console.log('[SystemAudio] 📊 Falling back to audio level display only');
+        // Audio level display for system audio
         
-        // Show audio levels as before
+        // Clear any existing interval
+        if (this.systemAudioInterval) {
+            clearInterval(this.systemAudioInterval);
+        }
+        
+        // Show audio levels
         this.systemAudioInterval = setInterval(() => {
             if (!this.shouldBeListening) return;
             
@@ -1648,21 +1659,21 @@ class SenScript {
                 this.audioAnalyser.getByteFrequencyData(dataArray);
                 const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
                 
-                if (average > 20) {
-                    console.log('[SystemAudio] 🎵 Audio level:', average.toFixed(1));
+                if (average > 10) {
+                    // Reduced threshold for better sensitivity
                     
                     if (this.els.transcript && average > 30) {
                         const timestamp = new Date().toLocaleTimeString();
                         this.els.transcript.innerHTML = `
                             <div class="transcript-rows">
                                 <div class="transcript-row current">
-                                    🔊 Audio detected at ${timestamp}
+                                    🔊 Tab Audio Active - Level: ${average.toFixed(1)}
                                 </div>
                                 <div class="transcript-row previous">
-                                    Level: ${average.toFixed(1)} - No transcription available
+                                    Listening for speech in tab audio...
                                 </div>
                                 <div class="transcript-row old">
-                                    Switch to microphone for speech-to-text
+                                    ${timestamp}
                                 </div>
                             </div>
                         `;
@@ -1904,12 +1915,28 @@ class SenScript {
     }
     
     handleSilence() {
-        console.log('[Audio] Silence detected');
+        // Don't log silence for system audio to reduce console clutter
+        if (this.currentAudioSource !== 'system') {
+            console.log('[Audio] Silence detected');
+        }
         
         // Process any pending sentences when silence is detected
         if (this.pendingSentence.trim().length > 10) {
             this.processCompleteSentence(this.pendingSentence.trim());
             this.pendingSentence = '';
+        }
+        
+        // Don't stop listening on silence for system audio
+        if (this.currentAudioSource === 'system' && this.shouldBeListening) {
+            // Keep recognition active for system audio
+            if (this.recognition && !this.isListening) {
+                try {
+                    this.recognition.start();
+                    this.isListening = true;
+                } catch (error) {
+                    // Ignore if already started
+                }
+            }
         }
         
         // Don't update UI for silence - let the visualizer handle this
@@ -1996,20 +2023,17 @@ class SenScript {
     
     async createCard(text, detection = null) {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(`\n🔄 [${timestamp}] [CARD-START] Evaluating text for card creation:`);
-        console.log(`📝 FULL TEXT: "${text}"`);
-        console.log(`📏 Length: ${text.length} chars`);
+        // Evaluating text for card creation
         
         // Pre-filter: Check if text is worthy of a card
         if (!this.isTextWorthyOfCard(text)) {
-            console.log(`❌ [${timestamp}] [CARD-FILTERED] Text filtered out - no card created`);
-            console.log(`🚫 Reason: Failed worthiness check\n`);
+            // Text filtered out - not worthy
             return;
         }
         
         // Use provided detection or detect language for this text
         const detectedLanguage = detection || this.detectLanguageForText(text);
-        console.log(`🌍 [${timestamp}] [CARD-LANG] Detected input language: ${detectedLanguage.lang} ${detectedLanguage.flag || ''} (${detectedLanguage.confidence}% confidence)`);
+        // Detected input language
         
         // Determine output language for card generation
         let outputLanguage = detectedLanguage.lang;
@@ -2024,14 +2048,12 @@ class SenScript {
                 'zh-CN': '🇨🇳', 'ja-JP': '🇯🇵', 'ko-KR': '🇰🇷', 'ar-SA': '🇸🇦', 'el-GR': '🇬🇷'
             };
             outputFlag = flagMap[outputLanguage] || '🌐';
-            console.log(`🎨 [${timestamp}] [CARD-LANG] Using FIXED output language: ${outputLanguage} ${outputFlag} (overriding detected ${detectedLanguage.lang})`);
+            // Using fixed output language
         } else {
-            console.log(`🎨 [${timestamp}] [CARD-LANG] Using AUTO output language: ${outputLanguage} ${outputFlag} (matching input)`);
+            // Using auto output language
         }
         
-        console.log(`🤖 [${timestamp}] [CARD-AI] Starting AI card generation...`);
-        
-        // Log the query being sent
+        // Starting AI card generation
         const queryPayload = {
             sessionId: this.sessionId,
             transcript: text,
@@ -2039,15 +2061,6 @@ class SenScript {
             textConfidence: detectedLanguage.confidence,
             languageFlag: outputFlag  // Use output flag
         };
-        console.log(`📤 [${timestamp}] [API-QUERY] Sending to /api/generate-card:`);
-        console.log('   Transcript:', text.substring(0, 50) + '...');
-        console.log('   Output Language:', outputLanguage, outputFlag);
-        console.log('   SessionId:', this.sessionId);
-        console.log('🎓 [API-QUERY] Current Education Settings for this call:');
-        console.log('   User Level:', this.apiSettings.education?.userLevel || 'UNDEFINED');
-        console.log('   Detail Level:', this.apiSettings.education?.detailLevel || 'UNDEFINED');
-        console.log('   Example Complexity:', this.apiSettings.education?.exampleComplexity || 'UNDEFINED');
-        console.log('   Full queryPayload:', JSON.stringify(queryPayload, null, 2));
         
         // Set AI status to processing
         this.setStatus('ai', 'yellow');
@@ -2067,12 +2080,10 @@ class SenScript {
             const result = await response.json();
             const responseTime = Date.now() - startTime;
             
-            console.log(`📥 [${timestamp}] [API-RESPONSE] Response received in ${responseTime}ms:`);
-            console.log(JSON.stringify(result, null, 2));
+            // API response received
             
             if (result.success && !result.skip) {
-                console.log(`🎯 [${timestamp}] [CARD-PARSE] Parsing AI response...`);
-                console.log(`📋 Raw card data:`, result.card);
+                // Parsing AI response
                 
                 // Create card from AI response with null checking
                 const card = {
@@ -2082,13 +2093,13 @@ class SenScript {
                     back: result.card?.back || 'No answer',
                     confidence: result.card?.confidence || 0,
                     source: 'AI',
+                    provider: result.provider || 'openai',  // Add provider info
                     language: outputLanguage,  // Use output language for the card
                     flag: outputFlag,          // Use output flag for the card
                     time: new Date().toLocaleTimeString()
                 };
                 
-                console.log(`📊 [${timestamp}] [CARD-OBJECT] Final card object created:`);
-                console.log(JSON.stringify(card, null, 2));
+                // Card object created
                 
                 this.cards.unshift(card); // Add to beginning for latest on top
                 this.renderCard(card);
@@ -2096,19 +2107,9 @@ class SenScript {
                 this.els.exportBtn.disabled = false;
                 this.setStatus('ai', 'green');
                 
-                console.log(`✅ [${timestamp}] [CARD-SUCCESS] AI card created and rendered!`);
-                console.log(`🏷️  Category: ${card.category}`);
-                console.log(`🎯 Confidence: ${card.confidence}%`);
-                console.log(`📄 Front: "${card.front}"`);
-                console.log(`📋 Back: "${card.back}"`);
-                console.log(`🎉 Total cards: ${this.cards.length}\n`);
+                // AI card created successfully
             } else {
-                console.log(`⚠️  [${timestamp}] [CARD-SKIPPED] AI generation failed or skipped`);
-                console.log(`🚫 Reason: ${result.skip ? 'Content skipped by AI' : 'API failure'}`);
-                if (result.reason) {
-                    console.log(`💭 AI Reason: ${result.reason}`);
-                }
-                console.log('');
+                // AI generation skipped
                 this.setStatus('ai', 'yellow');
             }
         } catch (error) {
@@ -2266,12 +2267,14 @@ class SenScript {
         const cardEl = document.createElement('div');
         cardEl.className = 'card new-card';
         
-        // Add confidence indicator, source, and language flag
+        // Add confidence indicator, source, provider, and language flag
         const sourceCircle = card.source === 'AI' ? 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
         const confidenceText = card.confidence ? ` ${card.confidence}%` : '';
         const languageFlag = card.flag ? ` ${card.flag}` : '';
+        // Show the AI provider (e.g., "GPT-4" or "Claude")
+        const providerText = card.provider ? ` • ${card.provider.charAt(0).toUpperCase() + card.provider.slice(1)}` : '';
         
         // Generate source link if available
         let sourceHtml = '';
@@ -2286,7 +2289,7 @@ class SenScript {
         }
         
         cardEl.innerHTML = `
-            <div class="card-header">${card.category || 'Card'}${languageFlag} • ${card.time}${sourceCircle}${confidenceText}</div>
+            <div class="card-header">${card.category || 'Card'}${languageFlag} • ${card.time}${providerText}${sourceCircle}${confidenceText}</div>
             <div class="card-front">${card.front || 'No question'}</div>
             <div class="card-back">${card.back || 'No answer'}</div>
             ${sourceHtml}
@@ -2323,7 +2326,7 @@ class SenScript {
         // Clean up cards array to prevent memory bloat during long sessions
         if (this.cards.length > 12) {
             this.cards = this.cards.slice(0, 10); // Keep latest 10 cards in memory
-            console.log('🧹 [MEMORY] Cards array cleaned, kept latest 10');
+            // Memory cleaned - kept latest 10 cards
         }
     }
     
@@ -2779,23 +2782,13 @@ class SenScript {
     
     toggleListening() {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(`\n🎛️  [${timestamp}] [TOGGLE] Listen toggle clicked`);
-        console.log(`🔍 [DEBUG] Audio setup check:`, {
-            hasAudioContext: !!this.audioContext,
-            audioContextState: this.audioContext?.state,
-            hasRecognition: !!this.recognition,
-            currentSource: this.currentAudioSource
-        });
-        console.log(`📊 [${timestamp}] [STATE] isListening: ${this.isListening}, shouldBeListening: ${this.shouldBeListening}`);
-        console.log(`🔍 [${timestamp}] [DEBUG] Recognition exists: ${!!this.recognition}, Language: ${this.recognition?.lang || 'undefined'}`);
+        // Listen toggle clicked
         
         if (this.isListening || this.shouldBeListening) {
-            console.log(`🛑 [${timestamp}] [ACTION] Stopping listening...`);
-            console.log(`💡 [${timestamp}] [TIP] Click again to restart listening`);
+            // Stopping listening
             this.stopListening();
         } else {
-            console.log(`▶️  [${timestamp}] [ACTION] Starting listening...`);
-            console.log(`🎤 [${timestamp}] [TIP] System will now continuously listen for speech`);
+            // Starting listening
             this.startListening();
         }
     }
@@ -2976,6 +2969,16 @@ class SenScript {
     async startSystemAudio() {
         console.log('[Audio] 🔊 Starting system/device audio...');
         
+        // Stop any existing listening first
+        if (this.isListening) {
+            try {
+                this.recognition.stop();
+                this.isListening = false;
+            } catch (error) {
+                // Ignore errors when stopping
+            }
+        }
+        
         // Show initialization state
         this.setStatus('audio', 'yellow');
         this.showInitializationMessage();
@@ -3092,42 +3095,42 @@ class SenScript {
     
     stopListening() {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(`\n🛑 [${timestamp}] [STOP] Stopping listening process...`);
+        // Stopping listening process
         
         this.shouldBeListening = false;
-        console.log(`🔴 [${timestamp}] [FLAG] shouldBeListening set to FALSE`);
+        // shouldBeListening set to FALSE
         
         if (this.recognition) {
-            console.log(`🎤 [${timestamp}] [STOP] Stopping speech recognition...`);
+            // Stopping speech recognition
             try {
                 this.recognition.abort(); // Use abort for immediate stop
-                console.log(`🎤 [${timestamp}] [STOP] Speech recognition aborted`);
+                // Speech recognition aborted
             } catch (e) {
                 console.warn(`🎤 [${timestamp}] [STOP] Error stopping recognition:`, e);
             }
         }
         
         if (this.systemStream) {
-            console.log(`🔊 [${timestamp}] [STOP] Stopping system audio stream...`);
+            // Stopping system audio stream
             this.systemStream.getTracks().forEach(track => track.stop());
             this.systemStream = null;
         }
         
         if (this.audioSource) {
-            console.log(`🎧 [${timestamp}] [STOP] Disconnecting audio source...`);
+            // Disconnecting audio source
             this.audioSource.disconnect();
             this.audioSource = null;
         }
         
         // Clean up system audio processing
         if (this.systemAudioInterval) {
-            console.log(`🔊 [${timestamp}] [STOP] Stopping system audio processing...`);
+            // Stopping system audio processing
             clearInterval(this.systemAudioInterval);
             this.systemAudioInterval = null;
         }
         
         if (this.audioProcessor) {
-            console.log(`🔊 [${timestamp}] [STOP] Disconnecting audio processor...`);
+            // Disconnecting audio processor
             this.audioProcessor.disconnect();
             this.audioProcessor = null;
         }
@@ -3136,7 +3139,7 @@ class SenScript {
             this.systemAudioBuffer = [];
         }
         
-        console.log(`✅ [${timestamp}] [STOP-COMPLETE] All recording processes stopped\n`);
+        // All recording processes stopped
         
         // Reset audio status display
         this.updateAudioStatusDisplay(this.currentAudioSource, null);
@@ -3234,32 +3237,30 @@ class SenScript {
                 console.log('[UI] 📝 Current audio source was:', this.currentAudioSource);
                 
                 if (newSource !== this.currentAudioSource) {
-                    console.log('[UI] ✅ Switching audio source from', this.currentAudioSource, 'to', newSource);
+                    console.log('[UI] Switching audio source from', this.currentAudioSource, 'to', newSource);
+                    
+                    // Stop current listening first
+                    if (this.shouldBeListening || this.isListening) {
+                        this.stopListening();
+                    }
+                    
+                    // Update audio source
                     this.currentAudioSource = newSource;
                     
-                    // Verify the change took effect
-                    console.log('[UI] 🔍 Current audio source is now:', this.currentAudioSource);
-                    
+                    // Update UI
                     this.updateToggleUI();
-                    
-                    // Update level dots for new source
                     this.showLevelDots();
                     
-                    // IMMEDIATELY start audio monitoring for the new source
-                    this.startAudioMonitoringOnly();
-                    
-                    // Simple restart if recording
+                    // Restart with new source if was listening
                     if (this.shouldBeListening) {
-                        this.stopListening();
+                        // Small delay to ensure clean switch
                         setTimeout(() => {
                             this.startListening();
-                            // Force UI update after source switch
-                            setTimeout(() => this.updateAnimatedTranscript(), 200);
-                        }, 100);
-                    } else {
-                        // Update UI even if not recording to show source change
-                        this.updateAnimatedTranscript();
+                        }, 200);
                     }
+                    
+                    // Update transcript display
+                    this.updateAnimatedTranscript();
                 }
             };
         });

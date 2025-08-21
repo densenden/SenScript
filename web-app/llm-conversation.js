@@ -90,10 +90,12 @@ Analyze this segment considering previous context. Generate a flashcard if educa
                 conversation.cardsGenerated++;
             }
             
+            // Include provider info in response
+            response.provider = conversation.provider;
             return response;
             
         } catch (error) {
-            console.error('[Conversation] Error:', error);
+            // Silent error - will be handled by caller
             // On error, reset conversation
             this.conversations.delete(sessionId);
             throw error;
@@ -233,7 +235,7 @@ Analyze this segment considering previous context. Generate a flashcard if educa
                 return JSON.parse(jsonMatch[0]);
             }
         } catch (e) {
-            console.error('Parse error:', e);
+            // Silent parse error - expected for some responses
         }
         
         return { skip: true, reason: 'Parse error' };
@@ -282,7 +284,7 @@ Analyze this segment considering previous context. Generate a flashcard if educa
                 return JSON.parse(jsonMatch[0]);
             }
         } catch (e) {
-            console.error('Parse error:', e);
+            // Silent parse error - expected for some responses
         }
         
         return { skip: true, reason: 'Parse error' };
@@ -316,7 +318,7 @@ Analyze this segment considering previous context. Generate a flashcard if educa
                 return JSON.parse(jsonMatch[0]);
             }
         } catch (e) {
-            console.error('Parse error:', e);
+            // Silent parse error - expected for some responses
         }
         
         return { skip: true, reason: 'Parse error' };

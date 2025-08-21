@@ -154,15 +154,7 @@ async function generateFlashcard(sessionId, transcript, language, languageFlag) 
     
     // LOG EDUCATION SETTINGS VERIFICATION
     const userSettings = getUserSettings(sessionId);
-    console.log('🎓 [SERVER-EDUCATION] Education settings for session:', sessionId);
-    console.log('   User has settings:', userSettings ? 'YES' : 'NO');
-    if (userSettings && userSettings.education) {
-        console.log('   User Level:', userSettings.education.userLevel, '(1=Beginner, 5=Expert)');
-        console.log('   Detail Level:', userSettings.education.detailLevel, '(1=Brief, 5=Comprehensive)');
-        console.log('   Example Complexity:', userSettings.education.exampleComplexity, '(1=Simple, 5=Academic)');
-    } else {
-        console.log('   Education settings:', 'UNDEFINED - using default Level 3');
-    }
+    // Education settings applied silently
     
     const startTime = Date.now();
 
@@ -173,14 +165,14 @@ async function generateFlashcard(sessionId, transcript, language, languageFlag) 
         
         if (userSettings.outputLanguage && !userSettings.outputLanguage.auto) {
             outputLanguage = userSettings.outputLanguage.fixed;
-            console.log(`🎨 [CARD-GENERATION] Using fixed output language: ${outputLanguage} (overriding input ${language})`);
+            // Using fixed output language
         } else {
-            console.log(`🎨 [CARD-GENERATION] Using auto language mode: ${language}`);
+            // Using auto language mode
         }
         
         // Check if user has interview mode enabled
         const interviewMode = userSettings.interviewMode || false;
-        console.log(`🎯 [CARD-GENERATION] Interview mode: ${interviewMode ? 'ACTIVATED - Using Spickzettel strategy' : 'Standard educational cards'}`);
+        // Interview mode setting applied
         
         // Use conversation-based approach for efficiency
         const result = await llmConversation.processTranscript(
@@ -199,14 +191,15 @@ async function generateFlashcard(sessionId, transcript, language, languageFlag) 
         
         // Skip trivial content
         if (result.skip) {
-            console.log('[LLM] Skipped trivial content:', result.reason);
+            // Skipped trivial content
             return null;
         }
         
-        console.log('[LLM] Card generated:', result.category, `(${result.confidence}% confidence)`);
+        // Include provider information in the result
+        result.provider = result.provider || 'openai';
         return result;
     } catch (error) {
-        console.error('[OpenAI] Error:', error.message);
+        // Error in card generation
         throw error;
     }
 }
@@ -260,12 +253,10 @@ const server = http.createServer(async (req, res) => {
                     console.log('   Example Complexity:', education.exampleComplexity, '(1=Simple, 5=Academic)');
                     
                     // UPDATE LLM CONVERSATION WITH NEW EDUCATION SETTINGS
-                    console.log('🔄 [SETTINGS-API] Updating LLMConversation with new education settings...');
                     // TODO: Implement updateEducationSettings in LLMConversation class
                     // llmConversation.updateEducationSettings(sessionId || 'default', education);
-                    console.log('⚠️  [SETTINGS-API] Education settings update skipped (method not implemented yet)');
                 } else {
-                    console.log('⚠️  [SETTINGS-API] No education settings in payload!');
+                    // No education settings in payload
                 }
                 
                 userSettings.set(sessionId || 'default', settings);
