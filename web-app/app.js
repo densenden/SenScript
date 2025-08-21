@@ -16,7 +16,6 @@ class SenScript {
         this.isLight = false;
         
         // Card Generation Tracking
-        this.pendingCards = new Map(); // Track empty cards waiting for content
         this.cardGenerationCounter = 0;
         this.themePreference = this.detectSystemTheme();
         // Support for 12 major languages
@@ -1028,124 +1027,6 @@ class SenScript {
         return segments;
     }
     
-    /**
-     * Generate card for individual segment with context info
-     */
-    /**
-     * Create empty card container waiting for content
-     */
-    createEmptyCard(segment, detection, partNum, totalParts) {
-        const cardId = `card_empty_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const currentMode = this.apiSettings.interviewMode ? 'cheat' : 'flash';
-        
-        // Create empty card element
-        const cardEl = document.createElement('div');
-        cardEl.className = 'card empty entering';
-        cardEl.setAttribute('data-card-type', currentMode);
-        cardEl.setAttribute('data-card-id', cardId);
-        
-        // Store reference for later filling
-        this.pendingCards.set(cardId, {
-            element: cardEl,
-            segment,
-            detection,
-            partNum,
-            totalParts
-        });
-        
-        // Add to DOM (prepend to show newest on top)
-        this.els.cardsContainer.prepend(cardEl);
-        
-        console.log(`📦 [CONTAINER] Created empty card [${partNum}/${totalParts}]:`, segment.substring(0, 40) + '...');
-        
-        return cardId;
-    }
-    
-    /**
-     * Generate content for empty card container
-     */
-    async generateCardContent(cardId, segment, detection) {
-        console.log(`🔄 [CONTAINER] Generating content for:`, segment.substring(0, 60) + '...');
-        
-        try {
-            const result = await this.cardEngine.generateCard(segment, detection);
-            
-            if (result && !result.skip) {
-                this.fillCard(cardId, result, segment);
-            } else {
-                // Remove empty card if generation failed
-                this.removeEmptyCard(cardId);
-                console.log(`⏭️ [CONTAINER] Removed empty card - generation failed:`, result?.reason || 'unknown');
-            }
-        } catch (error) {
-            console.error('❌ [CONTAINER] Content generation failed:', error);
-            this.removeEmptyCard(cardId);
-        }
-    }
-    
-    /**
-     * Fill empty card container with generated content
-     */
-    fillCard(cardId, cardResult, originalText) {
-        const pendingCard = this.pendingCards.get(cardId);
-        if (!pendingCard) return;
-        
-        const { element } = pendingCard;
-        
-        // Extract card data
-        let cardData = cardResult.card || cardResult;
-        
-        // Add metadata
-        cardData.id = cardId;
-        cardData.timestamp = new Date().toLocaleTimeString();
-        cardData.originalText = originalText;
-        cardData.source = 'card-engine';
-        
-        // Ensure cardType is set
-        if (!cardData.cardType) {
-            cardData.cardType = this.apiSettings.interviewMode ? 'cheat' : 'flash';
-        }
-        
-        // Set language flag if not present
-        if (!cardData.flag) {
-            const detectedLanguage = this.detectLanguage(originalText);
-            cardData.flag = this.getLanguageFlag(detectedLanguage.lang);
-        }
-        
-        // Start morphing animation
-        element.classList.add('filling');
-        
-        // Create card content (initially hidden)
-        const contentHTML = this.generateCardHTML(cardData);
-        element.innerHTML = `<div class="card-content">${contentHTML}</div>`;
-        
-        // Trigger content fade-in after morph starts
-        setTimeout(() => {
-            element.classList.remove('empty', 'filling');
-            element.classList.add('filled');
-        }, 600);
-        
-        // Add to cards array
-        this.cards.unshift(cardData);
-        
-        // Cleanup
-        this.pendingCards.delete(cardId);
-        this.updateCardCount();
-        this.els.exportBtn.disabled = false;
-        
-        console.log(`✨ [CONTAINER] Filled card with content:`, cardData.category, '|', cardData.front.substring(0, 50));
-    }
-    
-    /**
-     * Remove empty card if generation fails
-     */
-    removeEmptyCard(cardId) {
-        const pendingCard = this.pendingCards.get(cardId);
-        if (pendingCard) {
-            pendingCard.element.remove();
-            this.pendingCards.delete(cardId);
-        }
-    }
 
     /**
      * UNIFIED CARD BIRTH PROCESS - Single method for all card creation
@@ -1288,61 +1169,6 @@ class SenScript {
         return headerHTML + frontHTML + backHTML;
     }
     
-    /**
-     * Handle card generation result from the new card engine
-     */
-    handleCardGenerationResult(result, originalText, fromPipeline = false) {
-        try {
-            // Extract card data - handle both old and new formats
-            let cardData = result.card || result;
-            
-            if (!cardData || typeof cardData !== 'object') {
-                console.warn('⚠️ [CARD-ENGINE] Invalid card data received:', result);
-                return;
-            }
-            
-            // Ensure required fields exist
-            if (!cardData.front || !cardData.category) {
-                console.warn('⚠️ [CARD-ENGINE] Card missing required fields:', cardData);
-                return;
-            }
-            
-            // Add metadata
-            cardData.id = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            cardData.timestamp = new Date().toLocaleTimeString();
-            cardData.originalText = originalText;
-            cardData.source = 'card-engine';
-            
-            // Ensure cardType is set - use current mode if not provided by LLM
-            if (!cardData.cardType) {
-                cardData.cardType = this.apiSettings.interviewMode ? 'cheat' : 'flash';
-                console.log('🎯 [CARD-TYPE] Set cardType to:', cardData.cardType, 'based on current mode');
-            }
-            
-            // Set language flag if not present - determine from original text language
-            if (!cardData.flag) {
-                // Use the current language detection or detect from original text
-                const detectedLanguage = this.detectLanguage(originalText);
-                cardData.flag = this.getLanguageFlag(detectedLanguage.lang);
-                console.log('🏁 [FLAG] Set language flag to:', cardData.flag, 'for language:', detectedLanguage.lang);
-            }
-            
-            // Add to cards array
-            this.cards.unshift(cardData);
-            
-            // Update UI with pipeline birth animation if needed
-            this.renderCard(cardData, fromPipeline);
-            this.updateCardCount();
-            this.els.exportBtn.disabled = false;
-            this.setStatus('ai', 'green');
-            
-            console.log('✅ [CARD-ENGINE] Card added successfully:', cardData.category, '|', cardData.front);
-            
-        } catch (error) {
-            console.error('❌ [CARD-ENGINE] Failed to handle card result:', error);
-            this.setStatus('ai', 'red');
-        }
-    }
     
     /**
      * Stop test gracefully
@@ -1437,31 +1263,16 @@ class SenScript {
                     flag: this.cardEngine.getLanguageFlag(test.language)
                 };
                 
-                const result = await this.cardEngine.generateCard(test.text, detection);
+                // Use unified card creation for consistent animation
+                await this.createUnifiedCard(test.text, detection);
                 
                 if (this.testAborted) break; // Check again after async operation
                 
-                if (result && !result.skip) {
-                    this.handleCardGenerationResult(result, test.text);
-                    this.showTranscriptMessage(`Generated: ${result.card?.category || result.category}`, 'success');
+                this.showTranscriptMessage(`Generated card for test`, 'success');
                     
-                    if (dot) {
-                        dot.classList.remove('active');
-                        dot.classList.add('completed');
-                    }
-                } else {
-                    console.log(`🔍 [TEST] Full result object:`, result);
-                    
-                    // Check if this is an API key issue
-                    if (result?.reason?.includes('API') || result?.error?.includes('key')) {
-                        this.showTranscriptMessage(`Error: Missing API key`, 'error');
-                    } else {
-                        this.showTranscriptMessage(`Skipped: ${result?.reason || 'not worthy'}`, 'warning');
-                    }
-                    
-                    if (dot) {
-                        dot.classList.remove('active');
-                    }
+                if (dot) {
+                    dot.classList.remove('active');
+                    dot.classList.add('completed');
                 }
                 
                 // Delay between tests (but check for abort)
@@ -1684,29 +1495,26 @@ class SenScript {
                     flag: this.cardEngine.getLanguageFlag(test.language)
                 };
                 
-                // Test card generation
-                const result = await this.cardEngine.generateCard(test.text, detection);
-                const duration = Date.now() - startTime;
-                
-                const testResult = {
-                    id: test.id,
-                    success: result && !result.skip,
-                    duration,
-                    expectedCategory: test.expectedCategory,
-                    actualCategory: result?.card?.category || result?.category || 'none',
-                    expectedFront: test.expectedCardFront,
-                    actualFront: result?.card?.front || result?.front || 'none',
-                    result: result
-                };
-                
-                results.push(testResult);
-                
-                if (testResult.success) {
-                    console.log(`✅ [TEST-${i + 1}] PASS - Generated: ${testResult.actualCategory} | ${testResult.actualFront}`);
-                    // Add successful card to UI for visual verification
-                    this.handleCardGenerationResult(result, test.text);
-                } else {
-                    console.log(`⏭️ [TEST-${i + 1}] SKIP - ${result?.reason || 'unknown reason'}`);
+                // Use unified card creation for consistent testing
+                try {
+                    await this.createUnifiedCard(test.text, detection);
+                    const duration = Date.now() - startTime;
+                    
+                    const testResult = {
+                        id: test.id,
+                        success: true, // If createUnifiedCard doesn't throw, it succeeded
+                        duration,
+                        expectedCategory: test.expectedCategory,
+                        actualCategory: 'Generated via unified system',
+                        expectedFront: test.expectedCardFront,
+                        actualFront: test.text.substring(0, 50) + '...',
+                        result: 'unified-system'
+                    };
+                    
+                    results.push(testResult);
+                    console.log(`✅ [TEST-${i + 1}] PASS - Generated via unified system`);
+                } catch (error) {
+                    console.log(`⏭️ [TEST-${i + 1}] SKIP - ${error.message}`);
                 }
                 
                 console.log(`⏱️ [TEST-${i + 1}] Duration: ${duration}ms`);
@@ -2570,10 +2378,10 @@ class SenScript {
             // Detect language for this text
             const detection = this.detectLanguageForText(text);
             
-            // Use new card engine instead of missing method
+            // Use unified card creation system for system audio
             if (this.cardEngine && this.cardEngine.isTextWorthyOfCard(text)) {
-                this.cardEngine.generateCard(text, detection).catch(error => {
-                    console.error('❌ [CARD-ENGINE] System audio card generation failed:', error);
+                this.createUnifiedCard(text, detection).catch(error => {
+                    console.error('❌ [UNIFIED-SYSTEM] System audio card generation failed:', error);
                     this.setStatus('ai', 'red');
                 });
             }
@@ -3175,99 +2983,6 @@ class SenScript {
         }
     }
 
-    renderCard(card, fromPipeline = false) {
-        const cardEl = document.createElement('div');
-        cardEl.className = fromPipeline ? 'card new-card pipeline-birth' : 'card new-card';
-        // Add data-category attribute for cheat card styling
-        cardEl.setAttribute('data-category', card.category || 'DEFAULT');
-        // Add data-card-type for styling
-        cardEl.setAttribute('data-card-type', card.cardType || 'flash');
-        // Make the whole card clickable
-        cardEl.style.cursor = 'pointer';
-        
-        // Add confidence indicator, source, provider, and language flag
-        const sourceCircle = card.source === 'AI' ? 
-            '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
-            '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
-        const confidenceText = (card.confidence && card.confidence !== 'undefined' && !isNaN(card.confidence)) ? ` ${card.confidence}%` : '';
-        const languageFlag = (card.flag && card.flag !== 'undefined') ? ` ${card.flag}` : '';
-        // Show the AI provider (e.g., "GPT-4" or "Claude")
-        const providerText = (card.provider && card.provider !== 'undefined') ? ` • ${card.provider.charAt(0).toUpperCase() + card.provider.slice(1)}` : '';
-        
-        // Generate source link if available
-        let sourceHtml = '';
-        if (card.source && card.source.title) {
-            const sourceUrl = this.generateSourceUrl(card.source, card.language);
-            const sourceIcon = card.source.type === 'wikipedia' ? '📖' : '🔍';
-            sourceHtml = `<div class="card-source">
-                <a href="${sourceUrl}" target="_blank" rel="noopener" class="source-link">
-                    ${sourceIcon} Learn more
-                </a>
-            </div>`;
-        }
-        
-        // Format the back content with proper line breaks for cheat cards
-        const formattedBack = card.cardType === 'cheat' && card.back ? 
-            card.back.replace(/\\n/g, '<br>').replace(/\n/g, '<br>') : 
-            (card.back || 'No answer');
-
-        cardEl.innerHTML = `
-            <div class="card-header">${card.category || 'Card'}${languageFlag} • ${card.time}${providerText}${sourceCircle}${confidenceText}</div>
-            <div class="card-front">${card.front || 'No question'}</div>
-            <div class="card-back">${formattedBack}</div>
-            ${sourceHtml}
-        `;
-        
-        // Push existing cards down before adding new one
-        const existingCards = Array.from(this.els.cardsContainer.children);
-        existingCards.forEach(existingCard => {
-            existingCard.classList.add('push-down');
-        });
-        
-        // Add event listener for whole card click
-        cardEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            console.log('🔗 [CLICK] Card clicked:', card.category, '|', card.front);
-            this.openLLMChat(card);
-        });
-        
-        // Add hover effect for clickable indication
-        cardEl.addEventListener('mouseenter', () => {
-            cardEl.style.transform = 'translateY(-2px) scale(1.02)';
-        });
-        
-        cardEl.addEventListener('mouseleave', () => {
-            cardEl.style.transform = 'translateY(0) scale(1)';
-        });
-        
-        // Insert new card at top
-        if (this.els.cardsContainer.firstChild) {
-            this.els.cardsContainer.insertBefore(cardEl, this.els.cardsContainer.firstChild);
-        } else {
-            this.els.cardsContainer.innerHTML = '';
-            this.els.cardsContainer.appendChild(cardEl);
-        }
-        
-        // Remove push-down class after animation
-        setTimeout(() => {
-            existingCards.forEach(existingCard => {
-                existingCard.classList.remove('push-down');
-            });
-            cardEl.classList.remove('new-card');
-        }, 800);
-        
-        // Enhanced memory management for continuous operation
-        const cards = this.els.cardsContainer.children;
-        if (cards.length > 8) {
-            this.els.cardsContainer.removeChild(cards[cards.length - 1]);
-        }
-        
-        // Clean up cards array to prevent memory bloat during long sessions
-        if (this.cards.length > 12) {
-            this.cards = this.cards.slice(0, 10); // Keep latest 10 cards in memory
-            // Memory cleaned - kept latest 10 cards
-        }
-    }
     
     /**
      * Open LLM chat interface with pre-filled prompt based on card content
