@@ -1342,6 +1342,9 @@ class SenScript {
             console.log(`📝 [TEST-${i + 1}] Expected category: ${test.expectedCategory}`);
             console.log(`🌍 [TEST-${i + 1}] Language: ${test.language}`);
             
+            // Show current test in transcript window
+            this.showTestTranscript(test, i + 1, testTranscripts.length);
+            
             try {
                 const startTime = Date.now();
                 
@@ -1379,8 +1382,8 @@ class SenScript {
                 
                 console.log(`⏱️ [TEST-${i + 1}] Duration: ${duration}ms`);
                 
-                // Add delay between tests to avoid overwhelming the API
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Delay between tests for readability and to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
             } catch (error) {
                 console.error(`❌ [TEST-${i + 1}] ERROR:`, error);
@@ -2846,7 +2849,7 @@ class SenScript {
         const sourceCircle = card.source === 'AI' ? 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
-        const confidenceText = card.confidence ? ` ${card.confidence}%` : '';
+        const confidenceText = (card.confidence && card.confidence !== 'undefined' && !isNaN(card.confidence)) ? ` ${card.confidence}%` : '';
         const languageFlag = (card.flag && card.flag !== 'undefined') ? ` ${card.flag}` : '';
         // Show the AI provider (e.g., "GPT-4" or "Claude")
         const providerText = (card.provider && card.provider !== 'undefined') ? ` • ${card.provider.charAt(0).toUpperCase() + card.provider.slice(1)}` : '';
