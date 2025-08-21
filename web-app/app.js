@@ -220,6 +220,9 @@ class SenScript {
         this.setupAutoRestart();
         
         // SenScript ready!
+        
+        // Show initial guidance in transcript window
+        this.showInitialGuidance();
     }
     
     setupAutoRestart() {
@@ -2826,12 +2829,14 @@ class SenScript {
     
     async startMicrophone() {
         console.log('[Audio] 🎤 Starting microphone...');
-        console.log('[Audio] 🔍 State check:', {
-            hasRecognition: !!this.recognition,
-            isListening: this.isListening,
-            shouldBeListening: this.shouldBeListening,
-            hasAudioContext: !!this.audioContext
-        });
+        
+        // Clear any system stream when switching to microphone
+        if (this.systemStream) {
+            try {
+                this.systemStream.getTracks().forEach(track => track.stop());
+            } catch (e) {}
+            this.systemStream = null;
+        }
         
         // Show initialization state
         this.setStatus('mic', 'yellow');
@@ -2839,6 +2844,23 @@ class SenScript {
         
         // Enable level dots immediately for microphone
         this.showLevelDots();
+        
+        // Show guidance for microphone
+        if (this.els.transcript) {
+            this.els.transcript.innerHTML = `
+                <div class="transcript-rows">
+                    <div class="transcript-row current">
+                        🎤 Setting up Microphone...
+                    </div>
+                    <div class="transcript-row previous">
+                        Grant microphone permission if asked
+                    </div>
+                    <div class="transcript-row old">
+                        Speak clearly into your microphone
+                    </div>
+                </div>
+            `;
+        }
         
         try {
             // CRITICAL FIX: Resume audio context first (required for Chrome)
@@ -2898,6 +2920,23 @@ class SenScript {
             
             // NOW start speech recognition - ensure fresh recognition object
             this.shouldBeListening = true;
+            
+            // Update transcript to show ready
+            if (this.els.transcript) {
+                this.els.transcript.innerHTML = `
+                    <div class="transcript-rows">
+                        <div class="transcript-row current">
+                            🎤 Microphone Ready - Listening...
+                        </div>
+                        <div class="transcript-row previous">
+                            Speak and watch your words appear
+                        </div>
+                        <div class="transcript-row old">
+                            Cards generate from complete sentences
+                        </div>
+                    </div>
+                `;
+            }
             
             // Always create fresh recognition for microphone mode
             console.log('[Audio] 🔄 Creating fresh recognition for microphone...');
@@ -2993,21 +3032,49 @@ class SenScript {
                 console.log('[Audio] Audio context resumed');
             }
             
-            // Try to get screen share with audio (this can capture tab audio)
-            console.log('[Audio] 🖥️ Requesting system audio capture...');
-            const stream = await navigator.mediaDevices.getDisplayMedia({
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false,
-                    suppressLocalAudioPlayback: false
-                },
-                video: {
-                    width: 1,
-                    height: 1,
-                    frameRate: 1
+            // Check if we already have a system stream from the toggle
+            let stream = this.systemStream;
+            
+            if (!stream || !stream.active) {
+                // No existing stream, request one
+                console.log('[Audio] 🖥️ Requesting system audio capture...');
+                
+                // Show guidance
+                if (this.els.transcript) {
+                    this.els.transcript.innerHTML = `
+                        <div class="transcript-rows">
+                            <div class="transcript-row current">
+                                🖥️ Opening screen share dialog...
+                            </div>
+                            <div class="transcript-row previous">
+                                1️⃣ Select a browser tab
+                            </div>
+                            <div class="transcript-row old">
+                                2️⃣ Check "Share tab audio" ☑️
+                            </div>
+                        </div>
+                    `;
                 }
-            });
+                
+                stream = await navigator.mediaDevices.getDisplayMedia({
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        suppressLocalAudioPlayback: false
+                    },
+                    video: {
+                        width: 1,
+                        height: 1,
+                        frameRate: 1
+                    }
+                });
+                
+                // Store the new stream
+                this.systemStream = stream;
+            } else {
+                console.log('[Audio] ✅ Using existing system stream - no new permission needed');
+            }
             
             console.log('[Audio] ✅ Got system audio stream');
             console.log('[Audio] 📊 System stream info:', {
@@ -3023,8 +3090,6 @@ class SenScript {
             } else {
                 this.updateAudioStatusDisplay('system', null);
             }
-            
-            this.systemStream = stream;
             
             // Connect to visualizer
             await this.connectAudioSource(stream);
@@ -3055,16 +3120,18 @@ class SenScript {
             // Update UI to show device output mode is active
             this.updateListeningUI();
             if (this.els.transcript) {
+                const captureInfo = this.analyzeCaptureSource(stream);
+                
                 this.els.transcript.innerHTML = `
                     <div class="transcript-rows">
                         <div class="transcript-row current">
-                            🔊 Processing device audio...
+                            Listening: ${captureInfo.name}
                         </div>
                         <div class="transcript-row previous">
-                            Ready for speech recognition
+                            ${captureInfo.type} - Audio levels active
                         </div>
                         <div class="transcript-row old">
-                            
+                            Speech transcribes automatically
                         </div>
                     </div>
                 `;
@@ -3187,6 +3254,74 @@ class SenScript {
         }
     }
     
+    analyzeCaptureSource(stream) {
+        const videoTracks = stream.getVideoTracks();
+        const audioTracks = stream.getAudioTracks();
+        
+        // Get video track settings for analysis
+        const videoTrack = videoTracks[0];
+        const audioTrack = audioTracks[0];
+        
+        let captureInfo = {
+            icon: '',
+            name: 'Screen Capture',
+            type: 'Screen'
+        };
+        
+        if (videoTrack) {
+            const settings = videoTrack.getSettings();
+            
+            console.log('[Audio] Video track settings:', settings);
+            console.log('[Audio] Video track label:', videoTrack.label);
+            
+            // Analyze the video track label for capture type hints
+            const label = videoTrack.label.toLowerCase();
+            
+            // Extract meaningful name from video track label
+            const rawLabel = videoTrack.label;
+            
+            if (label.includes('tab')) {
+                captureInfo.type = 'Tab';
+                // Extract tab title: "YouTube - Video Title - Tab" -> "YouTube - Video Title"
+                const cleaned = rawLabel.replace(/\s*-?\s*tab\s*$/i, '').trim();
+                captureInfo.name = cleaned || 'Browser Tab';
+                
+            } else if (label.includes('window')) {
+                captureInfo.type = 'Window';
+                // Extract window title: "Zoom Meeting - Window" -> "Zoom Meeting"
+                const cleaned = rawLabel.replace(/\s*-?\s*window\s*$/i, '').trim();
+                captureInfo.name = cleaned || 'Application Window';
+                
+            } else if (label.includes('screen') || label.includes('desktop') || label.includes('monitor')) {
+                captureInfo.type = 'Screen';
+                captureInfo.name = 'Entire Screen';
+                
+            } else {
+                // Generic - clean up the label
+                captureInfo.name = rawLabel.replace(/\s*-?\s*(capture|shared)\s*$/i, '').trim() || 'Screen';
+                captureInfo.type = 'Screen';
+            }
+        }
+        
+        // Use audio track for better name extraction if available
+        if (audioTrack && audioTrack.label && audioTrack.label !== 'Tab audio capture') {
+            const audioLabel = audioTrack.label.replace(/\s*audio\s*capture\s*$/i, '').trim();
+            if (audioLabel.length > 3) {
+                captureInfo.name = audioLabel;
+            }
+        }
+        
+        // Final cleanup
+        if (captureInfo.name.length > 50) {
+            captureInfo.name = captureInfo.name.substring(0, 47) + '...';
+        }
+        
+        // Log the final analysis
+        console.log('[Audio] Capture analysis result:', captureInfo);
+        
+        return captureInfo;
+    }
+    
     updateAudioStatusDisplay(sourceType, audioTrack) {
         const audioInputInfo = document.getElementById('audioInputInfo');
         if (!audioInputInfo) return;
@@ -3230,37 +3365,131 @@ class SenScript {
         });
         
         toggleOptions.forEach(option => {
-            option.onclick = () => {
+            option.onclick = async () => {
                 const newSource = option.dataset.value;
-                console.log('[UI] ✋ Audio source toggle clicked!');
-                console.log('[UI] 🎯 Selected option data-value:', newSource);
-                console.log('[UI] 📝 Current audio source was:', this.currentAudioSource);
+                console.log('[UI] Audio source toggle clicked:', newSource);
                 
                 if (newSource !== this.currentAudioSource) {
-                    console.log('[UI] Switching audio source from', this.currentAudioSource, 'to', newSource);
-                    
-                    // Stop current listening first
+                    // Stop any current listening first
                     if (this.shouldBeListening || this.isListening) {
                         this.stopListening();
                     }
                     
-                    // Update audio source
-                    this.currentAudioSource = newSource;
+                    // Clean up streams when switching away
+                    if (this.currentAudioSource === 'system' && this.systemStream) {
+                        try {
+                            this.systemStream.getTracks().forEach(track => track.stop());
+                        } catch (e) {}
+                        this.systemStream = null;
+                    }
                     
-                    // Update UI
+                    // Update UI immediately
+                    this.currentAudioSource = newSource;
                     this.updateToggleUI();
                     this.showLevelDots();
                     
-                    // Restart with new source if was listening
-                    if (this.shouldBeListening) {
-                        // Small delay to ensure clean switch
-                        setTimeout(() => {
-                            this.startListening();
-                        }, 200);
+                    // If switching to device output, immediately trigger permission
+                    if (newSource === 'system') {
+                        // Show guidance in transcript window
+                        if (this.els.transcript) {
+                            this.els.transcript.innerHTML = `
+                                <div class="transcript-rows">
+                                    <div class="transcript-row current">
+                                        🖥️ Setting up Device Output...
+                                    </div>
+                                    <div class="transcript-row previous">
+                                        1️⃣ Click "Start" to open screen share
+                                    </div>
+                                    <div class="transcript-row old">
+                                        2️⃣ Select a tab and check "Share tab audio"
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Auto-start to trigger permission immediately
+                        console.log('[UI] Auto-triggering tab audio permission...');
+                        try {
+                            const stream = await navigator.mediaDevices.getDisplayMedia({
+                                audio: {
+                                    echoCancellation: false,
+                                    noiseSuppression: false,
+                                    autoGainControl: false
+                                },
+                                video: {
+                                    width: 1,
+                                    height: 1
+                                }
+                            });
+                            
+                            // Success - we got the stream
+                            console.log('[UI] Screen share permission granted');
+                            this.systemStream = stream;
+                            
+                            // Analyze what was captured
+                            const captureInfo = this.analyzeCaptureSource(stream);
+                            
+                            // Update guidance with specific capture type
+                            if (this.els.transcript) {
+                                this.els.transcript.innerHTML = `
+                                    <div class="transcript-rows">
+                                        <div class="transcript-row current">
+                                            ${captureInfo.type}: ${captureInfo.name}
+                                        </div>
+                                        <div class="transcript-row previous">
+                                            Connected - Click Start to listen
+                                        </div>
+                                        <div class="transcript-row old">
+                                            Audio levels show when sound plays
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Connect audio for visualization
+                            await this.connectAudioSource(stream);
+                            
+                        } catch (error) {
+                            console.log('[UI] User cancelled or error:', error);
+                            // User cancelled - switch back to microphone
+                            this.currentAudioSource = 'microphone';
+                            this.updateToggleUI();
+                            this.showLevelDots();
+                            
+                            if (this.els.transcript) {
+                                this.els.transcript.innerHTML = `
+                                    <div class="transcript-rows">
+                                        <div class="transcript-row current">
+                                            ❌ Tab audio setup cancelled
+                                        </div>
+                                        <div class="transcript-row previous">
+                                            Switched back to Microphone
+                                        </div>
+                                        <div class="transcript-row old">
+                                            Try again or use microphone mode
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } else {
+                        // Switching to microphone - show appropriate message
+                        if (this.els.transcript) {
+                            this.els.transcript.innerHTML = `
+                                <div class="transcript-rows">
+                                    <div class="transcript-row current">
+                                        🎤 Microphone Mode Active
+                                    </div>
+                                    <div class="transcript-row previous">
+                                        Click "Start" to begin listening
+                                    </div>
+                                    <div class="transcript-row old">
+                                        Speak clearly into your microphone
+                                    </div>
+                                </div>
+                            `;
+                        }
                     }
-                    
-                    // Update transcript display
-                    this.updateAnimatedTranscript();
                 }
             };
         });
@@ -3356,6 +3585,41 @@ class SenScript {
         const el = this.els[type + 'Status'];
         if (el) {
             el.className = `status-dot ${color}`;
+        }
+    }
+    
+    showInitialGuidance() {
+        // Show guidance based on selected audio source
+        if (this.els.transcript) {
+            if (this.currentAudioSource === 'system') {
+                this.els.transcript.innerHTML = `
+                    <div class="transcript-rows">
+                        <div class="transcript-row current">
+                            🖥️ Device Output Mode Selected
+                        </div>
+                        <div class="transcript-row previous">
+                            Click "Start" to select a browser tab
+                        </div>
+                        <div class="transcript-row old">
+                            Enable "Share tab audio" for transcription
+                        </div>
+                    </div>
+                `;
+            } else {
+                this.els.transcript.innerHTML = `
+                    <div class="transcript-rows">
+                        <div class="transcript-row current">
+                            🎤 Welcome to SenScript
+                        </div>
+                        <div class="transcript-row previous">
+                            Click "Start" to begin listening
+                        </div>
+                        <div class="transcript-row old">
+                            Flashcards generate from your speech
+                        </div>
+                    </div>
+                `;
+            }
         }
     }
     
