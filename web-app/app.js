@@ -28,6 +28,10 @@ class SenScript {
         this.lastSentenceProcessed = 0;  // Timestamp of last sentence processing
         this.sessionId = `session_${Date.now()}`;
         
+        // Initialize new card generation engine for speed and reliability
+        this.cardEngine = new CardGenerationEngine(this.apiSettings, this.sessionId);
+        console.log('🎯 [INIT] Card engine initialized');
+        
         // Memory management for long sessions  
         this.memoryCleanupInterval = null;
         this.startMemoryCleanup();
@@ -223,6 +227,10 @@ class SenScript {
         
         // Show initial guidance in transcript window
         this.showInitialGuidance();
+        
+        // Make test function available globally for console access  
+        window.testCards = () => this.runCardGenerationTests();
+        console.log('🧪 [DEBUG] Card testing available: Run testCards() in console');
     }
     
     setupAutoRestart() {
@@ -878,8 +886,8 @@ class SenScript {
     processCompleteSentence(sentence) {
         const timestamp = new Date().toLocaleTimeString();
         // SILENT processing for performance
-        // Detect language for this specific sentence
-        const detection = this.detectLanguageForText(sentence);
+        // Detect language for this specific sentence with switching logic
+        const detection = this.detectLanguageForTextWithSwitching(sentence);
         
         // DYNAMIC LANGUAGE SWITCHING: Update per segment with LOW threshold
         if (detection.confidence > 5 && detection.lang !== this.currentLang) {
@@ -919,17 +927,165 @@ class SenScript {
             this.recognition.lang = this.currentLang;
         }
         
-        // Create card immediately if sentence is worthy - NON-BLOCKING for continuous speech!
-        if (this.isTextWorthyOfCard(sentence)) {
-            // Creating card asynchronously
-            // Run card creation in background without blocking speech recognition
-            this.createCard(sentence, detection).catch(error => {
-                // Background card creation failed
+        // Create card using new engine - NON-BLOCKING for continuous speech!
+        if (this.cardEngine && this.cardEngine.isTextWorthyOfCard(sentence)) {
+            // Use new card engine for speed and reliability
+            this.cardEngine.generateCard(sentence, detection).then(result => {
+                if (result && !result.skip) {
+                    this.handleCardGenerationResult(result, sentence);
+                }
+            }).catch(error => {
+                console.error('❌ [CARD-ENGINE] Card generation failed:', error);
                 this.setStatus('ai', 'red');
             });
         } else {
-            // Text not worthy of card
+            // Text not worthy of card or engine not ready
+            if (!this.cardEngine) {
+                console.warn('⚠️ [CARD-ENGINE] Engine not initialized');
+            }
         }
+    }
+    
+    /**
+     * Handle card generation result from the new card engine
+     */
+    handleCardGenerationResult(result, originalText) {
+        try {
+            // Extract card data - handle both old and new formats
+            let cardData = result.card || result;
+            
+            if (!cardData || typeof cardData !== 'object') {
+                console.warn('⚠️ [CARD-ENGINE] Invalid card data received:', result);
+                return;
+            }
+            
+            // Ensure required fields exist
+            if (!cardData.front || !cardData.category) {
+                console.warn('⚠️ [CARD-ENGINE] Card missing required fields:', cardData);
+                return;
+            }
+            
+            // Add metadata
+            cardData.id = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            cardData.timestamp = new Date().toLocaleTimeString();
+            cardData.originalText = originalText;
+            cardData.source = 'card-engine';
+            
+            // Add to cards array
+            this.cards.unshift(cardData);
+            
+            // Update UI
+            this.updateCardsDisplay();
+            this.setStatus('ai', 'green');
+            
+            console.log('✅ [CARD-ENGINE] Card added successfully:', cardData.category, '|', cardData.front);
+            
+        } catch (error) {
+            console.error('❌ [CARD-ENGINE] Failed to handle card result:', error);
+            this.setStatus('ai', 'red');
+        }
+    }
+    
+    /**
+     * Test card generation with hardcoded transcripts
+     */
+    async runCardGenerationTests() {
+        if (!window.TestTranscripts) {
+            console.error('❌ [TEST] TestTranscripts module not loaded');
+            return;
+        }
+        
+        if (!this.cardEngine) {
+            console.error('❌ [TEST] Card engine not initialized');
+            return;
+        }
+        
+        console.log('🧪 [TEST] Starting card generation tests...');
+        
+        const testTranscripts = window.TestTranscripts.getValidTestTranscripts();
+        const results = [];
+        
+        for (let i = 0; i < testTranscripts.length; i++) {
+            const test = testTranscripts[i];
+            console.log(`\n🧪 [TEST-${i + 1}/${testTranscripts.length}] Testing: "${test.text.substring(0, 50)}..."`);
+            console.log(`📝 [TEST-${i + 1}] Expected category: ${test.expectedCategory}`);
+            console.log(`🌍 [TEST-${i + 1}] Language: ${test.language}`);
+            
+            try {
+                const startTime = Date.now();
+                
+                // Create language detection object
+                const detection = {
+                    lang: test.language,
+                    confidence: 95,
+                    flag: this.cardEngine.getLanguageFlag(test.language)
+                };
+                
+                // Test card generation
+                const result = await this.cardEngine.generateCard(test.text, detection);
+                const duration = Date.now() - startTime;
+                
+                const testResult = {
+                    id: test.id,
+                    success: result && !result.skip,
+                    duration,
+                    expectedCategory: test.expectedCategory,
+                    actualCategory: result?.card?.category || result?.category || 'none',
+                    expectedFront: test.expectedCardFront,
+                    actualFront: result?.card?.front || result?.front || 'none',
+                    result: result
+                };
+                
+                results.push(testResult);
+                
+                if (testResult.success) {
+                    console.log(`✅ [TEST-${i + 1}] PASS - Generated: ${testResult.actualCategory} | ${testResult.actualFront}`);
+                    // Add successful card to UI for visual verification
+                    this.handleCardGenerationResult(result, test.text);
+                } else {
+                    console.log(`⏭️ [TEST-${i + 1}] SKIP - ${result?.reason || 'unknown reason'}`);
+                }
+                
+                console.log(`⏱️ [TEST-${i + 1}] Duration: ${duration}ms`);
+                
+                // Add delay between tests to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+            } catch (error) {
+                console.error(`❌ [TEST-${i + 1}] ERROR:`, error);
+                results.push({
+                    id: test.id,
+                    success: false,
+                    error: error.message,
+                    duration: Date.now() - startTime
+                });
+            }
+        }
+        
+        // Print summary
+        const successful = results.filter(r => r.success).length;
+        const failed = results.filter(r => !r.success && r.error).length;
+        const skipped = results.filter(r => !r.success && !r.error).length;
+        const avgDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0) / results.length;
+        
+        console.log(`\n📊 [TEST-SUMMARY] Results:`);
+        console.log(`   ✅ Successful: ${successful}/${testTranscripts.length}`);
+        console.log(`   ❌ Failed: ${failed}/${testTranscripts.length}`);
+        console.log(`   ⏭️ Skipped: ${skipped}/${testTranscripts.length}`);
+        console.log(`   ⏱️ Average duration: ${avgDuration.toFixed(0)}ms`);
+        console.log(`   📈 Success rate: ${(successful / testTranscripts.length * 100).toFixed(1)}%`);
+        
+        // Print card engine stats
+        const engineStats = this.cardEngine.getStats();
+        console.log(`\n🎯 [ENGINE-STATS] Performance:`);
+        console.log(`   📝 Total requests: ${engineStats.total}`);
+        console.log(`   ✅ Successful cards: ${engineStats.successfulCards}`);
+        console.log(`   ⏭️ Skipped: ${engineStats.skippedCards}`);
+        console.log(`   ❌ Errors: ${engineStats.errors}`);
+        console.log(`   📊 Success rate: ${engineStats.successRate}`);
+        console.log(`   ⏱️ Avg response time: ${engineStats.avgResponseTime.toFixed(0)}ms`);
+        
+        return results;
     }
     
     getLanguageFlag(langCode) {
@@ -997,6 +1153,14 @@ class SenScript {
     }
     
     // REMOVED: Backup of original function for cleaner code
+    
+    /**
+     * Legacy test method - now uses new card engine testing system
+     */
+    testCardGeneration() {
+        console.log('🔄 [LEGACY-TEST] Redirecting to new card engine test system...');
+        return this.runCardGenerationTests();
+    }
     
     hasStrongEducationalSignals(text) {
         const trimmed = text.trim().toLowerCase();
@@ -1463,6 +1627,10 @@ class SenScript {
                 } else {
                     this.apiSettings.outputLanguage.auto = false;
                     this.apiSettings.outputLanguage.fixed = selectedLang;
+                    
+                    // NEW: Set input language default to selected card language
+                    this.setInputLanguageDefault(selectedLang);
+                    console.log('🌍 [LANGUAGE] Input language set to match card language:', selectedLang);
                 }
                 
                 // Update display and save
@@ -1693,9 +1861,18 @@ class SenScript {
         this.addTranscriptLine(text);
         this.updateTranscriptDisplay();
         
-        // Process for card generation if long enough
+        // Process for card generation using new card engine
         if (text.length > 15) {
-            this.processTextForCards(text);
+            // Detect language for this text
+            const detection = this.detectLanguageForText(text);
+            
+            // Use new card engine instead of missing method
+            if (this.cardEngine && this.cardEngine.isTextWorthyOfCard(text)) {
+                this.cardEngine.generateCard(text, detection).catch(error => {
+                    console.error('❌ [CARD-ENGINE] System audio card generation failed:', error);
+                    this.setStatus('ai', 'red');
+                });
+            }
         }
     }
     
@@ -1963,6 +2140,12 @@ class SenScript {
                 };
                 await this.updateServerSettings();
                 this.updateUIFromSettings();
+                
+                // Update card engine with loaded settings
+                if (this.cardEngine) {
+                    this.cardEngine.apiSettings = this.apiSettings;
+                    console.log('🔄 [CARD-ENGINE] Settings updated');
+                }
             }
         } catch (error) {
             console.error('[Settings] Failed to load:', error);
@@ -2026,13 +2209,8 @@ class SenScript {
     
     async createCard(text, detection = null) {
         const timestamp = new Date().toLocaleTimeString();
-        // Evaluating text for card creation
-        
-        // Pre-filter: Check if text is worthy of a card
-        if (!this.isTextWorthyOfCard(text)) {
-            // Text filtered out - not worthy
-            return;
-        }
+        // Creating card from pre-filtered worthy text
+        // Note: worthiness already checked in processCompleteSentence
         
         // Use provided detection or detect language for this text
         const detectedLanguage = detection || this.detectLanguageForText(text);
@@ -2070,8 +2248,9 @@ class SenScript {
         
         try {
             const startTime = Date.now();
+            console.log('📤 [CARD-API] Sending request to server:', queryPayload);
             
-            // Call OpenAI API via our server with text-specific language
+            // Call AI API via our server with text-specific language
             const response = await fetch('http://localhost:3002/api/generate-card', {
                 method: 'POST',
                 headers: {
@@ -2080,51 +2259,77 @@ class SenScript {
                 body: JSON.stringify(queryPayload)
             });
             
-            const result = await response.json();
             const responseTime = Date.now() - startTime;
+            console.log(`🕰️ [CARD-API] Response received in ${responseTime}ms, status: ${response.status}`);
             
-            // API response received
-            
-            if (result.success && !result.skip) {
-                // Parsing AI response
-                
-                // Create card from AI response with null checking
-                const card = {
-                    id: Date.now(),
-                    category: result.card?.category || 'Card',
-                    front: result.card?.front || 'No question',
-                    back: result.card?.back || 'No answer',
-                    confidence: result.card?.confidence || 0,
-                    source: 'AI',
-                    provider: result.provider || 'openai',  // Add provider info
-                    language: outputLanguage,  // Use output language for the card
-                    flag: outputFlag,          // Use output flag for the card
-                    time: new Date().toLocaleTimeString()
-                };
-                
-                // Card object created
-                
-                this.cards.unshift(card); // Add to beginning for latest on top
-                this.renderCard(card);
-                this.updateCardCount();
-                this.els.exportBtn.disabled = false;
-                this.setStatus('ai', 'green');
-                
-                // AI card created successfully
-            } else {
-                // AI generation skipped
-                this.setStatus('ai', 'yellow');
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
             }
-        } catch (error) {
-            console.error(`💥 [${timestamp}] [API-ERROR] Error calling AI API:`, error);
-            console.error(`🔍 Error details:`, error.message);
             
-            // Only create fallback for truly educational content
+            const result = await response.json();
+            console.log('📥 [CARD-API] Parsed response:', result);
+            
+            // Enhanced response validation
+            if (result.success === false) {
+                console.log('🚫 [CARD-API] API returned success=false:', result.reason || 'No reason provided');
+                this.setStatus('ai', 'yellow');
+                return;
+            }
+            
+            if (result.skip === true) {
+                console.log('⏭️ [CARD-API] Content skipped by AI:', result.reason || 'No reason provided');
+                this.setStatus('ai', 'yellow');
+                return;
+            }
+            
+            // Robust card data extraction
+            let cardData = result.card || result; // Handle both formats
+            
+            if (!cardData || (!cardData.front && !cardData.question)) {
+                console.error('❌ [CARD-API] Invalid card data structure:', cardData);
+                throw new Error('Invalid card data received from API');
+            }
+            
+            // Create robust card object with multiple fallbacks
+            const card = {
+                id: Date.now(),
+                category: cardData.category || cardData.type || 'Card',
+                front: cardData.front || cardData.question || 'No question',
+                back: cardData.back || cardData.answer || 'No answer', 
+                confidence: parseInt(cardData.confidence) || 75,
+                source: 'AI',
+                provider: result.provider || 'unknown',
+                language: outputLanguage,
+                flag: outputFlag,
+                time: new Date().toLocaleTimeString(),
+                originalText: text.substring(0, 100) // Keep reference to original
+            };
+            
+            console.log('🃏 [CARD-CREATE] Final card object:', card);
+            
+            // Add card to collection and render
+            this.cards.unshift(card);
+            this.renderCard(card);
+            this.updateCardCount();
+            this.els.exportBtn.disabled = false;
+            this.setStatus('ai', 'green');
+            
+            console.log(`✅ [CARD-SUCCESS] Card created successfully! Total cards: ${this.cards.length}`);
+        } catch (error) {
+            console.error('💥 [CARD-ERROR] Card creation failed:', error);
+            console.error('🔍 [CARD-ERROR] Error details:', {
+                message: error.message,
+                stack: error.stack?.split('\n').slice(0, 3),
+                text: text.substring(0, 50),
+                timestamp
+            });
+            
+            // Enhanced fallback system
             if (this.hasStrongEducationalSignals(text)) {
-                console.log(`🔄 [${timestamp}] [FALLBACK] Creating fallback card due to API error...`);
+                console.log('🔄 [CARD-FALLBACK] Creating fallback card due to API error');
                 this.createFallbackCard(text, detectedLanguage, outputLanguage, outputFlag);
             } else {
-                console.log(`🚫 [${timestamp}] [NO-FALLBACK] API error but content not educational enough for fallback`);
+                console.log('🚫 [CARD-FALLBACK] No fallback - content not educational enough');
                 this.setStatus('ai', 'red');
             }
         }
@@ -2559,12 +2764,127 @@ class SenScript {
         return segments;
     }
     
+    /**
+     * Enhanced transcript display with smooth flip animations
+     * Requirements:
+     * 1. 3 lines stay connected and readable
+     * 2. Smooth interim display with flip animations  
+     * 3. Lines 1-2 stay static, move up when complete
+     * 4. Line 3 gets extended by whole sentence parts
+     * 5. Complete sentences become paragraphs taking lines 1-2
+     */
     updateTranscriptDisplay() {
         if (!this.els.transcript) return;
         
-        // THREE-ROW STRUCTURE: Create flowing, readable transcript
-        let html = '<div class="transcript-rows">';
+        const container = this.els.transcript;
+        const hasInterim = this.currentInterim && this.isListening;
         
+        // Initialize transcript state if needed
+        if (!this.transcriptState) {
+            this.transcriptState = {
+                line1: { text: '', timestamp: null, isStatic: true },
+                line2: { text: '', timestamp: null, isStatic: true },
+                line3: { text: '', timestamp: null, building: false },
+                pendingComplete: null,
+                lastInterim: ''
+            };
+        }
+        
+        const state = this.transcriptState;
+        
+        // Handle interim text changes (live typing with smooth updates)
+        if (hasInterim) {
+            const interimText = this.currentInterim.trim();
+            
+            // Check if interim text is significantly different (avoid micro-updates)
+            if (Math.abs(interimText.length - state.lastInterim.length) > 3 || 
+                !interimText.startsWith(state.lastInterim.substring(0, 10))) {
+                
+                state.line3.text = interimText + '...';
+                state.line3.building = true;
+                state.line3.timestamp = new Date();
+                state.lastInterim = interimText;
+                
+                this.renderTranscriptWithAnimation('interim-update');
+            }
+            return;
+        }
+        
+        // Handle completed sentences
+        const readableSegments = this.createReadableSegments();
+        if (readableSegments.length > 0) {
+            const latestSegment = readableSegments[readableSegments.length - 1];
+            
+            // Check if we have a new complete sentence
+            if (state.pendingComplete !== latestSegment.text && latestSegment.text) {
+                state.pendingComplete = latestSegment.text;
+                
+                // Animate the completion: interim -> final
+                if (state.line3.building) {
+                    state.line3.text = latestSegment.text;
+                    state.line3.building = false;
+                    state.line3.timestamp = latestSegment.timestamp;
+                    state.lastInterim = '';
+                    
+                    this.renderTranscriptWithAnimation('complete-sentence');
+                    
+                    // After animation, shift everything up
+                    setTimeout(() => {
+                        this.shiftTranscriptLinesUp(latestSegment);
+                    }, 300); // Wait for flip animation
+                } else {
+                    // Direct addition without interim
+                    state.line3.text = latestSegment.text;
+                    state.line3.building = false;
+                    state.line3.timestamp = latestSegment.timestamp;
+                    
+                    this.renderTranscriptWithAnimation('direct-add');
+                    setTimeout(() => {
+                        this.shiftTranscriptLinesUp(latestSegment);
+                    }, 200);
+                }
+                return;
+            }
+        }
+        
+        // Default render for status messages
+        if (!this.isListening && !this.shouldBeListening) {
+            state.line1.text = '';
+            state.line2.text = 'Click "Start" to begin...';
+            state.line3.text = '';
+            state.line3.building = false;
+        } else if (this.isListening && !hasInterim && state.line3.text === '') {
+            state.line1.text = '';
+            state.line2.text = '🎤 Listening... speak clearly';
+            state.line3.text = '';
+            state.line3.building = false;
+        }
+        
+        this.renderTranscriptWithAnimation('status-update');
+    }
+    
+    /**
+     * Shift lines up smoothly when a sentence is complete
+     */
+    shiftTranscriptLinesUp(newSegment) {
+        const state = this.transcriptState;
+        
+        // Move everything up
+        state.line1 = { ...state.line2 };
+        state.line2 = { ...state.line3 };
+        state.line3 = { text: '', timestamp: null, building: false };
+        
+        // Render with shift animation
+        this.renderTranscriptWithAnimation('shift-up');
+    }
+    
+    /**
+     * Render transcript with smooth animations
+     */
+    renderTranscriptWithAnimation(animationType = 'none') {
+        if (!this.els.transcript || !this.transcriptState) return;
+        
+        const state = this.transcriptState;
         const timeFormat = (timestamp) => {
             if (!timestamp) return '';
             return timestamp.toLocaleTimeString('de-DE', { 
@@ -2574,59 +2894,189 @@ class SenScript {
             });
         };
         
-        // IMPROVED: Create readable segments by combining related lines
-        const readableSegments = this.createReadableSegments();
-        
-        // Ensure we have exactly 3 display segments
-        while (readableSegments.length < 3) {
-            readableSegments.unshift({ text: '', timestamp: null });
+        // Add animation class to container
+        const container = this.els.transcript;
+        if (animationType !== 'none') {
+            container.classList.add(`anim-${animationType}`);
+            setTimeout(() => {
+                container.classList.remove(`anim-${animationType}`);
+            }, 400);
         }
-        const displaySegments = readableSegments.slice(-3);
         
-        // ROW 1: Oldest segment (faded out)
-        const oldSegment = displaySegments[0];
-        html += `<div class="transcript-row old">
-                    ${oldSegment.text ? `<span class="time">${timeFormat(oldSegment.timestamp)}</span>
-                                       <span class="text">${oldSegment.text}</span>` : ''}
+        let html = '<div class="transcript-rows enhanced">';
+        
+        // Line 1: Oldest/static content (faded)
+        html += `<div class="transcript-row line-1 ${state.line1.isStatic ? 'static' : ''}">
+                    ${state.line1.text ? 
+                        `<span class="time">${timeFormat(state.line1.timestamp)}</span>
+                         <span class="text">${state.line1.text}</span>` : 
+                        '<span class="placeholder"></span>'}
                  </div>`;
         
-        // ROW 2: Previous segment (medium opacity)
-        const prevSegment = displaySegments[1];
-        html += `<div class="transcript-row previous">
-                    ${prevSegment.text ? `<span class="time">${timeFormat(prevSegment.timestamp)}</span>
-                                        <span class="text">${prevSegment.text}</span>` : ''}
+        // Line 2: Previous/static content (medium opacity)  
+        html += `<div class="transcript-row line-2 ${state.line2.isStatic ? 'static' : ''}">
+                    ${state.line2.text ? 
+                        `<span class="time">${timeFormat(state.line2.timestamp)}</span>
+                         <span class="text">${state.line2.text}</span>` : 
+                        '<span class="placeholder"></span>'}
                  </div>`;
         
-        // ROW 3: Current segment (full opacity)
-        const currentSegment = displaySegments[2];
-        const hasInterim = this.currentInterim && this.isListening;
+        // Line 3: Current/building content (full opacity)
+        const line3Classes = [
+            'transcript-row',
+            'line-3', 
+            'current',
+            state.line3.building ? 'building' : 'complete'
+        ].join(' ');
         
-        if (hasInterim) {
-            // Show interim text (live typing)
-            html += `<div class="transcript-row current interim">
-                        <span class="time">...</span>
-                        <span class="text">${this.currentInterim}...</span>
-                     </div>`;
-        } else if (currentSegment.text) {
-            // Show latest completed segment
-            html += `<div class="transcript-row current">
-                        <span class="time">${timeFormat(currentSegment.timestamp)}</span>
-                        <span class="text">${currentSegment.text}</span>
-                     </div>`;
-        } else if (!this.isListening && !this.shouldBeListening) {
-            // Show start message when not listening
-            html += `<div class="transcript-row current">
-                        <span class="text">Click "Start" to begin...</span>
-                     </div>`;
-        } else {
-            // Show listening status when recording but no text yet
-            html += `<div class="transcript-row current listening">
-                        <span class="text">🎤 Listening... waiting for audio</span>
-                     </div>`;
-        }
+        html += `<div class="${line3Classes}">
+                    ${state.line3.text ? 
+                        `<span class="time">${state.line3.building ? '...' : timeFormat(state.line3.timestamp)}</span>
+                         <span class="text ${state.line3.building ? 'typing' : ''}">${state.line3.text}</span>` : 
+                        '<span class="placeholder">Ready...</span>'}
+                 </div>`;
         
         html += '</div>';
-        this.els.transcript.innerHTML = html;
+        container.innerHTML = html;
+    }
+    
+    /**
+     * Set input language default when card language is selected
+     * This ensures speech recognition uses the same language as card generation
+     */
+    setInputLanguageDefault(selectedLanguage) {
+        console.log('🌍 [INPUT-LANG] Setting input language default to:', selectedLanguage);
+        
+        // Store the user's language preference
+        this.preferredInputLanguage = selectedLanguage;
+        
+        // Update current language immediately if not in auto mode
+        if (!this.apiSettings.outputLanguage.auto) {
+            this.currentLang = selectedLanguage;
+            
+            // Update speech recognition language if active
+            if (this.recognition) {
+                this.recognition.lang = selectedLanguage;
+                console.log('🗣️ [SPEECH] Recognition language updated to:', selectedLanguage);
+                
+                // Restart recognition if it's running to apply new language
+                if (this.isListening) {
+                    this.restartRecognitionWithNewLanguage(selectedLanguage);
+                }
+            }
+        }
+        
+        // Save preference to localStorage
+        localStorage.setItem('senscript_preferred_input_lang', selectedLanguage);
+    }
+    
+    /**
+     * Handle language switching during recognition with transcript conversion
+     */
+    handleLanguageSwitch(newLanguage, confidence) {
+        if (newLanguage === this.currentLang && confidence < 80) {
+            return; // Not confident enough to switch
+        }
+        
+        const oldLanguage = this.currentLang;
+        console.log('🔄 [LANG-SWITCH] Detected language change:', oldLanguage, '→', newLanguage, `(${confidence}%)`);
+        
+        // Update current language
+        this.currentLang = newLanguage;
+        
+        // Update speech recognition
+        if (this.recognition) {
+            this.recognition.lang = newLanguage;
+        }
+        
+        // Convert existing transcript segments to new language (conceptually)
+        this.convertTranscriptSegments(oldLanguage, newLanguage);
+        
+        // Update UI language indicators
+        this.updateLanguageIndicator();
+    }
+    
+    /**
+     * Convert already transcribed segments to new language
+     * Note: This is a conceptual conversion - in practice, we update the UI
+     * to indicate language switch and maintain readability
+     */
+    convertTranscriptSegments(fromLang, toLang) {
+        console.log('🔄 [TRANSCRIPT-CONVERT] Converting transcript from', fromLang, 'to', toLang);
+        
+        // Update transcript state with language change indicator
+        if (this.transcriptState) {
+            // Add a visual indicator that language has changed
+            const languageChangeIndicator = `🌍 Language switched: ${this.getLanguageFlag(fromLang)} → ${this.getLanguageFlag(toLang)}`;
+            
+            // Smoothly transition with language change notification
+            if (this.transcriptState.line3.text === '') {
+                this.transcriptState.line3.text = languageChangeIndicator;
+                this.transcriptState.line3.building = false;
+                this.transcriptState.line3.timestamp = new Date();
+            } else {
+                // Add to next available line
+                this.shiftTranscriptLinesUp(null);
+                this.transcriptState.line3.text = languageChangeIndicator;
+                this.transcriptState.line3.building = false;
+                this.transcriptState.line3.timestamp = new Date();
+            }
+            
+            this.renderTranscriptWithAnimation('language-switch');
+        }
+        
+        // Update existing transcript lines metadata
+        this.transcriptLines.forEach(line => {
+            if (!line.language || line.language === fromLang) {
+                line.language = toLang;
+                line.converted = true;
+            }
+        });
+    }
+    
+    /**
+     * Restart recognition with new language smoothly
+     */
+    async restartRecognitionWithNewLanguage(newLanguage) {
+        console.log('🔄 [RECOGNITION-RESTART] Restarting with language:', newLanguage);
+        
+        try {
+            // Stop current recognition
+            if (this.recognition && this.isListening) {
+                this.recognition.abort();
+                this.isListening = false;
+            }
+            
+            // Short delay to ensure clean restart
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Set up with new language
+            this.currentLang = newLanguage;
+            this.setupSpeechRecognition();
+            
+            // Restart if we should be listening
+            if (this.shouldBeListening) {
+                this.recognition.start();
+                console.log('🗣️ [RECOGNITION] Restarted with new language:', newLanguage);
+            }
+            
+        } catch (error) {
+            console.error('❌ [RECOGNITION-RESTART] Failed to restart recognition:', error);
+        }
+    }
+    
+    /**
+     * Enhanced language detection with switching logic
+     */
+    detectLanguageForTextWithSwitching(text) {
+        const detection = this.detectLanguageForText(text);
+        
+        // Check if we should switch languages based on detection confidence
+        if (detection.confidence > 75 && detection.lang !== this.currentLang) {
+            this.handleLanguageSwitch(detection.lang, detection.confidence);
+        }
+        
+        return detection;
     }
     
     splitTextForDisplay(text, maxLength) {
