@@ -242,12 +242,14 @@ class SenScript {
         // Show initial guidance in transcript window
         this.showInitialGuidance();
         
-        // Make test function available globally for console access  
+        // Make test functions available globally for console access  
         window.testCards = () => this.runCardGenerationTests();
+        window.testCheat = () => this.runCheatCardTests();
         window.resetAllCaches = () => this.resetAllCaches();
         window.app = this;
         console.log('🧪 [DEBUG] Available console commands:');
-        console.log('  testCards() - Run card generation tests');
+        console.log('  testCards() - Run all card generation tests');
+        console.log('  testCheat() - Test CheatCards specifically');
         console.log('  resetAllCaches() - Clear all caches for fresh generation');
         console.log('  app.resetCardEngine() - Reset card engine only');
     }
@@ -1212,6 +1214,76 @@ class SenScript {
                 </div>
             </div>
         `;
+    }
+    
+    /**
+     * Test CheatCard generation specifically
+     */
+    async runCheatCardTests() {
+        // Ensure CheatCard mode is active
+        if (!this.apiSettings.interviewMode) {
+            this.apiSettings.interviewMode = true;
+            this.updateCardsModeToggle();
+            console.log('🎯 [TEST] Switched to CheatCard mode for testing');
+        }
+        
+        // Reset caches for fresh generation
+        this.resetAllCaches();
+        
+        if (!window.TestTranscripts) {
+            console.error('❌ [TEST] TestTranscripts module not loaded');
+            return;
+        }
+        
+        // Get German and English test transcripts
+        const germanTests = window.TestTranscripts.getTestTranscripts({ language: 'de-DE' });
+        const englishTests = window.TestTranscripts.getTestTranscripts({ language: 'en-US' });
+        
+        // Select 3 of each
+        const selectedTests = [
+            ...germanTests.slice(0, 3),
+            ...englishTests.slice(0, 3)
+        ];
+        
+        console.log('🧪 [TEST-CHEAT] Starting CheatCard tests with 6 diverse scenarios');
+        console.log('📝 [TEST-CHEAT] Testing:', selectedTests.map(t => t.scenario).join(', '));
+        
+        let successCount = 0;
+        
+        for (let i = 0; i < selectedTests.length; i++) {
+            const test = selectedTests[i];
+            console.log(`\n🔄 [TEST-${i + 1}] Processing: ${test.scenario} (${test.language})`);
+            console.log(`📝 [TEST-${i + 1}] Text: "${test.text.substring(0, 100)}..."`);
+            
+            try {
+                const detection = {
+                    lang: test.language,
+                    confidence: 95,
+                    flag: this.cardEngine.getLanguageFlag(test.language)
+                };
+                
+                const result = await this.cardEngine.generateCard(test.text, detection);
+                
+                if (result && !result.skip) {
+                    this.handleCardGenerationResult(result, test.text);
+                    console.log(`✅ [TEST-${i + 1}] SUCCESS - Generated ${result.card?.category || result.category}`);
+                    console.log(`🎯 [TEST-${i + 1}] CheatCard format check:`, 
+                        result.card?.back?.includes('🎯') ? '✓ Has emojis' : '✗ Missing emojis');
+                    successCount++;
+                } else {
+                    console.log(`⏭️ [TEST-${i + 1}] SKIP - ${result?.reason || 'unknown'}`);
+                }
+                
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+            } catch (error) {
+                console.error(`❌ [TEST-${i + 1}] ERROR:`, error.message);
+            }
+        }
+        
+        console.log(`\n📊 [TEST-CHEAT] Results: ${successCount}/${selectedTests.length} cards generated`);
+        console.log('💡 [TEST-CHEAT] Check cards for emoji-only format (no bullet points)');
     }
     
     /**
