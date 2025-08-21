@@ -1040,8 +1040,11 @@ class SenScript {
         console.log(`🎯 [UNIFIED-BIRTH] Creating card for:`, segment.substring(0, 60) + '...');
         
         try {
-            // 1. Generate content FIRST (before creating container)
-            const result = await this.cardEngine.generateCard(segment, detection);
+            // 1. Prepare language detection with output language settings
+            const finalDetection = this.prepareLanguageForGeneration(detection, segment);
+            
+            // 2. Generate content FIRST (before creating container)
+            const result = await this.cardEngine.generateCard(segment, finalDetection);
             
             if (!result || result.skip) {
                 console.log(`⏭️ [UNIFIED-BIRTH] Skipped - not worthy:`, result?.reason || 'unknown');
@@ -1096,6 +1099,33 @@ class SenScript {
     }
     
     /**
+     * Prepare language detection object with correct output language
+     */
+    prepareLanguageForGeneration(detection, originalText) {
+        const detectedLanguage = detection || this.detectLanguage(originalText);
+        
+        // If output language is fixed (not auto), use that for generation
+        if (!this.apiSettings.outputLanguage.auto) {
+            const outputLang = this.apiSettings.outputLanguage.fixed;
+            console.log(`🎯 [LANG-PREP] Using fixed output language ${outputLang} instead of detected ${detectedLanguage.lang}`);
+            
+            return {
+                lang: outputLang,
+                flag: this.getLanguageFlag(outputLang),
+                confidence: 95, // High confidence for user choice
+                inputLang: detectedLanguage.lang // Keep track of original
+            };
+        }
+        
+        // Auto mode - use detected language
+        console.log(`🌐 [LANG-PREP] Auto mode - using detected language ${detectedLanguage.lang}`);
+        return {
+            ...detectedLanguage,
+            flag: this.getLanguageFlag(detectedLanguage.lang)
+        };
+    }
+    
+    /**
      * Prepare card data with all metadata
      */
     prepareCardData(result, originalText) {
@@ -1110,10 +1140,18 @@ class SenScript {
         // Set card type based on current mode
         cardData.cardType = this.apiSettings.interviewMode ? 'cheat' : 'flash';
         
-        // Set language flag
+        // Set language flag based on output language settings
         if (!cardData.flag) {
             const detectedLanguage = this.detectLanguage(originalText);
-            cardData.flag = this.getLanguageFlag(detectedLanguage.lang);
+            
+            // Use output language setting if not in auto mode
+            if (!this.apiSettings.outputLanguage.auto) {
+                cardData.flag = this.getLanguageFlag(this.apiSettings.outputLanguage.fixed);
+                console.log('🌍 [UNIFIED-LANG] Using fixed output language:', this.apiSettings.outputLanguage.fixed);
+            } else {
+                cardData.flag = this.getLanguageFlag(detectedLanguage.lang);
+                console.log('🌍 [UNIFIED-LANG] Using detected language:', detectedLanguage.lang);
+            }
         }
         
         return cardData;
@@ -1579,9 +1617,21 @@ class SenScript {
             'en-US': '🇺🇸',
             'fr-FR': '🇫🇷', 
             'es-ES': '🇪🇸',
-            'it-IT': '🇮🇹'
+            'it-IT': '🇮🇹',
+            'pt-PT': '🇵🇹',
+            'nl-NL': '🇳🇱', // Dutch
+            'sv-SE': '🇸🇪', // Swedish
+            'no-NO': '🇳🇴', // Norwegian
+            'fi-FI': '🇫🇮', // Finnish
+            'da-DK': '🇩🇰', // Danish
+            'ru-RU': '🇷🇺', // Russian
+            'ko-KR': '🇰🇷', // Korean
+            'ja-JP': '🇯🇵', // Japanese
+            'zh-CN': '🇨🇳', // Chinese
+            'ar-SA': '🇸🇦', // Arabic
+            'el-GR': '🇬🇷'  // Greek
         };
-        return flags[langCode] || '🇩🇪';
+        return flags[langCode] || '🇺🇸'; // Default to US flag instead of German
     }
     
     detectLanguage(text) {
