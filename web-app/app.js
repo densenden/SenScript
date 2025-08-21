@@ -2894,10 +2894,10 @@ class SenScript {
         // Prefer the same provider that generated the card
         const cardProvider = card.provider || card.source;
         
-        // Check if we have API keys available
-        const hasOpenAI = this.apiSettings?.apiKeys?.openai || process.env.OPENAI_API_KEY;
-        const hasAnthropic = this.apiSettings?.apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY;
-        const hasDeepSeek = this.apiSettings?.apiKeys?.deepseek || process.env.DEEPSEEK_API_KEY;
+        // Check if we have API keys available (client-side only)
+        const hasOpenAI = this.apiSettings?.apiKeys?.openai;
+        const hasAnthropic = this.apiSettings?.apiKeys?.anthropic;
+        const hasDeepSeek = this.apiSettings?.apiKeys?.deepseek;
         
         // Priority order: Same provider → OpenAI → Anthropic → DeepSeek → Public interfaces
         if (cardProvider === 'openai' && hasOpenAI) return 'openai';
