@@ -996,6 +996,14 @@ class SenScript {
                 console.log('🎯 [CARD-TYPE] Set cardType to:', cardData.cardType, 'based on current mode');
             }
             
+            // Set language flag if not present - determine from original text language
+            if (!cardData.flag) {
+                // Use the current language detection or detect from original text
+                const detectedLanguage = this.detectLanguage(originalText);
+                cardData.flag = this.getLanguageFlag(detectedLanguage.lang);
+                console.log('🏁 [FLAG] Set language flag to:', cardData.flag, 'for language:', detectedLanguage.lang);
+            }
+            
             // Add to cards array
             this.cards.unshift(cardData);
             

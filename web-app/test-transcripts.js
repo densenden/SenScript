@@ -125,6 +125,126 @@ const testTranscripts = [
         language: 'it-IT',
         difficulty: 'cultural',
         shouldGenerate: true
+    },
+    
+    // Test 11: MEETING TIP - Chinese business etiquette
+    {
+        id: 'chinese_business_cards',
+        category: 'MEETING TIP',
+        text: "在中国商务会议中，交换名片时必须用双手接递，并且要仔细阅读对方的名片。不要立即收起名片，应该放在桌子上显眼的位置。这表示对对方的尊重和重视。",
+        expectedCardFront: "中国商务名片礼仪",
+        expectedCategory: "MEETING TIP",
+        language: 'zh-CN',
+        difficulty: 'cultural',
+        shouldGenerate: true
+    },
+    
+    // Test 12: PRESENTATION TIP - Portuguese public speaking
+    {
+        id: 'portuguese_presentation',
+        category: 'PRESENTATION TIP', 
+        text: "Nas apresentações em português, é importante usar conectivos adequados como 'além disso', 'por outro lado', 'em contrapartida'. Isso torna a apresentação mais fluida e profissional. Evite repetir 'então' ou 'daí' que soam informais demais.",
+        expectedCardFront: "Conectivos para apresentações em português",
+        expectedCategory: "PRESENTATION TIP",
+        language: 'pt-PT',
+        difficulty: 'medium',
+        shouldGenerate: true
+    },
+    
+    // Test 13: INTERVIEW TIP - Dutch job interview culture
+    {
+        id: 'dutch_interview_directness',
+        category: 'INTERVIEW TIP',
+        text: "In Nederland zijn sollicitatiegesprekken zeer direct. Verwacht vragen zoals 'Wat zijn je zwakke punten?' en geef eerlijke antwoorden. Bescheidenheid wordt gewaardeerd, maar verkoop jezelf niet te kort. Directe communicatie wordt gezien als oprechtheid.",
+        expectedCardFront: "Nederlandse sollicitatiecultuur",
+        expectedCategory: "INTERVIEW TIP", 
+        language: 'nl-NL',
+        difficulty: 'cultural',
+        shouldGenerate: true
+    },
+    
+    // Test 14: CONCEPT - Russian mathematical concept
+    {
+        id: 'russian_mathematics',
+        category: 'CONCEPT',
+        text: "В теории вероятности, закон больших чисел утверждает, что при увеличении количества испытаний средние результаты стремятся к ожидаемому значению. Это фундаментальный принцип, который объясняет, почему казино всегда остается в выигрыше при достаточном количестве игр.",
+        expectedCardFront: "Закон больших чисел",
+        expectedCategory: "CONCEPT",
+        language: 'ru-RU',
+        difficulty: 'advanced',
+        shouldGenerate: true
+    },
+    
+    // Test 15: WHAT TO SAY - Korean polite expressions
+    {
+        id: 'korean_politeness',
+        category: 'WHAT TO SAY',
+        text: "한국어에서 존댓말을 사용할 때 '죄송합니다'는 사과할 때, '감사합니다'는 감사할 때 사용합니다. 비즈니스에서는 '말씀해 주셔서 감사합니다' 또는 '검토해 주시겠습니까?'처럼 높임 표현을 사용하는 것이 중요합니다.",
+        expectedCardFront: "한국어 비즈니스 존댓말",
+        expectedCategory: "WHAT TO SAY",
+        language: 'ko-KR',
+        difficulty: 'medium',
+        shouldGenerate: true
+    },
+    
+    // Test 16: AVOID THIS - Arabic cultural mistake
+    {
+        id: 'arabic_business_culture',
+        category: 'AVOID THIS',
+        text: "في الاجتماعات التجارية العربية، تجنب استخدام اليد اليسرى لتناول المستندات أو المصافحة. استخدم اليد اليمنى دائماً أو كلتا اليدين. أيضاً، لا تظهر نعل حذائك عند الجلوس، فهذا يعتبر غير مهذب.",
+        expectedCardFront: "آداب الاجتماعات التجارية العربية",
+        expectedCategory: "AVOID THIS",
+        language: 'ar-SA',
+        difficulty: 'cultural',
+        shouldGenerate: true
+    },
+    
+    // Test 17: KEY FACTS - Greek historical context
+    {
+        id: 'greek_democracy',
+        category: 'KEY FACTS',
+        text: "Η αρχαία αθηναϊκή δημοκρατία διέφερε από τη σύγχρονη δημοκρατία. Μόνο οι ελεύθεροι άνδρες πολίτες μπορούσαν να συμμετέχουν, εξαιρώντας γυναίκες, σκλάβους και μετοίκους. Παρόλα αυτά, η ιδέα της άμεσης συμμετοχής των πολιτών στη λήψη αποφάσεων ήταν επαναστατική.",
+        expectedCardFront: "Αρχαία αθηναϊκή δημοκρατία",
+        expectedCategory: "KEY FACTS",
+        language: 'el-GR',
+        difficulty: 'advanced',
+        shouldGenerate: true
+    },
+    
+    // Test 18: QUICK WIN - Swedish language tip
+    {
+        id: 'swedish_pronunciation',
+        category: 'QUICK WIN',
+        text: "I svenskan är skillnaden mellan kött (kött) och kött (köpa) viktig. Det svenska 'ö' uttalas som 'e' i 'her' på engelska. Träna genom att säga 'förr' (before) och 'får' (sheep) - första har 'ö', andra har 'å'.",
+        expectedCardFront: "Svenska ö-ljudet",
+        expectedCategory: "QUICK WIN",
+        language: 'sv-SE',
+        difficulty: 'easy',
+        shouldGenerate: true
+    },
+    
+    // Test 19: CONCEPT - Norwegian cultural concept
+    {
+        id: 'norwegian_janteloven',
+        category: 'CONCEPT',
+        text: "Janteloven er et sett med sosiale normer i nordiske land som understreker ydmykhet og kollektivisme over individuell prestasjoner. 'Du skal ikke tro at du er noe' er et kjerneelement. Dette påvirker hvordan nordmenn kommuniserer i forretningssammenheng - de unngår å skryte og foretrekker understatement.",
+        expectedCardFront: "Janteloven og forretningskultur",
+        expectedCategory: "CONCEPT",
+        language: 'no-NO',
+        difficulty: 'cultural',
+        shouldGenerate: true
+    },
+    
+    // Test 20: FACT - Finnish education system
+    {
+        id: 'finnish_education',
+        category: 'FACT',
+        text: "Suomalainen koulutusjärjestelmä on tunnettu siitä, että oppilaat aloittavat lukemaan vasta 7-vuotiaina, mutta saavuttavat silti korkeita tuloksia PISA-testeissä. Järjestelmä korostaa leikkiä, luovuutta ja kriittistä ajattelua standardoitujen testien sijaan varhaiskasvatuksessa.",
+        expectedCardFront: "Suomalainen koulutusmalli",
+        expectedCategory: "FACT",
+        language: 'fi-FI',
+        difficulty: 'medium',
+        shouldGenerate: true
     }
 ];
 

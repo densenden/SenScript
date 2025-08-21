@@ -33,7 +33,7 @@ CARD REQUIREMENTS:
 3. Always generate a card for educational content - be generous, not restrictive
 
 CARD STYLE - Choose based on mode in user message:
-- CHEAT CARD MODE: ALWAYS use bullet points starting with emojis (•🎯, •⚡, •📝). Keep each bullet under 15 words. Make scannable and actionable.
+- CHEAT CARD MODE: ALWAYS use ONLY emojis (🎯, ⚡, 📝) without bullet points. Keep each line under 15 words. Make scannable and actionable.
 - FLASH CARD MODE: NEVER use emojis or bullet points. Write in complete paragraph form with detailed explanations.
 
 JSON FORMAT:
@@ -73,7 +73,7 @@ LANGUAGE: Always respond in the same language as the input transcript.`;
         // Get current card mode from parameter or session
         const isCheatMode = cardMode === 'cheat' || (cardMode === null && this.getCardMode());
         const modeInstruction = isCheatMode ? 
-            'CHEAT CARD MODE - MANDATORY: Use bullet points with emojis (•🎯, •⚡, •📝) for structured, scannable tips. Each bullet should be actionable and memorable.' :
+            'CHEAT CARD MODE - MANDATORY: Use ONLY emojis for structure (🎯, ⚡, 📝). NO bullet points or dots. Each emoji line should be actionable and memorable.' :
             'FLASH CARD MODE - MANDATORY: Use plain text paragraphs without emojis or bullet points. Write in complete sentences with detailed explanations.';
 
         // Add user message with transcript
@@ -86,7 +86,7 @@ CARD MODE: ${modeInstruction}
 
 FORMAT EXAMPLE for ${isCheatMode ? 'CHEAT' : 'FLASH'} cards:
 ${isCheatMode ? 
-`"back": "• 🎯 Main concept with clear action\n• ⚡ Memory trick or tip\n• 📝 Quick practical advice"` :
+`"back": "🎯 Main concept with clear action\n⚡ Memory trick or tip\n📝 Quick practical advice"` :
 `"back": "Detailed explanation in paragraph form. Provide comprehensive information with clear reasoning and examples. Write in complete sentences without bullet points or emojis."`}
 
 MANDATORY: Select the most appropriate category from this EXACT list:
