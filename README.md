@@ -5,14 +5,17 @@ Real-time educational flashcard generation from any audio source - meetings, lec
 ## 🚀 Quick Start
 
 ```bash
+# Navigate to web-app directory
+cd web-app
+
 # Install dependencies
 npm install
 
-# Start the web app
+# Start the web application
 npm start
 # Opens at http://localhost:3002
 
-# Development mode
+# Alternative: Development mode with auto-restart
 npm run dev
 ```
 
@@ -100,13 +103,16 @@ DEEPSEEK_API_KEY=...
 
 ### Project Structure
 ```
-web-app/
-├── index.html          # Main UI with glass morphism design
-├── app.js              # Core application logic
-├── server.js           # Node.js backend server
-├── llm-conversation.js # AI conversation management
-├── llm-providers.js    # Multi-provider orchestration
-└── styles.css          # Tailwind + custom styles
+web-app/                    # Main application directory  
+├── index.html             # UI with glass morphism & enhanced animations
+├── app.js                 # Core application logic (3000+ lines)
+├── card-engine.js         # NEW: Universal card generation engine
+├── test-transcripts.js    # NEW: Hardcoded test data for isolated testing
+├── server.js             # Node.js backend server
+├── llm-conversation.js   # AI conversation management
+├── llm-providers.js      # Multi-provider orchestration
+├── settings-config.js    # Comprehensive configuration system
+└── package.json          # Dependencies and scripts
 ```
 
 ### Key Technologies
@@ -116,14 +122,32 @@ web-app/
 - **AI**: OpenAI, Anthropic, DeepSeek APIs
 - **Real-time**: WebSockets for future enhancements
 
-## 📊 Performance Optimizations
+## ⚡ Performance Optimizations (v2.0)
 
-- **Speed**: Card generation in <2 seconds
-- **Efficiency**: Conversation context reduces API calls by 90%
+### Speed-First Card Generation Engine
+- **Ultra-Fast Processing**: Card generation in <1 second with new engine
+- **Smart Duplicate Detection**: 30-second cache prevents redundant processing
+- **Optimized Worthiness Checks**: Single-pass analysis with minimal computation
+- **Retry Logic**: Exponential backoff ensures reliability under load
+- **Performance Metrics**: Built-in success rate and response time tracking
+
+### Enhanced Transcript UI
+- **3-Line Smooth Display**: Lines 1-2 stay static, move up when complete
+- **Flip Animations**: Smooth transitions between interim and final text
+- **Connected Readability**: Text flows naturally with proper paragraphs
+- **Visual Feedback**: Real-time typing animations and language switching
+
+### Advanced Language Handling  
+- **Input-Output Sync**: Card language automatically sets input language
+- **Dynamic Switching**: Detects language changes mid-conversation
+- **Smart Persistence**: Remembers and applies language preferences
+- **Visual Transitions**: Shows language switches with flag indicators
+
+### System Performance
 - **Memory**: Automatic cleanup for long sessions
-- **Accuracy**: Multi-language support with 85%+ detection
-- **Reliability**: Auto-retry on errors, never stops listening
-- **Console**: Reduced logging for cleaner debugging
+- **Reliability**: Never stops listening, robust error handling
+- **Testing**: Isolated card generation testing with `testCards()` command
+- **Multi-language**: 13 languages with 90%+ detection accuracy
 
 ## 🔒 Privacy & Security
 
@@ -184,6 +208,26 @@ Contributions are welcome! Please:
 3. Make your changes
 4. Submit a pull request
 
+## 🧪 Testing & Debugging
+
+### Console Testing Commands
+```javascript
+// Test card generation with hardcoded transcripts
+testCards()
+
+// View card engine performance statistics  
+app.cardEngine.getStats()
+
+// Reset card engine cache for fresh testing
+app.cardEngine.reset()
+```
+
+### Development Features
+- **Isolated Testing**: 10 hardcoded test transcripts for debugging card generation
+- **Performance Metrics**: Success rates, response times, error tracking
+- **Multi-language Tests**: German, English, and edge case validation
+- **Visual Feedback**: Console logs with emojis for easy debugging
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -192,15 +236,23 @@ Contributions are welcome! Please:
 - Check microphone permissions in browser
 - For tab audio, ensure you selected "Share tab audio" when sharing
 - Verify the audio source toggle is set correctly
+- Run `testCards()` in console to test card generation independently
 
 **Cards not generating:**
 - Check API keys in .env file
 - Verify at least one LLM provider is configured
 - Check browser console for errors
+- Test with `app.cardEngine.isTextWorthyOfCard("your test text")`
 
 **Audio levels show but no transcription:**
 - This is normal for tab audio - transcription depends on clear speech
 - Try switching to microphone mode for testing
+- Check `app.cardEngine.getStats()` for processing statistics
+
+**Performance Issues:**
+- Card engine automatically prevents duplicate processing
+- Check console for `[CARD-ENGINE]` performance logs
+- Use `app.cardEngine.reset()` to clear cache if needed
 
 ## 📄 License
 
