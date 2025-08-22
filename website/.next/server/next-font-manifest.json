@@ -1,18 +1,15 @@
 {
   "app": {
-    "[project]/sen_dev/SenScript/website/src/app/_not-found/page": [
+    "[project]/src/app/about/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/sen_dev/SenScript/website/src/app/about/page": [
+    "[project]/src/app/demo/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/sen_dev/SenScript/website/src/app/demo/page": [
+    "[project]/src/app/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/sen_dev/SenScript/website/src/app/page": [
-      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
-    ],
-    "[project]/sen_dev/SenScript/website/src/app/pricing/page": [
+    "[project]/src/app/pricing/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ]
   },

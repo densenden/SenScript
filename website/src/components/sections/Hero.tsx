@@ -60,7 +60,7 @@ export function Hero() {
               className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight text-shadow"
             >
               Turn Any{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
+              <span className="text-shimmer">
                 Conversation
               </span>{' '}
               Into{' '}
@@ -89,12 +89,12 @@ export function Hero() {
               className="flex flex-wrap gap-6 mb-10 justify-center lg:justify-start"
             >
               {[
-                { icon: '⚡', text: 'Sub-3s Generation' },
-                { icon: '🎯', text: 'Interview-Ready Cards' },
-                { icon: '🌍', text: '13 Languages' }
+                { icon: 'speed', text: 'Sub-3s Generation' },
+                { icon: 'psychology', text: 'Interview-Ready Cards' },
+                { icon: 'public', text: '13 Languages' }
               ].map((feature, index) => (
                 <div key={index} className="flex items-center space-x-2 text-white/80">
-                  <span className="text-2xl">{feature.icon}</span>
+                  <span className="material-icons text-xl">{feature.icon}</span>
                   <span className="font-medium text-shadow">{feature.text}</span>
                 </div>
               ))}
@@ -109,15 +109,15 @@ export function Hero() {
             >
               <Link
                 href="/demo"
-                className="group bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center space-x-2"
+                className="group gradient-orange hover:shadow-2xl text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg transform hover:-translate-y-2 pulse-orange flex items-center justify-center space-x-2"
               >
-                <Mic className="w-5 h-5" />
+                <span className="material-icons text-xl">play_arrow</span>
                 <span>Try Live Demo</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <span className="material-icons text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </Link>
               
-              <button className="group bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:border-orange-500 dark:hover:border-orange-500 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2">
-                <Play className="w-5 h-5" />
+              <button className="group glass card-hover text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2">
+                <span className="material-icons text-xl">videocam</span>
                 <span>Watch Demo</span>
               </button>
             </motion.div>
@@ -193,7 +193,7 @@ export function Hero() {
                 <div className="space-y-3">
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-sm">💡</span>
+                      <span className="material-icons text-sm text-blue-500">lightbulb</span>
                       <span className="text-sm font-medium text-blue-700 dark:text-blue-300">INTERVIEW TIP</span>
                     </div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
@@ -203,7 +203,7 @@ export function Hero() {
                   
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-sm">⚡</span>
+                      <span className="material-icons text-sm text-green-500">bolt</span>
                       <span className="text-sm font-medium text-green-700 dark:text-green-300">QUICK WIN</span>
                     </div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">

@@ -2,78 +2,78 @@
 export const CHEATCARD_CATEGORIES = {
   'INTERVIEW TIP': {
     name: 'Interview Tip',
-    icon: '💡',
+    icon: 'lightbulb',
     color: 'bg-blue-100 text-blue-700 border-blue-200',
     description: 'Strategic advice for handling specific interview questions'
   },
   'KEY FACTS': {
     name: 'Key Facts',
-    icon: '📊',
+    icon: 'bar_chart',
     color: 'bg-green-100 text-green-700 border-green-200',
     description: 'Important data points to mention during interviews'
   },
   'QUICK WIN': {
     name: 'Quick Win',
-    icon: '⚡',
+    icon: 'bolt',
     color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
     description: 'Simple tactics that impress interviewers'
   },
   'WHAT TO SAY': {
     name: 'What to Say',
-    icon: '✅',
+    icon: 'check_circle',
     color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     description: 'Recommended phrases and talking points'
   },
   'AVOID THIS': {
     name: 'Avoid This',
-    icon: '⚠️',
+    icon: 'warning',
     color: 'bg-red-100 text-red-700 border-red-200',
     description: 'Common mistakes and what not to say'
   },
   'CONCEPT': {
     name: 'Concept',
-    icon: '🧠',
+    icon: 'psychology',
     color: 'bg-purple-100 text-purple-700 border-purple-200',
     description: 'Key concepts and definitions'
   },
   'MEETING TIP': {
     name: 'Meeting Tip',
-    icon: '🎯',
+    icon: 'target',
     color: 'bg-orange-100 text-orange-700 border-orange-200',
     description: 'Strategic meeting and presentation advice'
   }
 } as const;
 
 export const SUPPORTED_LANGUAGES = {
-  'de-DE': { name: 'German', flag: '🇩🇪' },
-  'en-US': { name: 'English', flag: '🇺🇸' },
-  'fr-FR': { name: 'French', flag: '🇫🇷' },
-  'es-ES': { name: 'Spanish', flag: '🇪🇸' },
-  'it-IT': { name: 'Italian', flag: '🇮🇹' },
-  'pt-PT': { name: 'Portuguese', flag: '🇵🇹' },
-  'nl-NL': { name: 'Dutch', flag: '🇳🇱' },
-  'ru-RU': { name: 'Russian', flag: '🇷🇺' },
-  'zh-CN': { name: 'Chinese', flag: '🇨🇳' },
-  'ja-JP': { name: 'Japanese', flag: '🇯🇵' },
-  'ko-KR': { name: 'Korean', flag: '🇰🇷' },
-  'ar-SA': { name: 'Arabic', flag: '🇸🇦' },
-  'el-GR': { name: 'Greek', flag: '🇬🇷' }
+  'de-DE': { name: 'German', code: 'DE' },
+  'en-US': { name: 'English', code: 'US' },
+  'fr-FR': { name: 'French', code: 'FR' },
+  'es-ES': { name: 'Spanish', code: 'ES' },
+  'it-IT': { name: 'Italian', code: 'IT' },
+  'pt-PT': { name: 'Portuguese', code: 'PT' },
+  'nl-NL': { name: 'Dutch', code: 'NL' },
+  'ru-RU': { name: 'Russian', code: 'RU' },
+  'zh-CN': { name: 'Chinese', code: 'CN' },
+  'ja-JP': { name: 'Japanese', code: 'JP' },
+  'ko-KR': { name: 'Korean', code: 'KR' },
+  'ar-SA': { name: 'Arabic', code: 'SA' },
+  'el-GR': { name: 'Greek', code: 'GR' }
 } as const;
 
 export const INTERVIEW_TYPES = {
   'technical': {
     name: 'Technical Interview',
-    icon: '💻',
+    icon: 'computer',
     description: 'Coding, system design, and technical problem-solving'
   },
   'behavioral': {
     name: 'Behavioral Interview',
-    icon: '🤝',
+    icon: 'handshake',
     description: 'Communication, teamwork, and situational questions'
   },
   'industry': {
     name: 'Industry Interview',
-    icon: '🏢',
+    icon: 'business',
     description: 'Domain knowledge and industry-specific expertise'
   }
 } as const;
@@ -194,32 +194,32 @@ export const DEMO_SCENARIOS = {
 
 export const FEATURES = [
   {
-    icon: '🎤',
+    icon: 'mic',
     title: 'Universal Audio Capture',
     description: 'Works with Teams, Zoom, lectures, phone calls, and any audio source'
   },
   {
-    icon: '🌍',
+    icon: 'public',
     title: '13 Languages Supported',
     description: 'Auto-detection with real-time processing in multiple languages'
   },
   {
-    icon: '🎯',
+    icon: 'psychology',
     title: 'CheatCard Interview Mode',
     description: 'Strategic interview preparation with tactical response cards'
   },
   {
-    icon: '⚡',
+    icon: 'speed',
     title: 'Real-Time Processing',
     description: 'Sub-3-second card generation while you listen'
   },
   {
-    icon: '🔒',
+    icon: 'lock',
     title: 'Privacy-First',
     description: 'Local processing option with optional cloud AI'
   },
   {
-    icon: '📤',
+    icon: 'file_upload',
     title: 'Export Anywhere',
     description: 'Anki, CSV, JSON formats for all your study tools'
   }

@@ -6,21 +6,6 @@ import type { AppRoutes, LayoutRoutes, ParamMap, AppRouteHandlerRoutes } from ".
 import type { ResolvingMetadata, ResolvingViewport } from "next/dist/lib/metadata/types/metadata-interface.js"
 import type { NextRequest } from 'next/server.js'
 
-type AppPageConfig<Route extends AppRoutes = AppRoutes> = {
-  default: React.ComponentType<{ params: Promise<ParamMap[Route]> } & any> | ((props: { params: Promise<ParamMap[Route]> } & any) => React.ReactNode | Promise<React.ReactNode> | never | void | Promise<void>)
-  generateStaticParams?: (props: { params: ParamMap[Route] }) => Promise<any[]> | any[]
-  generateMetadata?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingMetadata
-  ) => Promise<any> | any
-  generateViewport?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingViewport
-  ) => Promise<any> | any
-  metadata?: any
-  viewport?: any
-}
-
 type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   default: React.ComponentType<LayoutProps<Route>> | ((props: LayoutProps<Route>) => React.ReactNode | Promise<React.ReactNode> | never | void | Promise<void>)
   generateStaticParams?: (props: { params: ParamMap[Route] }) => Promise<any[]> | any[]
@@ -47,29 +32,7 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 }
 
 
-// Validate ../../src/app/about/page.tsx
-{
-  const handler = {} as typeof import("../../src/app/about/page.js")
-  handler satisfies AppPageConfig<"/about">
-}
 
-// Validate ../../src/app/demo/page.tsx
-{
-  const handler = {} as typeof import("../../src/app/demo/page.js")
-  handler satisfies AppPageConfig<"/demo">
-}
-
-// Validate ../../src/app/page.tsx
-{
-  const handler = {} as typeof import("../../src/app/page.js")
-  handler satisfies AppPageConfig<"/">
-}
-
-// Validate ../../src/app/pricing/page.tsx
-{
-  const handler = {} as typeof import("../../src/app/pricing/page.js")
-  handler satisfies AppPageConfig<"/pricing">
-}
 
 // Validate ../../src/app/api/stripe/route.ts
 {

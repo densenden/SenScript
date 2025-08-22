@@ -12,7 +12,7 @@ const exampleCards: CheatCardType[] = [
     category: 'INTERVIEW TIP',
     front: 'How to respond to questions about customer acquisition cost and scaling plans?',
     back: 'Provide concrete data on acquisition costs, growth plans, competitive advantages, and profitability projections. Demonstrating clear metrics and viable path to profitability instills investor confidence.',
-    flag: '🇺🇸',
+    flag: 'US',
     language: 'en-US',
     confidence: 0.92
   },
@@ -21,7 +21,7 @@ const exampleCards: CheatCardType[] = [
     category: 'QUICK WIN',
     front: 'How to improve pronunciation of the \'ö\' sound in Swedish interviews?',
     back: 'Practice \'förr\' (before) vs \'får\' (sheep) - \'ö\' is like \'e\' in \'her\' but with rounded lips. This demonstrates attention to detail and language precision.',
-    flag: '🇸🇪',
+    flag: 'SE',
     language: 'en-US',
     confidence: 0.88
   },
@@ -30,7 +30,7 @@ const exampleCards: CheatCardType[] = [
     category: 'KEY FACTS',
     front: 'What\'s notable about the Finnish education system for education interviews?',
     back: 'Finnish students start reading at 7 but excel in PISA tests due to emphasis on play, creativity, and critical thinking over standardized testing in early education.',
-    flag: '🇫🇮',
+    flag: 'FI',
     language: 'en-US',
     confidence: 0.85
   },
@@ -39,7 +39,7 @@ const exampleCards: CheatCardType[] = [
     category: 'CONCEPT',
     front: 'What is Janteloven and how does it influence Nordic business communication?',
     back: 'Janteloven emphasizes humility and collectivism over individual achievements. In business, this influences communication by discouraging boasting and favoring understatement and group harmony.',
-    flag: '🇳🇴',
+    flag: 'NO',
     language: 'en-US',
     confidence: 0.90
   }
@@ -219,17 +219,17 @@ export function CheatCardShowcase() {
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              icon: '⚡',
+              icon: 'speed',
               title: 'Sub-3 Second Generation',
               description: 'Cards appear while you\'re still listening to the conversation'
             },
             {
-              icon: '🎯',
+              icon: 'psychology',
               title: 'Strategic Focus',
               description: 'Not just facts - tactical interview responses and key insights'
             },
             {
-              icon: '🌐',
+              icon: 'public',
               title: 'Universal Compatibility',
               description: 'Works with any audio source: meetings, lectures, phone calls'
             }
@@ -241,7 +241,9 @@ export function CheatCardShowcase() {
               transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
               className="text-center p-6"
             >
-              <div className="text-4xl mb-4">{benefit.icon}</div>
+              <div className="mb-4">
+                <span className="material-icons text-4xl text-orange-500">{benefit.icon}</span>
+              </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 {benefit.title}
               </h3>

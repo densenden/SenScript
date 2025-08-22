@@ -8,14 +8,14 @@ const useCases = [
   {
     title: 'Job Interview Preparation',
     description: 'Turn any practice interview or industry conversation into tactical response cards',
-    icon: '💼',
+    icon: 'work',
     examples: [
       {
         id: 'interview_1',
         category: 'INTERVIEW TIP' as const,
         front: 'How to respond to "What are your weaknesses?" in Dutch interviews?',
         back: 'In Dutch interviews, directness is valued. Avoid clichés like "I\'m a perfectionist." Instead, provide a genuine weakness and explain how you are addressing it. Dutch interviewers appreciate honesty but also value self-promotion.',
-        flag: '🇳🇱',
+        flag: 'NL',
         language: 'en-US' as const,
         confidence: 0.92
       }
@@ -30,14 +30,14 @@ const useCases = [
   {
     title: 'Academic Exam Preparation',
     description: 'Transform lectures and study sessions into strategic review cards',
-    icon: '🎓',
+    icon: 'school',
     examples: [
       {
         id: 'academic_1',
         category: 'CONCEPT' as const,
         front: 'What is quantum superposition and its significance in quantum mechanics?',
         back: 'Quantum superposition allows particles to exist in multiple states simultaneously until measured. This principle, along with the Heisenberg uncertainty principle, forms the foundation of quantum mechanics.',
-        flag: '🇺🇸',
+        flag: 'US',
         language: 'en-US' as const,
         confidence: 0.95
       }
@@ -52,14 +52,14 @@ const useCases = [
   {
     title: 'Professional Development',
     description: 'Capture insights from meetings, conferences, and networking events',
-    icon: '📈',
+    icon: 'trending_up',
     examples: [
       {
         id: 'professional_1',
         category: 'QUICK WIN' as const,
         front: 'How to demonstrate attention to detail in Swedish language situations?',
         back: 'Practice \'förr\' (before) vs \'får\' (sheep) - \'ö\' is like \'e\' in \'her\' but with rounded lips. This shows linguistic precision and cultural awareness.',
-        flag: '🇸🇪',
+        flag: 'SE',
         language: 'en-US' as const,
         confidence: 0.88
       }
@@ -115,7 +115,9 @@ export function UseCases() {
               {/* Content Side */}
               <div className={`space-y-6 ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
                 <div className="flex items-center space-x-4">
-                  <div className="text-4xl">{useCase.icon}</div>
+                  <div>
+                    <span className="material-icons text-4xl text-orange-500">{useCase.icon}</span>
+                  </div>
                   <h3 className="text-3xl font-bold text-gray-900 dark:text-white">
                     {useCase.title}
                   </h3>

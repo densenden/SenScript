@@ -125,23 +125,23 @@ class CheatCardAPI {
     };
   }
 
-  private getLanguageFlag(language: SupportedLanguage): string {
-    const flags = {
-      'de-DE': '🇩🇪',
-      'en-US': '🇺🇸',
-      'fr-FR': '🇫🇷',
-      'es-ES': '🇪🇸',
-      'it-IT': '🇮🇹',
-      'pt-PT': '🇵🇹',
-      'nl-NL': '🇳🇱',
-      'ru-RU': '🇷🇺',
-      'zh-CN': '🇨🇳',
-      'ja-JP': '🇯🇵',
-      'ko-KR': '🇰🇷',
-      'ar-SA': '🇸🇦',
-      'el-GR': '🇬🇷'
+  private getLanguageCode(language: SupportedLanguage): string {
+    const codes = {
+      'de-DE': 'DE',
+      'en-US': 'US',
+      'fr-FR': 'FR',
+      'es-ES': 'ES',
+      'it-IT': 'IT',
+      'pt-PT': 'PT',
+      'nl-NL': 'NL',
+      'ru-RU': 'RU',
+      'zh-CN': 'CN',
+      'ja-JP': 'JP',
+      'ko-KR': 'KR',
+      'ar-SA': 'SA',
+      'el-GR': 'GR'
     };
-    return flags[language] || '🌐';
+    return codes[language] || 'EN';
   }
 
   private async generateMockCard(scenario: string, mode: 'standard' | 'interview'): Promise<CheatCardResponse> {
@@ -154,7 +154,7 @@ class CheatCardAPI {
         category: 'CONCEPT',
         front: 'What is quantum superposition and its significance in quantum mechanics?',
         back: 'Quantum superposition allows particles to exist in multiple states simultaneously until measured. This principle, along with the Heisenberg uncertainty principle, forms the foundation of quantum mechanics by showing that certain pairs of properties cannot be simultaneously known with perfect precision.',
-        flag: '🇺🇸',
+        flag: 'US',
         language: 'en-US',
         source: 'demo',
         confidence: 0.92
@@ -164,7 +164,7 @@ class CheatCardAPI {
         category: 'INTERVIEW TIP',
         front: 'How to differentiate between REST and GraphQL in a technical interview?',
         back: 'Explain that REST uses fixed endpoints for resources while GraphQL allows flexible queries. Choose REST for simple CRUD operations and caching benefits. Choose GraphQL for complex data requirements and when you need to minimize over-fetching. Mention practical experience with both approaches.',
-        flag: '🇺🇸',
+        flag: 'US',
         language: 'en-US',
         source: 'demo',
         interviewType: 'technical',
@@ -175,7 +175,7 @@ class CheatCardAPI {
         category: 'KEY FACTS',
         front: 'What metrics should you prepare when discussing startup funding and burn rate?',
         back: 'Prepare concrete data on customer acquisition cost, growth plans, competitive advantages, financial sustainability, and profitability projections. Include your current burn rate, funding runway, and clear path to profitability. Investors value transparent financial metrics and realistic growth projections.',
-        flag: '🇺🇸',
+        flag: 'US',
         language: 'en-US',
         source: 'demo',
         interviewType: 'industry',
@@ -198,7 +198,7 @@ class CheatCardAPI {
         category: mode === 'interview' ? 'INTERVIEW TIP' : 'CONCEPT',
         front: 'What key insight can be extracted from this content?',
         back: 'This content provides valuable information that can be used for learning and preparation. The AI has identified key concepts and structured them into an actionable format for study and review.',
-        flag: '🇺🇸',
+        flag: 'US',
         language: 'en-US',
         source: 'demo',
         confidence: 0.75
