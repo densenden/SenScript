@@ -3,9 +3,9 @@
 ## Project Overview
 
 **Product**: SenScript - AI-Powered Real-Time CheatCard Generator  
-**Goal**: Production-ready marketing website with systematic design and rich personas  
+**Goal**: Production-ready React marketing website with systematic design and rich personas  
 **Status**: Ready for complete rebuild with proper foundation  
-**Tech Stack**: Next.js 15.5.0 (Turbopack), TailwindCSS, Material Icons, Glass Morphism UI
+**Tech Stack**: **React 18+ with Next.js 15.5.0** (Turbopack), TypeScript, TailwindCSS, Material Icons, Glass Morphism UI
 
 ## CRITICAL: Design System Foundation
 
@@ -349,9 +349,9 @@ const nextConfig = {
 export default nextConfig;
 ```
 
-### Layout Structure (All Pages)
+### React Component Structure (All Pages)
 ```typescript
-// src/app/layout.tsx  
+// src/app/layout.tsx (Next.js App Router with React)
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
@@ -374,12 +374,33 @@ export default function RootLayout({
   )
 }
 
-// All page components follow this pattern:
+// All React page components follow this pattern:
 export default function PageName() {
   return (
     <main>
       <div className="container">
-        {/* Sections with systematic spacing */}
+        {/* React sections with systematic spacing */}
+      </div>
+    </main>
+  );
+}
+
+// React component example structure:
+'use client'; // For interactive React components
+
+import { useState, useEffect } from 'react';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+
+export default function InteractivePage() {
+  const [state, setState] = useState('');
+  
+  return (
+    <main>
+      <div className="container">
+        <section className="glass p-5 content-center">
+          {/* Interactive React content */}
+        </section>
       </div>
     </main>
   );
@@ -392,20 +413,31 @@ export default function PageName() {
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100" rel="stylesheet" />
 ```
 
-### File Structure (Required)
+### React File Structure (Required)
 ```
 /website/src/
-├── app/
-│   ├── layout.tsx              # Root layout with fonts
-│   ├── page.tsx                # Homepage
-│   ├── about/page.tsx          # About with personas
-│   ├── pricing/page.tsx        # Pricing with testimonials
-│   ├── demo/page.tsx           # Interactive demo
+├── app/                        # Next.js 15 App Router
+│   ├── layout.tsx              # Root React layout with fonts
+│   ├── page.tsx                # Homepage React component
+│   ├── about/page.tsx          # About page React component with personas
+│   ├── pricing/page.tsx        # Pricing React component with testimonials
+│   ├── demo/page.tsx           # Interactive demo React component
 │   └── globals.css             # Complete design system
-├── components/
-│   └── layout/
-│       ├── Header.tsx          # Theme-inverted navbar
-│       └── Footer.tsx          # Glass-themed with sen.studio links
+├── components/                 # React components
+│   ├── ui/                     # Reusable UI React components
+│   │   ├── Button.tsx          # React button component
+│   │   ├── Card.tsx            # React card component
+│   │   └── PersonaCard.tsx     # React persona component
+│   ├── sections/               # Page section React components
+│   │   ├── Hero.tsx            # Hero section React component
+│   │   ├── Features.tsx        # Features grid React component
+│   │   └── Personas.tsx        # Personas section React component
+│   └── layout/                 # Layout React components
+│       ├── Header.tsx          # Theme-inverted navbar React component
+│       └── Footer.tsx          # Glass-themed footer React component
+├── hooks/                      # Custom React hooks
+│   ├── useTheme.ts             # Theme switching hook
+│   └── usePersonas.ts          # Persona data hook
 └── public/
     ├── images/
     │   ├── sarah.png           # Persona assets
@@ -466,20 +498,21 @@ p { line-height: 1.6; font-size: 1rem; }
 
 ---
 
-**IMPLEMENTATION PRIORITY**: 
+**REACT IMPLEMENTATION PRIORITY**: 
 1. CSS design system foundation
-2. Layout components (Header, Footer) 
-3. Homepage with personas
-4. About page with rich content
-5. Pricing page with testimonials
-6. Demo page with interactivity
+2. React layout components (Header, Footer) 
+3. React homepage with persona components
+4. React about page with rich interactive content
+5. React pricing page with testimonial components
+6. React demo page with interactive features
 
 **SUCCESS CRITERIA**:
-- Clean, professional glass morphism design
-- Engaging persona storytelling
-- Systematic spacing and typography
-- Mobile-responsive layouts
-- Fast loading and smooth animations
+- Clean, professional glass morphism design system
+- Engaging React persona components with interactive features
+- Systematic spacing and typography across all React components
+- Mobile-responsive React layouts with proper state management
+- Fast loading React components with smooth animations
+- Proper TypeScript typing for all React components
 
 **CheatCard Demo Experience**:
 1. **Interview Scenario Demo**: User selects interview type (Technical, Behavioral, Industry)
