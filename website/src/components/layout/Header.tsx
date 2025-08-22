@@ -37,16 +37,16 @@ export default function Header() {
 
   return (
     <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-6xl px-6">
-      <div className="navbar-glass px-6 py-5">
-        <div className="flex items-center justify-between">
+      <div className="navbar-glass px-6" style={{ height: '80px' }}>
+        <div className="flex items-center justify-between h-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 h-14">
+          <Link href="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 flex items-center justify-center">
               <Image
                 src={isDark ? "/logo-black.svg" : "/logo-white.svg"}
                 alt="SenScript"
-                width={30}
-                height={30}
+                width={40}
+                height={40}
               />
             </div>
             <div>
@@ -92,23 +92,34 @@ export default function Header() {
           </div>
 
           {/* CTA Button & Theme Toggle */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3">
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
                 isDark ? 'hover:bg-black/10' : 'hover:bg-white/10'
               }`}
               title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
             >
-              <span className="material-symbols-outlined icon-md">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
                 {isDark ? 'wb_sunny' : 'nightlight_round'}
               </span>
             </button>
             {isSignedIn ? (
-              <UserButton afterSignOutUrl="/" />
+              <div className="w-10 h-10">
+                <UserButton 
+                  afterSignOutUrl="/" 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10",
+                      userButtonBox: "w-10 h-10",
+                      userButtonTrigger: "w-10 h-10"
+                    }
+                  }}
+                />
+              </div>
             ) : (
               <SignInButton mode="modal">
-                <button className="btn">
+                <button className="btn h-10 px-6">
                   Start Free
                 </button>
               </SignInButton>
@@ -117,7 +128,7 @@ export default function Header() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden w-10 h-10 flex items-center justify-center"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
