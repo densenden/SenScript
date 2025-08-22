@@ -105,7 +105,7 @@ export default function Demo() {
               )}
             </button>
           ) : (
-            <SignInButton mode="modal" afterSignInUrl="/demo">
+            <SignInButton mode="modal">
               <button className="btn btn-primary text-xl px-12 py-6 flex items-center space-x-3 mx-auto hover:scale-105">
                 <span className="material-symbols-outlined icon-lg">login</span>
                 <span>Sign Up & Start Free</span>
@@ -288,7 +288,7 @@ export default function Demo() {
                 {isStarting ? 'Opening App...' : 'Start Free 90 Minutes'}
               </button>
             ) : (
-              <SignInButton mode="modal" afterSignInUrl="/demo">
+              <SignInButton mode="modal">
                 <button className="btn btn-primary text-lg px-8 py-4">
                   Sign Up & Start Free
                 </button>
