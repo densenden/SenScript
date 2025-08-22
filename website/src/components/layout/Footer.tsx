@@ -1,0 +1,139 @@
+import Link from 'next/link';
+import Image from 'next/image';
+
+const footerSections = [
+  {
+    title: 'Product',
+    links: [
+      { name: 'Live Demo', href: '/demo' },
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'About', href: '/about' },
+      { name: 'Features', href: '/#features' },
+    ]
+  },
+  {
+    title: 'Company', 
+    links: [
+      { name: 'About Us', href: '/about' },
+      { name: 'Contact', href: 'https://sen.studio/contact' },
+      { name: 'Studio Sen', href: 'https://sen.studio' },
+    ]
+  },
+  {
+    title: 'Resources',
+    links: [
+      { name: 'Documentation', href: '/docs' },
+      { name: 'API Reference', href: '/api' },
+      { name: 'Support', href: 'https://sen.studio/support' },
+    ]
+  },
+  {
+    title: 'Legal',
+    links: [
+      { name: 'Privacy Policy', href: 'https://sen.studio/legal/privacy.html' },
+      { name: 'Terms of Service', href: 'https://sen.studio/legal/terms.html' },
+      { name: 'Imprint', href: 'https://sen.studio/legal/imprint.html' },
+      { name: 'GDPR', href: 'https://sen.studio/gdpr' },
+    ]
+  }
+];
+
+export default function Footer() {
+  return (
+    <footer className="mt-auto">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="glass p-8">
+          {/* Main Footer Content */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
+            {/* Logo and Description */}
+            <div className="md:col-span-1">
+              <Link href="/" className="flex items-center space-x-2 mb-4">
+                <Image
+                  src="/logo-white.svg"
+                  alt="SenScript"
+                  width={24}
+                  height={24}
+                  className="dark:hidden block"
+                />
+                <Image
+                  src="/logo-black.svg"
+                  alt="SenScript"
+                  width={24}
+                  height={24}
+                  className="dark:block hidden"
+                />
+                <span className="font-semibold text-lg">SenScript</span>
+              </Link>
+              <p className="text-sm opacity-80">
+                Smart meeting companion
+              </p>
+            </div>
+
+            {/* Footer Sections */}
+            {footerSections.map((section) => (
+              <div key={section.title}>
+                <h4 className="font-semibold mb-4">{section.title}</h4>
+                <ul className="space-y-2">
+                  {section.links.map((link) => (
+                    <li key={link.name}>
+                      <Link 
+                        href={link.href}
+                        className="text-sm opacity-80 hover:opacity-100 hover:text-orange-500 transition-colors"
+                        target={link.href.startsWith('http') ? '_blank' : undefined}
+                        rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-white/10 pt-6">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+              {/* Copyright */}
+              <div className="text-sm opacity-80">
+                © 2025 Studio Sen. All rights reserved.
+              </div>
+
+              {/* Legal Links */}
+              <div className="flex items-center space-x-4 text-sm opacity-80">
+                <Link 
+                  href="https://sen.studio/legal/privacy.html"
+                  className="hover:opacity-100 hover:text-orange-500 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy
+                </Link>
+                <span>•</span>
+                <Link 
+                  href="https://sen.studio/legal/terms.html"
+                  className="hover:opacity-100 hover:text-orange-500 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms
+                </Link>
+                <span>•</span>
+                <Link 
+                  href="https://sen.studio/gdpr"
+                  className="hover:opacity-100 hover:text-orange-500 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GDPR
+                </Link>
+                <span>•</span>
+                <span>SOC 2 Compliant</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
