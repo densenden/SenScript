@@ -1,11 +1,139 @@
-# SenScript Marketing Website - Comprehensive Strategy & Content Plan
+# SenScript Marketing Website - Complete Technical Strategy & Implementation Guide
 
 ## Project Overview
 
-**Product**: SenScript - AI-Powered Real-Time Flashcard Generator  
-**Goal**: Create a production-ready marketing website showcasing SenScript's unique value proposition  
-**Timeline**: Complete implementation with all features and content  
-**Tech Stack**: Next.js 14 (App Router), TailwindCSS, Clerk Auth, Shared UI Components  
+**Product**: SenScript - AI-Powered Real-Time CheatCard Generator  
+**Goal**: Production-ready marketing website with systematic design and rich personas  
+**Status**: Ready for complete rebuild with proper foundation  
+**Tech Stack**: Next.js 15.5.0 (Turbopack), TailwindCSS, Material Icons, Glass Morphism UI
+
+## CRITICAL: Design System Foundation
+
+### Glass Container System (Based on web-app folder)
+```css
+/* Primary Glass Effect */
+.glass {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.light .glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #1f2937;
+}
+
+/* Theme-Inverted Navbar (WHITE in dark mode, DARK in light mode) */
+.navbar-glass {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+}
+
+.dark .navbar-glass {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+```
+
+### Systematic Spacing System
+```css
+/* Container with proper spacing */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 20px 120px 20px; /* Space for navbar & footer */
+  gap: 32px; /* Generous section spacing */
+}
+
+/* Spacing utilities */
+.space-section { margin-bottom: 48px; }
+.space-large { margin-bottom: 32px; }
+.space-medium { margin-bottom: 24px; }
+.space-small { margin-bottom: 16px; }
+.space-xs { margin-bottom: 8px; }
+
+/* Content alignment */
+.content-center { text-align: center; }
+.content-max-width { max-width: 800px; margin: 0 auto; }
+.content-max-width-large { max-width: 1000px; margin: 0 auto; }
+
+/* Grid system */
+.section-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .section-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+}
+```
+
+### Color System (MINIMAL - Orange Accent Only)
+```css
+/* Primary colors */
+--orange-500: #f97316;
+--orange-600: #ea580c;
+--gray-600: #4b5563; /* For icons */
+--text-primary: inherit; /* Let glass handle text colors */
+
+/* Button system */
+.btn-primary {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 12px 24px;
+}
+```
+
+### Material Icons System
+```css
+.material-symbols-outlined,
+.material-icons {
+  font-family: 'Material Symbols Outlined';
+  font-weight: 100;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.icon-sm { font-size: 18px; }
+.icon-md { font-size: 24px; }
+.icon-lg { font-size: 32px; }
+```
+
+### Dark/Light Mode System
+- **Dark Mode (default)**: Blue gradient background, white text, glass containers
+- **Light Mode**: White/gray background, dark text, inverted glass containers  
+- **Navbar**: Theme-inverted (white in dark, dark in light)
+- **Auto-detection**: `(prefers-color-scheme: dark)` with localStorage override  
 
 ## Core Value Propositions
 
@@ -53,47 +181,305 @@ CheatCard Mode is SenScript's specialized interview preparation feature that tra
 - Front: "What notable fact about Finnish education system should you mention in an education interview?"
 - Back: "Finnish students start reading at 7 but excel in PISA tests due to emphasis on play, creativity, and critical thinking over standardized testing in early education."
 
-## Website Structure
+## PROVEN PERSONAS (Match Image Assets)
+
+### Rich Success Stories Format
+**Assets**: sarah.png, marcus.png, lisa.png (in /public/images/)
+
+### Sarah Chen - Staff Engineer at Stripe
+- **Challenge**: Stuck at senior level for 2+ years, struggling with system design interviews
+- **Solution**: Used SenScript during architecture reviews to capture staff-level communication patterns
+- **Result**: 127 Strategic Cards → Staff Promotion in 6 months, $45k salary increase
+- **Quote**: "I captured patterns in how staff engineers explain trade-offs during architecture reviews."
+
+### Marcus Rodriguez - Senior PM at Notion  
+- **Challenge**: Startup PM wanting to move to big tech, struggled with strategic thinking articulation
+- **Solution**: Used SenScript during executive meetings, customer calls, competitor analysis
+- **Result**: 203 Strategy Cards → Landed Senior PM role at Notion, led $2M product launch
+- **Quote**: "SenScript captured executive-level insights that became my interview advantage."
+
+### Lisa Weber - Research Scientist at DeepMind
+- **Challenge**: PhD candidate struggling to synthesize 4 years of research into defense narrative
+- **Solution**: SenScript transformed advisor meetings into structured knowledge cards
+- **Result**: 156 Research Cards → Successfully defended PhD → DeepMind Research Scientist
+- **Quote**: "Advisor meetings became structured study materials that turned scattered insights into coherent academic story."
+
+## Footer Strategy (Based on commerce.sen.studio pattern)
+
+### Footer Structure (Glass-themed)
+```typescript
+const footerSections = [
+  {
+    title: 'Product',
+    links: [
+      { name: 'Live Demo', href: '/demo' },
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'About', href: '/about' },
+      { name: 'Features', href: '/#features' },
+    ]
+  },
+  {
+    title: 'Company', 
+    links: [
+      { name: 'About Us', href: '/about' },
+      { name: 'Contact', href: 'https://sen.studio/contact' }, // External
+      { name: 'Studio Sen', href: 'https://sen.studio' }, // External
+    ]
+  },
+  {
+    title: 'Resources',
+    links: [
+      { name: 'Documentation', href: '/docs' },
+      { name: 'API Reference', href: '/api' },
+      { name: 'Support', href: 'https://sen.studio/support' }, // External
+    ]
+  },
+  {
+    title: 'Legal',
+    links: [
+      { name: 'Privacy Policy', href: 'https://sen.studio/privacy' }, // External
+      { name: 'Terms of Service', href: 'https://sen.studio/terms' }, // External
+      { name: 'Imprint', href: 'https://sen.studio/imprint' }, // External
+      { name: 'GDPR', href: 'https://sen.studio/gdpr' }, // External
+    ]
+  }
+];
+```
+
+### Social Links (All External to sen.studio)
+- **Studio Sen Linktree**: https://linktr.ee/sen.studio  
+- **Twitter/X**: https://twitter.com/studio_sen
+- **LinkedIn**: https://linkedin.com/company/studio-sen
+- **GitHub**: https://github.com/studio-sen
+
+### Legal Footer Bar
+```html
+© 2025 Studio Sen. All rights reserved. • SOC 2 Compliant • Privacy • Terms • GDPR
+```
+
+## Website Structure & Systematic Layouts
 
 ### 1. Homepage (`/`)
-**Design Pattern**: Full-screen white rounded container (copying web-app design)
+```html
+<main>
+  <div className="container">
+    <!-- Hero Section -->
+    <section className="glass p-5 content-center">
+      <div className="content-max-width">
+        <h1>Turn Any <span className="text-orange-500">Conversation</span> Into Study Materials</h1>
+        <p>AI-powered flashcard generation from live conversations...</p>
+        <div className="space-medium">
+          <a href="/demo" className="btn btn-primary">Try Live Demo</a>
+          <a href="/about" className="btn">Learn More</a>
+        </div>
+      </div>
+    </section>
 
-**Sections**:
-- **Hero Section**
-  - Headline: "Turn Live Conversations Into Instant Study Materials"
-  - Subheading: "AI-powered CheatCard generation from any audio source in real-time"
-  - Screenshot: Main web app interface showing live recording + generated cards
-  - Primary CTA: "Start Free Trial" → Demo page
-  - Secondary CTA: "View Live Demo"
+    <!-- Key Benefits -->
+    <section className="section-grid">
+      <div className="glass p-5">
+        <span className="material-symbols-outlined icon-lg text-orange-500">bolt</span>
+        <h3>Sub-3s Generation</h3>
+        <p>Real-time flashcard creation from any conversation...</p>
+      </div>
+      <!-- More benefit cards... -->
+    </section>
 
-- **CheatCard Mode Highlight**
-  - Special section dedicated to Interview Companion Mode
-  - Animation showing regular flashcard → CheatCard transformation
-  - Examples of strategic interview preparation cards
-  - "Get Interview-Ready Instantly" CTA
+    <!-- Rich Personas Section -->
+    <section className="content-max-width-large">
+      <div className="glass p-5">
+        <div className="content-center space-large">
+          <h2>How SenScript Transforms Careers</h2>
+        </div>
+        <div className="section-grid">
+          <!-- Sarah, Marcus, Lisa persona cards with images... -->
+        </div>
+      </div>
+    </section>
 
-- **Animated Card Demos**
-  - Live animation showing transcript text → AI processing → flashcard creation
-  - Special focus on CheatCard categories (Interview Tips, Quick Wins, Key Facts)
-  - Real card examples from exports: Quantum Physics, React Development, Nordic Culture
-  - Animation timeline: Audio wave → Text → AI thinking → Card flip reveal
+    <!-- Universal Compatibility -->
+    <section className="glass p-5 content-max-width-large">
+      <div className="content-center space-large">
+        <h2>Works Everywhere, With Everything</h2>
+      </div>
+      <div className="section-grid">
+        <!-- Platform cards with Material Icons... -->
+      </div>
+    </section>
 
-- **Key Features Grid**
-  - **Universal Audio Capture**: Works with Teams, Zoom, lectures, phone calls
-  - **13 Languages Supported**: Auto-detection with flags (🇩🇪🇺🇸🇫🇷🇪🇸🇮🇹🇵🇹🇳🇱🇷🇺🇨🇳🇯🇵🇰🇷🇸🇦)
-  - **CheatCard Interview Mode**: Strategic interview preparation
-  - **Real-Time Processing**: Sub-3-second card generation
-  - **Privacy-First**: Local processing option
-  - **Export Anywhere**: Anki, CSV, JSON formats
+    <!-- Final CTA -->
+    <section className="glass p-5 content-center">
+      <h2>Ready to Never Miss an Opportunity Again?</h2>
+      <!-- CTA buttons... -->
+    </section>
+  </div>
+</main>
+<Footer />
+```
 
-- **Use Cases Section**
-  - **Students**: Live lecture note-taking, study material generation
-  - **Professionals**: Meeting insights, interview preparation with CheatCards
-  - **Language Learners**: Real-time vocabulary capture
-  - **Researchers**: Conference content extraction
+### 2. About Page (`/about`) 
+- **Hero**: CheatCard Technology philosophy
+- **Journey**: Discovery → Innovation → Revolution → Impact (with Material Icons)
+- **Features**: Speed-First Architecture, Real-Time Intelligence, Strategic Advantage
+- **Personas**: Same rich stories as homepage but with different angle
+- **Technical Deep Dive**: Universal Audio Capture explanation
+- **Vision**: Speed First, Strategic Intelligence, Universal Access
 
-### 2. Demo Page (`/demo`)
-**Interactive Live Demo Using Real Endpoints**
+### 3. Pricing Page (`/pricing`)
+- **Header**: Choose Your Success Plan
+- **Plans**: Free ($0), Essential ($12), Premium ($29) with CheatCard focus
+- **Value Props**: Lightning Fast, AI-Powered Intelligence, Privacy First
+- **Testimonials**: Sarah, Marcus, Lisa with ratings and strategic quotes
+- **FAQ**: 8 comprehensive Q&As about features and billing
+- **Final CTA**: Money-back guarantee, cancel anytime
+
+## Technical Implementation Requirements
+
+### Next.js Configuration
+```typescript
+// next.config.ts
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    turbo: {
+      root: __dirname
+    }
+  }
+};
+export default nextConfig;
+```
+
+### Layout Structure (All Pages)
+```typescript
+// src/app/layout.tsx  
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100" rel="stylesheet" />
+      </head>
+      <body>
+        <Header />
+        {children}
+        <Footer />
+      </body>
+    </html>
+  )
+}
+
+// All page components follow this pattern:
+export default function PageName() {
+  return (
+    <main>
+      <div className="container">
+        {/* Sections with systematic spacing */}
+      </div>
+    </main>
+  );
+}
+```
+
+### Material Icons Import (Critical)
+```html
+<!-- In layout.tsx head -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100" rel="stylesheet" />
+```
+
+### File Structure (Required)
+```
+/website/src/
+├── app/
+│   ├── layout.tsx              # Root layout with fonts
+│   ├── page.tsx                # Homepage
+│   ├── about/page.tsx          # About with personas
+│   ├── pricing/page.tsx        # Pricing with testimonials
+│   ├── demo/page.tsx           # Interactive demo
+│   └── globals.css             # Complete design system
+├── components/
+│   └── layout/
+│       ├── Header.tsx          # Theme-inverted navbar
+│       └── Footer.tsx          # Glass-themed with sen.studio links
+└── public/
+    ├── images/
+    │   ├── sarah.png           # Persona assets
+    │   ├── marcus.png          # Persona assets
+    │   └── lisa.png            # Persona assets
+    ├── logo-black.svg          # Light mode logo
+    └── logo-white.svg          # Dark mode logo
+```
+
+## Content Standards
+
+### Typography Hierarchy
+```css
+/* All headings - NO color classes except orange accents */
+h1 { font-size: 2.5rem; font-weight: 600; line-height: 1.2; }
+h2 { font-size: 2rem; font-weight: 600; line-height: 1.3; }
+h3 { font-size: 1.5rem; font-weight: 500; line-height: 1.4; }
+
+/* Body text inherits glass container color */
+p { line-height: 1.6; font-size: 1rem; }
+```
+
+### Icon Usage Standards
+- **Material Icons ONLY** - no emojis, no Lucide icons
+- **Gray-600 for neutral icons** - `text-gray-600`
+- **Orange-500 for accent icons** - `text-orange-500`
+- **Sizes**: `.icon-sm` (18px), `.icon-md` (24px), `.icon-lg` (32px)
+
+### Content Tone
+- **Professional but approachable**
+- **Focus on career transformation**
+- **Specific metrics and results**
+- **No technical jargon in marketing copy**
+- **Speed and strategic advantage emphasized**
+
+## Quality Checklist
+
+### Design System ✓
+- [ ] Glass containers with proper backdrop-blur
+- [ ] Theme-inverted navbar (white in dark, dark in light)
+- [ ] Systematic spacing (32px gaps, proper padding)
+- [ ] Material Icons with consistent sizing
+- [ ] Orange accent + black/white only colors
+
+### Content ✓
+- [ ] Rich personas with images (Sarah, Marcus, Lisa)
+- [ ] Systematic layout classes applied
+- [ ] Footer with sen.studio legal links
+- [ ] No emojis, only Material Icons
+- [ ] Consistent voice and messaging
+
+### Technical ✓
+- [ ] Next.js 15.5.0 with Turbopack
+- [ ] Material Icons font import
+- [ ] Proper CSS @import order
+- [ ] All pages follow container structure
+- [ ] Responsive grid systems
+
+---
+
+**IMPLEMENTATION PRIORITY**: 
+1. CSS design system foundation
+2. Layout components (Header, Footer) 
+3. Homepage with personas
+4. About page with rich content
+5. Pricing page with testimonials
+6. Demo page with interactivity
+
+**SUCCESS CRITERIA**:
+- Clean, professional glass morphism design
+- Engaging persona storytelling
+- Systematic spacing and typography
+- Mobile-responsive layouts
+- Fast loading and smooth animations
 
 **CheatCard Demo Experience**:
 1. **Interview Scenario Demo**: User selects interview type (Technical, Behavioral, Industry)
