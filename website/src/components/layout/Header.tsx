@@ -38,104 +38,110 @@ export default function Header() {
   return (
     <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-6xl px-6">
       <div className="navbar-glass px-6" style={{ height: '80px' }}>
-        <div className="flex items-center justify-between h-full">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 flex items-center justify-center">
-              <Image
-                src={isDark ? "/logo-black.svg" : "/logo-white.svg"}
-                alt="SenScript"
-                width={40}
-                height={40}
-              />
-            </div>
-            <div>
-              <div className="font-semibold text-xl">SenScript</div>
-              <div className="text-xs opacity-70 -mt-1">Smart meeting companion</div>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link 
-              href="/" 
-              className={`hover:text-orange-500 transition-colors ${
-                pathname === '/' ? 'text-orange-500 font-medium' : ''
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              href="/demo" 
-              className={`hover:text-orange-500 transition-colors ${
-                pathname === '/demo' ? 'text-orange-500 font-medium' : ''
-              }`}
-            >
-              Demo
-            </Link>
-            <Link 
-              href="/pricing" 
-              className={`hover:text-orange-500 transition-colors ${
-                pathname === '/pricing' ? 'text-orange-500 font-medium' : ''
-              }`}
-            >
-              Pricing
-            </Link>
-            <Link 
-              href="/about" 
-              className={`hover:text-orange-500 transition-colors ${
-                pathname === '/about' ? 'text-orange-500 font-medium' : ''
-              }`}
-            >
-              About
-            </Link>
-          </div>
-
-          {/* CTA Button & Theme Toggle */}
-          <div className="hidden md:flex items-center space-x-3">
-            <button
-              onClick={toggleTheme}
-              className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-                isDark ? 'hover:bg-black/10' : 'hover:bg-white/10'
-              }`}
-              title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-                {isDark ? 'wb_sunny' : 'nightlight_round'}
-              </span>
-            </button>
-            {isSignedIn ? (
-              <div className="w-10 h-10">
-                <UserButton 
-                  afterSignOutUrl="/" 
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-10 h-10",
-                      userButtonBox: "w-10 h-10",
-                      userButtonTrigger: "w-10 h-10"
-                    }
-                  }}
+        <div className="flex items-center h-full w-full">
+          {/* Left Section - Logo */}
+          <div className="flex items-center justify-start w-1/3">
+            <Link href="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Image
+                  src={isDark ? "/logo-black.svg" : "/logo-white.svg"}
+                  alt="SenScript"
+                  width={40}
+                  height={40}
                 />
               </div>
-            ) : (
-              <SignInButton mode="modal">
-                <button className="btn h-10 px-6">
-                  Start Free
-                </button>
-              </SignInButton>
-            )}
+              <div>
+                <div className="font-semibold text-xl">SenScript</div>
+                <div className="text-xs opacity-70 -mt-1">Smart meeting companion</div>
+              </div>
+            </Link>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden w-10 h-10 flex items-center justify-center"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            <span className="material-symbols-outlined">
-              {isMenuOpen ? 'close' : 'menu'}
-            </span>
-          </button>
+          {/* Center Section - Navigation */}
+          <div className="hidden md:flex items-center justify-center w-1/3">
+            <div className="flex items-center space-x-8">
+              <Link 
+                href="/" 
+                className={`hover:text-orange-500 transition-colors ${
+                  pathname === '/' ? 'text-orange-500 font-medium' : ''
+                }`}
+              >
+                Home
+              </Link>
+              <Link 
+                href="/demo" 
+                className={`hover:text-orange-500 transition-colors ${
+                  pathname === '/demo' ? 'text-orange-500 font-medium' : ''
+                }`}
+              >
+                Demo
+              </Link>
+              <Link 
+                href="/pricing" 
+                className={`hover:text-orange-500 transition-colors ${
+                  pathname === '/pricing' ? 'text-orange-500 font-medium' : ''
+                }`}
+              >
+                Pricing
+              </Link>
+              <Link 
+                href="/about" 
+                className={`hover:text-orange-500 transition-colors ${
+                  pathname === '/about' ? 'text-orange-500 font-medium' : ''
+                }`}
+              >
+                About
+              </Link>
+            </div>
+          </div>
+
+          {/* Right Section - Theme Toggle & Account */}
+          <div className="flex items-center justify-end w-1/3">
+            <div className="hidden md:flex items-center space-x-3">
+              <button
+                onClick={toggleTheme}
+                className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                  isDark ? 'hover:bg-black/10' : 'hover:bg-white/10'
+                }`}
+                title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                  {isDark ? 'wb_sunny' : 'nightlight_round'}
+                </span>
+              </button>
+              {isSignedIn ? (
+                <div className="w-10 h-10">
+                  <UserButton 
+                    afterSignOutUrl="/" 
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-10 h-10",
+                        userButtonBox: "w-10 h-10",
+                        userButtonTrigger: "w-10 h-10"
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <SignInButton mode="modal">
+                  <button className="btn h-10 px-6">
+                    Start Free
+                  </button>
+                </SignInButton>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden w-10 h-10 flex items-center justify-center"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              <span className="material-symbols-outlined">
+                {isMenuOpen ? 'close' : 'menu'}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
