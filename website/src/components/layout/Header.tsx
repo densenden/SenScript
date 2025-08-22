@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { useUser, SignInButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -9,6 +10,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
   const pathname = usePathname();
+  const { isSignedIn, user } = useUser();
 
   useEffect(() => {
     // Check if user has a saved preference, otherwise use system
@@ -41,18 +43,10 @@ export default function Header() {
           <Link href="/" className="flex items-center space-x-3 h-14">
             <div className="w-10 h-10 flex items-center justify-center">
               <Image
-                src="/logo-white.svg"
+                src={isDark ? "/logo-black.svg" : "/logo-white.svg"}
                 alt="SenScript"
                 width={30}
                 height={30}
-                className="dark:hidden block"
-              />
-              <Image
-                src="/logo-black.svg"
-                alt="SenScript"
-                width={30}
-                height={30}
-                className="dark:block hidden"
               />
             </div>
             <div>
@@ -101,16 +95,24 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={toggleTheme}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className={`p-2 rounded-lg transition-colors ${
+                isDark ? 'hover:bg-black/10' : 'hover:bg-white/10'
+              }`}
               title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
             >
               <span className="material-symbols-outlined icon-md">
                 {isDark ? 'wb_sunny' : 'nightlight_round'}
               </span>
             </button>
-            <Link href="/demo" className="btn">
-              Try Demo
-            </Link>
+            {isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <SignInButton mode="modal">
+                <button className="btn">
+                  Start Free
+                </button>
+              </SignInButton>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -168,16 +170,24 @@ export default function Header() {
               <div className="flex flex-col space-y-3 pt-4">
                 <button
                   onClick={toggleTheme}
-                  className="flex items-center justify-center space-x-2 p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  className={`flex items-center justify-center space-x-2 p-2 rounded-lg transition-colors ${
+                    isDark ? 'hover:bg-black/10' : 'hover:bg-white/10'
+                  }`}
                 >
                   <span className="material-symbols-outlined icon-md">
                     {isDark ? 'wb_sunny' : 'nightlight_round'}
                   </span>
                   <span>{isDark ? 'Light' : 'Dark'} mode</span>
                 </button>
-                <Link href="/demo" className="btn text-center">
-                  Try Demo
-                </Link>
+                {isSignedIn ? (
+                  <UserButton afterSignOutUrl="/" />
+                ) : (
+                  <SignInButton mode="modal">
+                    <button className="btn text-center">
+                      Start Free
+                    </button>
+                  </SignInButton>
+                )}
               </div>
             </div>
           </div>

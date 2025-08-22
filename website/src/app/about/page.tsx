@@ -4,11 +4,11 @@ import PersonaCard from '@/components/ui/PersonaCard';
 const personas = [
   {
     name: "Sarah Chen",
-    title: "Software Engineer",
+    title: "Software Engineer → Staff Engineer at Stripe",
     image: "/images/sarah.png",
-    challenge: "Struggling with technical interviews, couldn't articulate system design concepts clearly",
-    solution: "Used CheatCards during mock interviews and architecture discussions to practice responses",
-    result: "Landed Staff Engineer role at Stripe using interview CheatCards",
+    challenge: "Struggling with technical job interviews, couldn't articulate system design concepts clearly during high-pressure situations",
+    solution: "Used SenScript to turn mock interviews and technical discussions into strategic CheatCards for interview preparation",
+    result: "Landed Staff Engineer role at Stripe with $45k salary increase using interview preparation CheatCards",
     quote: "CheatCards taught me to speak like a senior engineer. I practiced system design explanations until they became natural.",
     cards: [
       { category: "INTERVIEW TIP", front: "How to respond to questions about customer acquisition cost, scaling plans, and burn rate when seeking funding?", back: "When seeking funding, it's essential to address questions on customer acquisition cost, scalability strategies, unique value proposition compared to competitors, burn rate, funding runway, and path to profitability. Provide concrete data on acquisition costs, growth plans, competitive advantages, financial sustainability, and profitability projections. Demonstrating a clear understanding of these metrics and outlining a viable path to profitability is crucial to instill confidence in investors." },
@@ -18,11 +18,11 @@ const personas = [
   },
   {
     name: "Marcus Rodriguez", 
-    title: "PhD Student in Computer Science",
+    title: "PhD Student → Research Scientist",
     image: "/images/marcus.png",
-    challenge: "Overwhelmed by research papers and advisor meetings, couldn't organize knowledge effectively",
-    solution: "Used SenScript to turn research discussions and paper reviews into structured study cards",
-    result: "Successfully defending PhD thesis with organized research insights",
+    challenge: "Overwhelmed by trillions of academic presentations (Fachvorträge) and research papers, couldn't organize knowledge effectively for thesis defense",
+    solution: "Used SenScript to turn complex academic presentations, conference talks, and advisor meetings into structured study cards",
+    result: "Successfully completed PhD defense and landed research position using 4 years of organized academic insights",
     quote: "My advisor meetings became structured knowledge. Four years of scattered research turned into a coherent academic story.",
     cards: [
       { category: "CONCEPT", front: "Explain the concept of Quantum Entanglement and Einstein's 'spooky action at a distance' with practical examples?", back: "Quantum Entanglement is a phenomenon where particles become interconnected and share state information regardless of distance. Einstein referred to this as 'spooky action at a distance,' questioning the instantaneous effect on entangled particles. A practical example is the correlation of spin states in entangled particles. In modern physics, Quantum Entanglement challenges classical notions of locality and has implications for quantum computing, cryptography, and understanding the fundamental nature of quantum mechanics." },
@@ -32,11 +32,11 @@ const personas = [
   },
   {
     name: "Lisa Weber",
-    title: "Polyglot Language Learner", 
+    title: "Polyglot Language Learner → Multilingual Expert", 
     image: "/images/lisa.png",
-    challenge: "Learning 5 languages simultaneously, couldn't keep track of vocabulary and grammar patterns",
-    solution: "SenScript's 13-language support helped capture native speaker conversations and create multilingual flashcards",
-    result: "Fluent in 5 languages, now teaching multilingual communication workshops",
+    challenge: "Learning 5 languages simultaneously by listening to foreign language content, couldn't keep track of vocabulary and grammar patterns from native speakers",
+    solution: "Used SenScript's 13-language support to capture native speaker conversations, podcasts, and foreign language content into multilingual flashcards",
+    result: "Achieved fluency in 5 languages and now teaches multilingual communication using 200+ language learning CheatCards",
     quote: "SenScript works in all my target languages. I capture native conversations in German, Spanish, French - automatic flashcards in each language.",
     cards: [
       { category: "QUICK WIN", front: "How can you improve your pronunciation of the 'ö' sound in Swedish?", back: "To pronounce the 'ö' sound in Swedish correctly, it's similar to the 'e' in 'her' or 'bird' but with rounded lips. A useful tip is to compare words like 'förr' (before) and 'får' (sheep) to practice the distinction. By practicing these two words at home and focusing on the 'ö' sound, you can improve your pronunciation significantly by differentiating between similar sounds and mastering the unique Swedish pronunciation." },
@@ -206,16 +206,16 @@ export default function About() {
       {/* Success Stories - Main Focus */}
       <section className="space-section">
         <div className="content-center space-large">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Career Transformation Stories</h2>
-          <p className="text-xl opacity-90 mb-16">The most interesting part: How real professionals transformed their careers</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">Success Stories</h2>
+          <p className="text-xl opacity-90 mb-16">Real people achieving breakthrough results with CheatCard technology</p>
         </div>
         
         <div className="space-y-24 max-w-8xl mx-auto">
           {/* Sarah Chen - Story 1 */}
           <div className="glass p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Image with Quote Overlay */}
-              <div className="relative group lg:col-span-1">
+              <div className="relative group">
                 <img
                   src="/images/sarah.png"
                   alt="Sarah Chen"
@@ -224,70 +224,86 @@ export default function About() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl"></div>
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                   <h3 className="text-2xl font-bold mb-2">Sarah Chen</h3>
-                  <p className="text-lg font-medium mb-3">{personas[0].title}</p>
+                  <p className="text-lg font-medium mb-3">Software Engineer</p>
                   <blockquote className="text-sm italic leading-relaxed">
-                    "{personas[0].quote}"
+                    "CheatCards taught me to speak like a senior engineer. I practiced system design explanations until they became natural."
                   </blockquote>
                 </div>
               </div>
               
-              {/* Content */}
-              <div className="lg:col-span-2 space-y-8">
-                <div>
-                  <h4 className="text-2xl font-bold mb-4 text-orange-500">The Challenge</h4>
-                  <p className="text-lg mb-6">{personas[0].challenge}</p>
-                  
-                  <h4 className="text-2xl font-bold mb-4 text-green-400">The Result</h4>
-                  <p className="text-lg font-semibold">{personas[0].result}</p>
+              {/* Big Headlines/Facts */}
+              <div className="space-y-6">
+                <div className="text-center lg:text-left">
+                  <h4 className="text-5xl font-bold text-orange-500 mb-2">Staff Engineer</h4>
+                  <p className="text-xl opacity-90 mb-6">at Stripe in 6 months</p>
                 </div>
                 
-                {/* Example Cards */}
-                <div>
-                  <h4 className="text-xl font-bold mb-6 text-blue-400">Example CheatCards Generated</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {personas[0].cards.map((card, index) => (
-                      <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-colors">
-                        <div className="text-xs font-bold text-orange-500 mb-2">{card.category}</div>
-                        <div className="text-sm font-medium mb-2">{card.front}</div>
-                        <div className="text-xs opacity-80 leading-relaxed">{card.back}</div>
-                      </div>
-                    ))}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-400">$45k</div>
+                    <div className="text-sm opacity-80">Salary Increase</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-400">127</div>
+                    <div className="text-sm opacity-80">Strategic Cards</div>
                   </div>
                 </div>
+                
+                <div className="bg-white/5 rounded-2xl p-6">
+                  <h5 className="text-lg font-semibold mb-3 text-orange-500">The Challenge</h5>
+                  <p className="text-sm opacity-90 mb-4">Struggling with technical interviews, couldn't articulate system design concepts clearly</p>
+                  <h5 className="text-lg font-semibold mb-3 text-green-400">The Solution</h5>
+                  <p className="text-sm opacity-90">Used CheatCards during mock interviews and architecture discussions to practice responses</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Example Cards */}
+            <div className="mt-12">
+              <h4 className="text-2xl font-bold mb-6 text-center">CheatCards That Helped Sarah</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {personas[0].cards.map((card, index) => (
+                  <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
+                    <div className="text-xs font-bold text-orange-500 mb-3">{card.category}</div>
+                    <div className="text-lg font-medium mb-4">{card.front}</div>
+                    <div className="text-sm opacity-80 leading-relaxed">{card.back}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Marcus Rodriguez - Story 2 */}
           <div className="glass p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-              {/* Content */}
-              <div className="lg:col-span-2 space-y-8 lg:order-1">
-                <div>
-                  <h4 className="text-2xl font-bold mb-4 text-orange-500">The Challenge</h4>
-                  <p className="text-lg mb-6">{personas[1].challenge}</p>
-                  
-                  <h4 className="text-2xl font-bold mb-4 text-green-400">The Result</h4>
-                  <p className="text-lg font-semibold">{personas[1].result}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Big Headlines/Facts */}
+              <div className="space-y-6 lg:order-1">
+                <div className="text-center lg:text-left">
+                  <h4 className="text-5xl font-bold text-purple-500 mb-2">PhD Defense</h4>
+                  <p className="text-xl opacity-90 mb-6">Successfully Completed</p>
                 </div>
                 
-                {/* Example Cards */}
-                <div>
-                  <h4 className="text-xl font-bold mb-6 text-blue-400">Example Research CheatCards</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {personas[1].cards.map((card, index) => (
-                      <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-colors">
-                        <div className="text-xs font-bold text-purple-500 mb-2">{card.category}</div>
-                        <div className="text-sm font-medium mb-2">{card.front}</div>
-                        <div className="text-xs opacity-80 leading-relaxed">{card.back}</div>
-                      </div>
-                    ))}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-400">4 Years</div>
+                    <div className="text-sm opacity-80">Research Organized</div>
                   </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-400">156</div>
+                    <div className="text-sm opacity-80">Research Cards</div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/5 rounded-2xl p-6">
+                  <h5 className="text-lg font-semibold mb-3 text-orange-500">The Challenge</h5>
+                  <p className="text-sm opacity-90 mb-4">Overwhelmed by research papers and advisor meetings, couldn't organize knowledge effectively</p>
+                  <h5 className="text-lg font-semibold mb-3 text-green-400">The Solution</h5>
+                  <p className="text-sm opacity-90">Used SenScript to turn research discussions and paper reviews into structured study cards</p>
                 </div>
               </div>
               
               {/* Image with Quote Overlay */}
-              <div className="relative group lg:col-span-1 lg:order-2">
+              <div className="relative group lg:order-2">
                 <img
                   src="/images/marcus.png"
                   alt="Marcus Rodriguez"
@@ -296,20 +312,34 @@ export default function About() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl"></div>
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                   <h3 className="text-2xl font-bold mb-2">Marcus Rodriguez</h3>
-                  <p className="text-lg font-medium mb-3">{personas[1].title}</p>
+                  <p className="text-lg font-medium mb-3">PhD Student in Computer Science</p>
                   <blockquote className="text-sm italic leading-relaxed">
-                    "{personas[1].quote}"
+                    "My advisor meetings became structured knowledge. Four years of scattered research turned into a coherent academic story."
                   </blockquote>
                 </div>
+              </div>
+            </div>
+            
+            {/* Example Cards */}
+            <div className="mt-12">
+              <h4 className="text-2xl font-bold mb-6 text-center">Research CheatCards That Helped Marcus</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {personas[1].cards.map((card, index) => (
+                  <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
+                    <div className="text-xs font-bold text-purple-500 mb-3">{card.category}</div>
+                    <div className="text-lg font-medium mb-4">{card.front}</div>
+                    <div className="text-sm opacity-80 leading-relaxed">{card.back}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Lisa Weber - Story 3 */}
           <div className="glass p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Image with Quote Overlay */}
-              <div className="relative group lg:col-span-1">
+              <div className="relative group">
                 <img
                   src="/images/lisa.png"
                   alt="Lisa Weber"
@@ -318,36 +348,51 @@ export default function About() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl"></div>
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                   <h3 className="text-2xl font-bold mb-2">Lisa Weber</h3>
-                  <p className="text-lg font-medium mb-3">{personas[2].title}</p>
+                  <p className="text-lg font-medium mb-3">Polyglot Language Learner</p>
                   <blockquote className="text-sm italic leading-relaxed">
-                    "{personas[2].quote}"
+                    "SenScript works in all my target languages. I capture native conversations in German, Spanish, French - automatic flashcards in each language."
                   </blockquote>
                 </div>
               </div>
               
-              {/* Content */}
-              <div className="lg:col-span-2 space-y-8">
-                <div>
-                  <h4 className="text-2xl font-bold mb-4 text-orange-500">The Challenge</h4>
-                  <p className="text-lg mb-6">{personas[2].challenge}</p>
-                  
-                  <h4 className="text-2xl font-bold mb-4 text-green-400">The Result</h4>
-                  <p className="text-lg font-semibold">{personas[2].result}</p>
+              {/* Big Headlines/Facts */}
+              <div className="space-y-6">
+                <div className="text-center lg:text-left">
+                  <h4 className="text-5xl font-bold text-indigo-500 mb-2">5 Languages</h4>
+                  <p className="text-xl opacity-90 mb-6">Fluently Mastered</p>
                 </div>
                 
-                {/* Example Cards */}
-                <div>
-                  <h4 className="text-xl font-bold mb-6 text-blue-400">Example Multilingual CheatCards</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {personas[2].cards.map((card, index) => (
-                      <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-colors">
-                        <div className="text-xs font-bold text-indigo-500 mb-2">{card.category}</div>
-                        <div className="text-sm font-medium mb-2">{card.front}</div>
-                        <div className="text-xs opacity-80 leading-relaxed">{card.back}</div>
-                      </div>
-                    ))}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-400">13</div>
+                    <div className="text-sm opacity-80">Languages Supported</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-400">200+</div>
+                    <div className="text-sm opacity-80">Language Cards</div>
                   </div>
                 </div>
+                
+                <div className="bg-white/5 rounded-2xl p-6">
+                  <h5 className="text-lg font-semibold mb-3 text-orange-500">The Challenge</h5>
+                  <p className="text-sm opacity-90 mb-4">Learning 5 languages simultaneously, couldn't keep track of vocabulary and grammar patterns</p>
+                  <h5 className="text-lg font-semibold mb-3 text-green-400">The Solution</h5>
+                  <p className="text-sm opacity-90">SenScript's 13-language support helped capture native speaker conversations and create multilingual flashcards</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Example Cards */}
+            <div className="mt-12">
+              <h4 className="text-2xl font-bold mb-6 text-center">Multilingual CheatCards That Helped Lisa</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {personas[2].cards.map((card, index) => (
+                  <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
+                    <div className="text-xs font-bold text-indigo-500 mb-3">{card.category}</div>
+                    <div className="text-lg font-medium mb-4">{card.front}</div>
+                    <div className="text-sm opacity-80 leading-relaxed">{card.back}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

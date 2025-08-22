@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -39,6 +42,27 @@ const footerSections = [
 ];
 
 export default function Footer() {
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    // Check theme on mount and listen for changes
+    const checkTheme = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      setIsDark(isDarkMode);
+    };
+    
+    checkTheme();
+    
+    // Listen for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['class'] 
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <footer className="mt-auto">
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -49,18 +73,10 @@ export default function Footer() {
             <div className="md:col-span-1">
               <Link href="/" className="flex items-center space-x-2 mb-4">
                 <Image
-                  src="/logo-white.svg"
+                  src={isDark ? "/logo-black.svg" : "/logo-white.svg"}
                   alt="SenScript"
                   width={24}
                   height={24}
-                  className="dark:hidden block"
-                />
-                <Image
-                  src="/logo-black.svg"
-                  alt="SenScript"
-                  width={24}
-                  height={24}
-                  className="dark:block hidden"
                 />
                 <span className="font-semibold text-lg">SenScript</span>
               </Link>

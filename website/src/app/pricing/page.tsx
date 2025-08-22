@@ -214,8 +214,8 @@ export default function Pricing() {
       {/* Testimonials */}
       <section className="glass p-8">
         <div className="content-center space-large">
-          <h2 className="text-3xl font-bold">Trusted by Career Transformers</h2>
-          <p className="text-lg opacity-90">Real results from real professionals</p>
+          <h2 className="text-3xl font-bold">Real Results from Real Professionals</h2>
+          <p className="text-lg opacity-90">Career success stories with CheatCard technology</p>
         </div>
         <div className="section-grid">
           {testimonials.map((testimonial, index) => (

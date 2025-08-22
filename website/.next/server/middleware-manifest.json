@@ -1,6 +1,41 @@
 {
   "version": 3,
-  "middleware": {},
-  "sortedMiddleware": [],
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/sen_dev_SenScript_website_58d3835f._.js",
+        "server/edge/chunks/53eeb_@clerk_shared_dist_8569bc73._.js",
+        "server/edge/chunks/53eeb_@clerk_backend_dist_b58f6c9c._.js",
+        "server/edge/chunks/53eeb_@clerk_nextjs_dist_esm_3cfcfefb._.js",
+        "server/edge/chunks/53eeb_cookie_dist_index_d883fe94.js",
+        "server/edge/chunks/[root-of-the-server]__bf058b6d._.js",
+        "server/edge/chunks/turbopack-sen_dev_SenScript_website_edge-wrapper_d92d22da.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*))(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(api|trpc))(.*)(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/(api|trpc)(.*)"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ocgd81bxC9Y8YY4huVuqxOf80GbAdkrgl5Z/1dheyNg=",
+        "__NEXT_PREVIEW_MODE_ID": "ae915811f75d4bd3dd045c0aa514a48c",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "da9d1f2ff1acb54f288bfb7497419dc205ac88a2deeeee9889756f991b79bb17",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "970b6b301826523ce461c374bd434e8c2fe90baf59f2d015333a1ab3bcb8692a"
+      }
+    }
+  },
+  "sortedMiddleware": [
+    "/"
+  ],
   "functions": {}
 }
