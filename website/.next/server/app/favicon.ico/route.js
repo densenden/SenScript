@@ -1,12 +1,6 @@
 var R=require("../../chunks/[turbopack]_runtime.js")("server/app/favicon.ico/route.js")
-R.c("server/chunks/[root-of-the-server]__736c643e._.js")
-R.c("server/chunks/53eeb_next_dist_compiled_@opentelemetry_api_index_51ce9aea.js")
-R.c("server/chunks/[root-of-the-server]__1db99804._.js")
-R.c("server/chunks/53eeb_next_dist_a4873ac9._.js")
-R.c("server/chunks/53eeb_next_dist_esm_server_lib_patch-fetch_b7578e67.js")
-R.c("server/chunks/53eeb_next_dist_bb7aec02._.js")
-R.c("server/chunks/53eeb_next_7ffe50dd._.js")
-R.c("server/chunks/53eeb_next_dist_esm_c789932d._.js")
-R.m(78781)
-R.m(79952)
-module.exports=R.m(79952).exports
+R.c("server/chunks/53eeb_next_2688d3f7._.js")
+R.c("server/chunks/[root-of-the-server]__ec0c99fb._.js")
+R.m("[project]/sen_dev/SenScript/website/.next-internal/server/app/favicon.ico/route/actions.js [app-rsc] (server actions loader, ecmascript)")
+R.m("[project]/sen_dev/SenScript/website/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/sen_dev/SenScript/website/src/app/favicon--route-entry.js [app-rsc] (ecmascript)\" } [app-rsc] (ecmascript)")
+module.exports=R.m("[project]/sen_dev/SenScript/website/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/sen_dev/SenScript/website/src/app/favicon--route-entry.js [app-rsc] (ecmascript)\" } [app-rsc] (ecmascript)").exports

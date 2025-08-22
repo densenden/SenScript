@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 
 const plans = [
@@ -11,7 +14,7 @@ const plans = [
       "Basic flashcard generation",
       "Export to JSON",
       "All 13 languages supported",
-      "Chrome extension access",
+      "Device audio capture",
       "Community support"
     ],
     cta: "Start Free",
@@ -25,13 +28,13 @@ const plans = [
     period: "month",
     description: "Full CheatCard mode for serious preparation",
     features: [
-      "200 minutes monthly",
+      "600 minutes monthly",
       "Full CheatCard mode",
       "Interview categories",
       "Export to Anki, CSV, PDF",
       "Priority processing",
       "Email support",
-      "€0.066/min overage"
+      "€0.02/min overage"
     ],
     cta: "Start Essential",
     ctaLink: "#",
@@ -39,23 +42,23 @@ const plans = [
     stripePriceId: "price_essential_monthly"
   },
   {
-    name: "Premium",
-    price: "€17.99", 
+    name: "Professional",
+    price: "€29.99", 
     period: "month",
     description: "Advanced CheatCards for career transformation",
     features: [
-      "500 minutes monthly",
+      "2500 minutes monthly",
       "Advanced CheatCard templates",
       "Industry-specific categories",
       "Custom interview prep packages",
       "Priority AI processing",
       "1-on-1 strategy session",
-      "€0.050/min overage"
+      "€0.015/min overage"
     ],
-    cta: "Start Premium",
+    cta: "Start Professional",
     ctaLink: "#",
     popular: false,
-    stripePriceId: "price_premium_monthly"
+    stripePriceId: "price_professional_monthly"
   }
 ];
 
@@ -65,28 +68,36 @@ const testimonials = [
     title: "Staff Engineer at Stripe",
     image: "/images/sarah.png",
     rating: 5,
-    quote: "127 Strategic Cards led to my staff promotion and $45k salary increase. The interview prep was game-changing."
+    quote: "Mock interviews → Strategic CheatCards → Staff Engineer at Stripe. The interview prep transformed my career trajectory."
   },
   {
-    name: "Marcus Rodriguez",
-    title: "Senior PM at Notion", 
+    name: "Marcus Weber",
+    title: "PhD Graduate", 
     image: "/images/marcus.png",
     rating: 5,
-    quote: "203 Strategy Cards became my competitive advantage. Landed my dream role at Notion and led a $2M launch."
+    quote: "Academic presentations → Research Cards → PhD Defense Success. 4 years of research organized into coherent defense."
   },
   {
-    name: "Lisa Weber",
-    title: "Research Scientist at DeepMind",
+    name: "Lisa Rodriguez",
+    title: "Polyglot & Language Coach",
     image: "/images/lisa.png", 
     rating: 5,
-    quote: "156 Research Cards helped me synthesize 4 years into a coherent defense. Now at DeepMind doing what I love."
+    quote: "Foreign language podcasts → Multilingual Cards → 5 Languages Mastered. Perfect for pronunciation and vocabulary."
   }
 ];
 
 const faqs = [
   {
+    question: "How does device audio capture work?",
+    answer: "We capture your computer's output audio (with permission) so any desktop app is supported - Teams, Zoom, Slack, Discord, local recordings, podcasts. On mobile we use microphone only. You can switch to microphone mode in the web app anytime."
+  },
+  {
+    question: "What platforms are supported?",
+    answer: "Desktop: Any application that plays audio (Teams, Zoom, Meet, Slack, Discord, Spotify, YouTube, local files). Mobile: Microphone input for live conversations. Browser: All web-based conferencing platforms."
+  },
+  {
     question: "How does CheatCard mode differ from regular flashcards?",
-    answer: "CheatCards provide strategic interview responses, not just facts. They include 'what to say' vs 'what NOT to say' guidance, tactical interview tips, and context-aware content that helps you sound senior-level."
+    answer: "CheatCards provide strategic interview responses, not just facts. They include tactical tips, context-aware content, and 'what to say vs what NOT to say' guidance that helps you sound senior-level."
   },
   {
     question: "What languages are supported?",
@@ -101,24 +112,56 @@ const faqs = [
     answer: "We count actual processing time, not meeting length. A 60-minute meeting typically uses 45-50 minutes of processing time due to silence detection and optimization."
   },
   {
-    question: "What conferencing platforms work with SenScript?",
-    answer: "All web-based platforms: Teams, Zoom, Meet, WebEx, Slack, Discord, and more. Our universal audio capture works with any browser-based application."
-  },
-  {
     question: "Is my data secure and private?",
     answer: "Yes. SOC 2 compliant with local processing options. Audio is never stored permanently, and all CheatCards can be kept locally or encrypted in transit."
   },
   {
-    question: "Do you offer refunds?",
-    answer: "30-day money-back guarantee, no questions asked. If CheatCard technology doesn't transform your interview preparation, get a full refund."
+    question: "Can I upgrade or downgrade plans?",
+    answer: "Yes, change plans anytime. Upgrades take effect immediately, downgrades at your next billing cycle. Minutes reset monthly (no rollover)."
   },
   {
-    question: "Can I upgrade or downgrade plans?",
-    answer: "Yes, change plans anytime. Upgrades take effect immediately, downgrades at your next billing cycle. Unused minutes roll over for one month."
+    question: "What's the 15-minute boost option?",
+    answer: "Quick €1 purchase for 15 extra minutes when you're running low. Perfect for finishing important sessions without interruption."
   }
 ];
 
+interface FAQItemProps {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
+  return (
+    <div className="glass p-6 mb-4">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between text-left"
+      >
+        <h3 className="font-semibold pr-4">{question}</h3>
+        <span className={`material-symbols-outlined transition-transform ${
+          isOpen ? 'rotate-180' : ''
+        }`}>
+          expand_more
+        </span>
+      </button>
+      {isOpen && (
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <p className="text-sm opacity-90 leading-relaxed">{answer}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Pricing() {
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+
+  const toggleFAQ = (index: number) => {
+    setOpenFAQ(openFAQ === index ? null : index);
+  };
+
   return (
     <div className="container">
       {/* Header */}
@@ -151,11 +194,11 @@ export default function Pricing() {
           <p className="text-sm opacity-90">Context-aware strategic content</p>
         </div>
         <div className="glass p-6 text-center">
-          <span className="material-symbols-outlined icon-xl text-green-400 mb-4 block">
-            security
+          <span className="material-symbols-outlined icon-xl text-purple-400 mb-4 block">
+            devices
           </span>
-          <h3 className="text-lg font-semibold mb-2">Privacy First</h3>
-          <p className="text-sm opacity-90">SOC 2 compliant, local processing</p>
+          <h3 className="text-lg font-semibold mb-2">Universal Audio</h3>
+          <p className="text-sm opacity-90">Desktop, mobile, any app</p>
         </div>
       </section>
 
@@ -248,40 +291,60 @@ export default function Pricing() {
       <section className="space-section">
         <div className="content-center space-large">
           <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
-          <p className="text-lg opacity-90">Everything you need to know about CheatCard pricing</p>
+          <p className="text-lg opacity-90">Everything you need to know about CheatCard technology</p>
         </div>
-        <div className="space-y-4">
+        <div className="content-max-width">
           {faqs.map((faq, index) => (
-            <div key={index} className="glass p-6">
-              <h3 className="text-lg font-semibold mb-3 text-orange-500">
-                {faq.question}
-              </h3>
-              <p className="opacity-90 leading-relaxed">{faq.answer}</p>
-            </div>
+            <FAQItem
+              key={index}
+              question={faq.question}
+              answer={faq.answer}
+              isOpen={openFAQ === index}
+              onToggle={() => toggleFAQ(index)}
+            />
           ))}
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* 15-Minute Boost Section */}
+      <section className="glass p-8">
+        <div className="content-center space-large">
+          <h2 className="text-3xl font-bold">Need Extra Minutes?</h2>
+          <p className="text-lg opacity-90">Quick boost option for uninterrupted sessions</p>
+        </div>
+        <div className="glass p-6 max-w-md mx-auto text-center">
+          <span className="material-symbols-outlined icon-xl text-orange-500 mb-4 block">
+            flash_on
+          </span>
+          <h3 className="text-xl font-semibold mb-2">15-Minute Boost</h3>
+          <div className="text-3xl font-bold text-orange-500 mb-4">€1</div>
+          <p className="text-sm opacity-90 mb-6">
+            Perfect for finishing important interviews or sessions without interruption. 
+            One-click purchase, instant activation.
+          </p>
+          <button className="btn w-full">
+            Add 15 Minutes
+          </button>
+        </div>
+      </section>
+
+      {/* CTA */}
       <section className="glass p-8 content-center">
         <div className="content-max-width">
           <h2 className="text-3xl font-bold mb-4">
-            Ready to Transform Your Career?
+            Start Your CheatCard Journey
           </h2>
           <p className="text-lg opacity-90 mb-8">
-            Join thousands of professionals who've turned conversations into competitive advantages
+            Join thousands who've transformed conversations into career advancement.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/demo" className="btn btn-primary text-lg px-8 py-4">
-              Start Free Trial
+              Start Free 90 Minutes
             </Link>
             <Link href="/about" className="btn text-lg px-8 py-4">
-              Learn More
+              Read Success Stories
             </Link>
           </div>
-          <p className="text-sm opacity-70 mt-6">
-            ✓ 30-day money-back guarantee &nbsp;&nbsp;•&nbsp;&nbsp; ✓ Cancel anytime &nbsp;&nbsp;•&nbsp;&nbsp; ✓ No contracts
-          </p>
         </div>
       </section>
     </div>
