@@ -2,34 +2,35 @@
 .cl-userButtonBox {
   width: 40px !important;
   height: 40px !important;
+  border: none !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
 }
 
 .cl-userButtonTrigger {
   width: 40px !important;
   height: 40px !important;
   box-shadow: none !important;
+  border: none !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
 }
 
 .cl-avatarBox {
   width: 40px !important;
   height: 40px !important;
+  border: none !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
 }
 
 .cl-avatarImage {
   width: 40px !important;
   height: 40px !important;
+  border-radius: 50% !important;
 }
 
 /* Ensure UserButton popup is above everything */
 .cl-userButtonPopoverCard {
   z-index: 9999 !important;
-}
-
-/* Match navbar styling in dark mode */
-html.dark .cl-userButtonBox {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-html.light .cl-userButtonBox {
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }

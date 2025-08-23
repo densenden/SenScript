@@ -24,9 +24,9 @@ const plans = [
   },
   {
     name: "Essential",
-    price: "€9.99",
+    price: "$4.99",
     period: "month",
-    description: "Full CheatCard mode for serious preparation",
+    description: "Full mode for regular use",
     features: [
       "600 minutes monthly",
       "Full CheatCard mode",
@@ -43,11 +43,11 @@ const plans = [
   },
   {
     name: "Professional",
-    price: "€29.99", 
+    price: "$17.99", 
     period: "month",
-    description: "Advanced CheatCards for career transformation",
+    description: "Advanced features with no limits",
     features: [
-      "2500 minutes monthly",
+      "Unlimited minutes",
       "Advanced CheatCard templates",
       "Industry-specific categories",
       "Custom interview prep packages",
@@ -64,25 +64,28 @@ const plans = [
 
 const testimonials = [
   {
-    name: "Sarah Chen",
+    name: "Sarah",
     title: "Staff Engineer at Stripe",
     image: "/images/sarah.png",
-    rating: 5,
     quote: "Mock interviews → Strategic CheatCards → Staff Engineer at Stripe. The interview prep transformed my career trajectory."
   },
   {
-    name: "Marcus Weber",
+    name: "Marcus",
     title: "PhD Graduate", 
     image: "/images/marcus.png",
-    rating: 5,
     quote: "Academic presentations → Research Cards → PhD Defense Success. 4 years of research organized into coherent defense."
   },
   {
-    name: "Lisa Rodriguez",
+    name: "Lisa",
     title: "Polyglot & Language Coach",
     image: "/images/lisa.png", 
-    rating: 5,
     quote: "Foreign language podcasts → Multilingual Cards → 5 Languages Mastered. Perfect for pronunciation and vocabulary."
+  },
+  {
+    name: "Alex",
+    title: "High School Student",
+    image: "/images/alex.png", 
+    quote: "Teacher questions → Test Strategy Cards → A grades in AP History. Turned stressful moments into easy wins."
   }
 ];
 
@@ -262,28 +265,117 @@ export default function Pricing() {
         </div>
         <div className="section-grid">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="glass p-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="w-12 h-12 rounded-full border-2 border-orange-500"
-                />
-                <div>
-                  <h4 className="font-semibold">{testimonial.name}</h4>
-                  <p className="text-sm text-orange-500">{testimonial.title}</p>
-                </div>
-              </div>
-              <div className="flex mb-3">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <span key={i} className="material-symbols-outlined icon-sm text-orange-500">
-                    star
-                  </span>
-                ))}
-              </div>
-              <p className="text-sm opacity-90 italic">"{testimonial.quote}"</p>
+            <div key={index} className="glass p-6 text-center">
+              <img
+                src={testimonial.image}
+                alt={testimonial.name}
+                className="w-32 h-24 aspect-[4/3] rounded-2xl mx-auto mb-4 object-cover"
+              />
+              <h4 className="font-semibold text-lg mb-2">{testimonial.name}</h4>
+              <p className="text-sm text-orange-500 mb-4">{testimonial.title}</p>
+              <p className="text-base opacity-90 italic leading-relaxed">"{testimonial.quote}"</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* API Keys Feature - FREE with SenScript */}
+      <section className="glass p-8">
+        <div className="content-center space-large">
+          <h2 className="text-3xl font-bold">Use Your Own AI Provider</h2>
+          <p className="text-xl opacity-90 mb-4">Maximum privacy and control with your own API keys</p>
+          <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-2xl p-4 border border-green-500/30 inline-block">
+            <p className="text-lg font-bold text-green-400">✓ FREE feature - Available on all SenScript plans</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+          <div className="space-y-6">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4 text-green-400">Why Use Your Own Keys?</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start space-x-3">
+                  <span className="material-symbols-outlined icon-sm text-green-400 mt-1">security</span>
+                  <div>
+                    <span className="font-medium">Maximum Privacy:</span>
+                    <span className="text-sm opacity-90 block">Direct connection to AI providers - no data intermediaries</span>
+                  </div>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="material-symbols-outlined icon-sm text-blue-400 mt-1">savings</span>
+                  <div>
+                    <span className="font-medium">Cost Control:</span>
+                    <span className="text-sm opacity-90 block">Pay provider rates directly - no markup charges from SenScript</span>
+                  </div>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="material-symbols-outlined icon-sm text-purple-400 mt-1">tune</span>
+                  <div>
+                    <span className="font-medium">Full Control:</span>
+                    <span className="text-sm opacity-90 block">Choose your preferred AI provider and model</span>
+                  </div>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="material-symbols-outlined icon-sm text-orange-500 mt-1">flash_on</span>
+                  <div>
+                    <span className="font-medium">Unlimited Usage:</span>
+                    <span className="text-sm opacity-90 block">Use as many minutes as your API budget allows - no SenScript limits</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-gradient-to-r from-orange-500/10 to-green-500/10 rounded-lg p-6 border border-orange-500/20">
+              <h4 className="text-lg font-semibold mb-3 text-orange-500">💡 Pro Tip</h4>
+              <p className="text-sm opacity-90 leading-relaxed">
+                Start with our Free plan to try SenScript, then add your own API keys for unlimited usage. 
+                You only pay your AI provider directly - SenScript charges nothing extra!
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="glass p-4 text-center">
+                <div className="text-lg font-bold text-green-400">DeepSeek</div>
+                <div className="text-xs opacity-70">Most Affordable</div>
+              </div>
+              <div className="glass p-4 text-center border-2 border-orange-500">
+                <div className="text-lg font-bold text-orange-500">OpenAI</div>
+                <div className="text-xs opacity-70">Most Popular</div>
+              </div>
+              <div className="glass p-4 text-center">
+                <div className="text-lg font-bold text-purple-400">Anthropic</div>
+                <div className="text-xs opacity-70">Best Reasoning</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass p-6">
+            <img 
+              src="/images/api-keys-setup.png" 
+              alt="API keys configuration interface showing OpenAI, Anthropic, and DeepSeek setup"
+              className="w-full aspect-[4/3] object-cover rounded-2xl mb-4"
+              onError={(e) => {
+                // Fallback if image doesn't exist
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling!.classList.remove('hidden');
+              }}
+            />
+            <div className="hidden bg-gradient-to-br from-orange-500/20 to-purple-500/20 rounded-2xl aspect-[4/3] flex items-center justify-center">
+              <div className="text-center">
+                <span className="material-symbols-outlined icon-xl text-orange-500 mb-4 block">settings</span>
+                <div className="text-lg font-semibold">API Keys Setup</div>
+                <div className="text-sm opacity-70">Secure configuration interface</div>
+              </div>
+            </div>
+            <h4 className="text-lg font-semibold mb-2">Simple Setup Process</h4>
+            <ul className="text-sm space-y-2 opacity-90">
+              <li>1. Get API keys from your preferred provider</li>
+              <li>2. Add them securely in SenScript settings</li>
+              <li>3. Choose your default model and fallback options</li>
+              <li>4. Start creating unlimited CheatCards for free!</li>
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -341,7 +433,7 @@ export default function Pricing() {
             <Link href="/demo" className="btn btn-primary text-lg px-8 py-4">
               Start Free 90 Minutes
             </Link>
-            <Link href="/about" className="btn text-lg px-8 py-4">
+            <Link href="/use-cases" className="btn text-lg px-8 py-4">
               Read Success Stories
             </Link>
           </div>

@@ -1,50 +1,4 @@
 import Link from 'next/link';
-import PersonaCard from '@/components/ui/PersonaCard';
-
-const personas = [
-  {
-    name: "Sarah Chen",
-    title: "Software Engineer → Staff Engineer at Stripe",
-    image: "/images/sarah.png",
-    challenge: "Struggling with technical job interviews, couldn't articulate system design concepts clearly during high-pressure situations",
-    solution: "Used SenScript to turn mock interviews and technical discussions into strategic CheatCards for interview preparation",
-    result: "Landed Staff Engineer role at Stripe with $45k salary increase using interview preparation CheatCards",
-    quote: "CheatCards taught me to speak like a senior engineer. I practiced system design explanations until they became natural.",
-    cards: [
-      { category: "INTERVIEW TIP", front: "How to respond to questions about customer acquisition cost, scaling plans, and burn rate when seeking funding?", back: "When seeking funding, it's essential to address questions on customer acquisition cost, scalability strategies, unique value proposition compared to competitors, burn rate, funding runway, and path to profitability. Provide concrete data on acquisition costs, growth plans, competitive advantages, financial sustainability, and profitability projections. Demonstrating a clear understanding of these metrics and outlining a viable path to profitability is crucial to instill confidence in investors." },
-      { category: "CONCEPT", front: "Explain the key aspects of State Management in React and why Redux over useState?", back: "State Management in React involves managing and updating the state of components. Redux offers a centralized store for state management, providing a single source of truth and enabling predictable state changes. It is preferred over useState for complex applications due to its scalability and ease of debugging. Alternatives like Zustand and Context API offer different approaches. Performance issues can be addressed by optimizing component rendering, reducing unnecessary re-renders, and implementing code splitting." },
-      { category: "MEETING TIP", front: "How to address being behind schedule in a project during a meeting effectively?", back: "When facing delays in a project, it's crucial to explain the reasons for the delay and present a plan to catch up. Focus on concrete solutions rather than excuses to regain lost time. To prevent future delays, propose measures like improved task management, regular progress tracking, and proactive issue resolution. Ensure to communicate these solutions clearly to stakeholders and emphasize implementing preventive actions to avoid similar setbacks." }
-    ]
-  },
-  {
-    name: "Marcus Rodriguez", 
-    title: "PhD Student → Research Scientist",
-    image: "/images/marcus.png",
-    challenge: "Overwhelmed by trillions of academic presentations (Fachvorträge) and research papers, couldn't organize knowledge effectively for thesis defense",
-    solution: "Used SenScript to turn complex academic presentations, conference talks, and advisor meetings into structured study cards",
-    result: "Successfully completed PhD defense and landed research position using 4 years of organized academic insights",
-    quote: "My advisor meetings became structured knowledge. Four years of scattered research turned into a coherent academic story.",
-    cards: [
-      { category: "CONCEPT", front: "Explain the concept of Quantum Entanglement and Einstein's 'spooky action at a distance' with practical examples?", back: "Quantum Entanglement is a phenomenon where particles become interconnected and share state information regardless of distance. Einstein referred to this as 'spooky action at a distance,' questioning the instantaneous effect on entangled particles. A practical example is the correlation of spin states in entangled particles. In modern physics, Quantum Entanglement challenges classical notions of locality and has implications for quantum computing, cryptography, and understanding the fundamental nature of quantum mechanics." },
-      { category: "KEY FACTS", front: "What is notable about the Finnish education system regarding reading and standardized tests?", back: "In the Finnish education system, students start reading at 7 but excel in PISA tests. The system emphasizes play, creativity, and critical thinking over standardized tests in early education. This approach fosters high academic achievement and innovative thinking among students, contributing to Finland's success in international education rankings like PISA." },
-      { category: "INTERVIEW TIP", front: "How to differentiate between REST and GraphQL and optimize slow database queries in technical interviews?", back: "In technical interviews, explaining the distinctions between REST (Representational State Transfer) and GraphQL, understanding their use cases, and selecting the appropriate technology based on project requirements is crucial. When optimizing a slow database query, discuss strategies like indexing, query optimization, caching, or denormalization. Address high traffic issues by load testing, performance monitoring, identifying bottlenecks, scaling resources, and optimizing code for efficiency." }
-    ]
-  },
-  {
-    name: "Lisa Weber",
-    title: "Polyglot Language Learner → Multilingual Expert", 
-    image: "/images/lisa.png",
-    challenge: "Learning 5 languages simultaneously by listening to foreign language content, couldn't keep track of vocabulary and grammar patterns from native speakers",
-    solution: "Used SenScript's 13-language support to capture native speaker conversations, podcasts, and foreign language content into multilingual flashcards",
-    result: "Achieved fluency in 5 languages and now teaches multilingual communication using 200+ language learning CheatCards",
-    quote: "SenScript works in all my target languages. I capture native conversations in German, Spanish, French - automatic flashcards in each language.",
-    cards: [
-      { category: "QUICK WIN", front: "How can you improve your pronunciation of the 'ö' sound in Swedish?", back: "To pronounce the 'ö' sound in Swedish correctly, it's similar to the 'e' in 'her' or 'bird' but with rounded lips. A useful tip is to compare words like 'förr' (before) and 'får' (sheep) to practice the distinction. By practicing these two words at home and focusing on the 'ö' sound, you can improve your pronunciation significantly by differentiating between similar sounds and mastering the unique Swedish pronunciation." },
-      { category: "CONCEPT", front: "What is 'Janteloven' and how does it influence communication in business contexts in Nordic countries?", back: "Janteloven is a set of social norms in Nordic countries emphasizing humility and collectivism over individual achievements. The core principle 'Du skal ikke tro at du er noe' (You shall not think you are anything special) guides interactions. In business settings, this influences Norwegian communication by discouraging boasting and favoring understatement. This cultural norm shapes communication by prioritizing modesty and group harmony over self-promotion." },
-      { category: "INTERVIEW TIP", front: "How to effectively gather information about symptoms from a patient, including pain details and family history?", back: "When assessing a patient's symptoms, it's crucial to inquire about the exact onset of pain, its nature (constant or intermittent), intensity on a scale of 1 to 10, aggravating and alleviating factors, medication history, family medical background, and presence of other symptoms like nausea, dizziness, or shortness of breath. Encouraging the patient to provide specific details helps in accurate diagnosis and treatment planning." }
-    ]
-  }
-];
 
 const useCases = [
   {
@@ -79,7 +33,7 @@ const useCases = [
   }
 ];
 
-export default function About() {
+export default function MoreInformation() {
   return (
     <div className="container">
       {/* Hero Section */}
@@ -393,6 +347,73 @@ export default function About() {
                     <div className="text-sm opacity-80 leading-relaxed">{card.back}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* LLM Choice Section */}
+      <section className="glass p-8">
+        <div className="content-max-width">
+          <h2 className="text-3xl font-bold mb-6 content-center">Your Choice of AI Provider</h2>
+          <p className="text-lg opacity-90 mb-8 content-center">
+            SenScript works with multiple AI providers - choose what works best for you
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="glass p-6 text-center">
+              <div className="text-4xl font-bold text-green-400 mb-2">DeepSeek</div>
+              <div className="text-lg font-medium mb-3">Most Affordable</div>
+              <ul className="text-sm space-y-2 opacity-90">
+                <li>• 10x cheaper than competitors</li>
+                <li>• Excellent for technical content</li>
+                <li>• Great for developers</li>
+                <li>• Fast processing speed</li>
+              </ul>
+            </div>
+            
+            <div className="glass p-6 text-center border-2 border-orange-500">
+              <div className="text-4xl font-bold text-orange-500 mb-2">OpenAI</div>
+              <div className="text-lg font-medium mb-3">Most Popular</div>
+              <ul className="text-sm space-y-2 opacity-90">
+                <li>• GPT-4 for best accuracy</li>
+                <li>• Excellent language support</li>
+                <li>• Reliable and consistent</li>
+                <li>• Premium option available</li>
+              </ul>
+            </div>
+            
+            <div className="glass p-6 text-center">
+              <div className="text-4xl font-bold text-purple-400 mb-2">Anthropic</div>
+              <div className="text-lg font-medium mb-3">Best Reasoning</div>
+              <ul className="text-sm space-y-2 opacity-90">
+                <li>• Claude for complex analysis</li>
+                <li>• Superior context understanding</li>
+                <li>• Excellent for research content</li>
+                <li>• Safe and reliable</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-4 text-blue-400">Your API Keys, Your Control</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-start space-x-2">
+                <span className="material-symbols-outlined icon-sm text-green-400 mt-1">check</span>
+                <span className="text-sm">Use your own API keys for maximum privacy</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="material-symbols-outlined icon-sm text-green-400 mt-1">check</span>
+                <span className="text-sm">Switch between providers anytime</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="material-symbols-outlined icon-sm text-green-400 mt-1">check</span>
+                <span className="text-sm">Fallback to SenScript keys when needed</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="material-symbols-outlined icon-sm text-green-400 mt-1">check</span>
+                <span className="text-sm">Direct billing - no markup charges</span>
               </div>
             </div>
           </div>

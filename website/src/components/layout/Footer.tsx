@@ -25,9 +25,9 @@ const footerSections = [
   {
     title: 'Resources',
     links: [
-      { name: 'Documentation', href: '/docs' },
-      { name: 'API Reference', href: '/api' },
-      { name: 'Support', href: 'https://sen.studio/support' },
+      { name: 'Roadmap', href: '/roadmap' },
+      { name: 'Changelog', href: '/changelog' },
+      { name: 'Contact', href: '/contact' },
     ]
   },
   {

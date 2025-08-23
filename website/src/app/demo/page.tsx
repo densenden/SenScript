@@ -130,8 +130,8 @@ export default function Demo() {
         <div className="section-grid">
           {steps.map((step, index) => (
             <div key={index} className="glass p-8 text-center">
-              <div className="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">
-                {step.step}
+              <div className="w-20 h-20 glass border-2 border-white/20 rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-6">
+                <span className="text-orange-500">{step.step}</span>
               </div>
               <span className={`material-symbols-outlined icon-xl mb-4 block ${
                 index === 0 ? 'text-blue-400' : 
@@ -294,7 +294,7 @@ export default function Demo() {
                 </button>
               </SignInButton>
             )}
-            <Link href="/about" className="btn text-lg px-8 py-4">
+            <Link href="/use-cases" className="btn text-lg px-8 py-4">
               Read Success Stories
             </Link>
           </div>

@@ -59,7 +59,7 @@ export default function Header() {
 
           {/* Center Section - Navigation */}
           <div className="hidden md:flex items-center justify-center w-1/3">
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-6">
               <Link 
                 href="/" 
                 className={`hover:text-orange-500 transition-colors ${
@@ -67,6 +67,14 @@ export default function Header() {
                 }`}
               >
                 Home
+              </Link>
+              <Link 
+                href="/use-cases" 
+                className={`hover:text-orange-500 transition-colors ${
+                  pathname === '/use-cases' ? 'text-orange-500 font-medium' : ''
+                }`}
+              >
+                Stories
               </Link>
               <Link 
                 href="/demo" 
@@ -85,12 +93,12 @@ export default function Header() {
                 Pricing
               </Link>
               <Link 
-                href="/about" 
+                href="/more-information" 
                 className={`hover:text-orange-500 transition-colors ${
-                  pathname === '/about' ? 'text-orange-500 font-medium' : ''
+                  pathname === '/more-information' ? 'text-orange-500 font-medium' : ''
                 }`}
               >
-                About
+                Info
               </Link>
             </div>
           </div>
@@ -158,6 +166,15 @@ export default function Header() {
                 Home
               </Link>
               <Link 
+                href="/use-cases" 
+                className={`hover:text-orange-500 transition-colors ${
+                  pathname === '/use-cases' ? 'text-orange-500 font-medium' : ''
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Stories
+              </Link>
+              <Link 
                 href="/demo" 
                 className={`hover:text-orange-500 transition-colors ${
                   pathname === '/demo' ? 'text-orange-500 font-medium' : ''
@@ -176,13 +193,13 @@ export default function Header() {
                 Pricing
               </Link>
               <Link 
-                href="/about" 
+                href="/more-information" 
                 className={`hover:text-orange-500 transition-colors ${
-                  pathname === '/about' ? 'text-orange-500 font-medium' : ''
+                  pathname === '/more-information' ? 'text-orange-500 font-medium' : ''
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                About
+                Info
               </Link>
               <div className="flex flex-col space-y-3 pt-4">
                 <button

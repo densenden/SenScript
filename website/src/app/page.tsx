@@ -71,14 +71,14 @@ export default function Home() {
             Into Study Materials
           </h1>
           <p className="text-xl opacity-90 mb-8 leading-relaxed">
-            Your smart meeting companion that transforms conversations into career-advancing 
-            CheatCards. Works with all web platforms.
+            Your smart meeting companion that transforms team meetings and calls into organized 
+            flashcards. Works with all web platforms.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/demo" className="btn btn-primary text-lg px-8 py-4">
               Try Live Demo
             </Link>
-            <Link href="/about" className="btn text-lg px-8 py-4">
+            <Link href="/more-information" className="btn text-lg px-8 py-4">
               Learn More
             </Link>
           </div>
@@ -88,8 +88,8 @@ export default function Home() {
       {/* Key Benefits */}
       <section id="features">
         <div className="content-center space-large">
-          <h2 className="text-3xl font-bold">Why SenScript Transforms Careers</h2>
-          <p className="text-lg opacity-90">Speed-first architecture meets strategic intelligence</p>
+          <h2 className="text-3xl font-bold">Why SenScript Boosts Team Productivity</h2>
+          <p className="text-lg opacity-90">Speed-first architecture meets intelligent note-taking</p>
         </div>
         <div className="section-grid">
           {features.map((feature, index) => (
@@ -104,67 +104,100 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Success Stories Teasers */}
-      <section className="space-section">
-        <div className="content-center space-large">
-          <h2 className="text-4xl font-bold mb-4">Career Transformation Stories</h2>
-          <p className="text-xl opacity-90 mb-12">Real professionals. Real results. Real career breakthroughs.</p>
+      {/* Use Cases Hero - Full Width */}
+      <section className="glass p-8 content-center">
+        <div className="content-max-width">
+          <h2 className="text-4xl font-bold mb-4">Use Cases</h2>
+          <p className="text-xl opacity-90 mb-12">Real professionals using SenScript for everyday productivity.</p>
         </div>
+        
+        {/* Full-width containers for the two main scenarios */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-12">
+          <div className="glass p-8">
+            <img 
+              src="/images/interview-scenarios/desktop.png" 
+              alt="SenScript running during a Teams meeting"
+              className="w-full aspect-[3/2] object-cover rounded-2xl mb-6"
+            />
+            <h3 className="text-2xl font-bold mb-4 text-orange-500">Desktop Meeting Listening</h3>
+            <p className="text-lg opacity-90 mb-4">Transform every meeting into organized study materials</p>
+            <p className="opacity-80 leading-relaxed">
+              Cards appear in real-time during Teams, Zoom, or any web meeting. SenScript's smart listening 
+              system automatically creates instant answers without prompting - just listen and learn. 
+              Perfect for team meetings, client calls, and professional development sessions.
+            </p>
+          </div>
+          <div className="glass p-8">
+            <img 
+              src="/images/interview-scenarios/mobile.png" 
+              alt="Mobile phone near TV capturing audio"
+              className="w-full aspect-[3/2] object-cover rounded-2xl mb-6"
+            />
+            <h3 className="text-2xl font-bold mb-4 text-orange-500">Mobile Audio Listening</h3>
+            <p className="text-lg opacity-90 mb-4">Learn from any audio source, anywhere</p>
+            <p className="opacity-80 leading-relaxed">
+              Use your phone's microphone to capture audio from TV shows, podcasts, lectures, or conversations. 
+              SenScript works universally - no app integrations needed. Get instant answers on demand without 
+              prompting through our smart listening system. Great for language learning, educational content, 
+              and casual learning opportunities.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* User Stories Preview */}
+      <section className="space-section">
+        <div className="content-center space-large mb-8">
+          <h2 className="text-3xl font-bold">Real People, Real Results</h2>
+          <p className="text-lg opacity-90">See how professionals use SenScript to accelerate their learning</p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="glass p-6 text-center">
-            <div className="mb-4">
-              <img
-                src="/images/sarah.png"
-                alt="Sarah Chen"
-                className="w-16 h-16 rounded-full mx-auto mb-3 object-cover"
-              />
-              <h3 className="text-lg font-semibold">Sarah Chen</h3>
-              <p className="text-sm opacity-80">Software Engineer → Staff Engineer</p>
-            </div>
-            <p className="text-sm opacity-90 mb-4">
-              "CheatCards taught me to speak like a senior engineer. I practiced system design explanations until they became natural."
+          <div className="glass p-6">
+            <img
+              src="/images/sarah.png"
+              alt="Sarah"
+              className="w-full aspect-[4/3] object-cover rounded-2xl mb-4"
+            />
+            <h3 className="text-xl font-bold mb-2">Sarah</h3>
+            <p className="text-sm opacity-80 mb-3">Software Engineer</p>
+            <p className="text-sm opacity-90 mb-4 leading-relaxed">
+              "Mock interviews → Strategic CheatCards → Staff Engineer promotion. SenScript transformed my interview prep."
             </p>
-            <Link href="/about#sarah" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
-              Learn Sarah's story →
+            <Link href="/use-cases#sarah" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
+              Read Sarah's story →
             </Link>
           </div>
           
-          <div className="glass p-6 text-center">
-            <div className="relative mb-4">
-              <img
-                src="/images/marcus.png"
-                alt="Marcus Rodriguez"
-                className="w-full aspect-[4/3] object-cover rounded-2xl"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-2xl"></div>
-              <div className="absolute bottom-4 left-4 right-4 text-white text-left">
-                <h3 className="text-lg font-semibold">Marcus Rodriguez</h3>
-                <p className="text-sm opacity-90">PhD Student in Computer Science</p>
-                <p className="text-sm italic mt-2 leading-relaxed">
-                  "My advisor meetings became structured knowledge. Four years of scattered research turned into a coherent academic story."
-                </p>
-              </div>
-            </div>
-            <Link href="/about#marcus" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
-              Learn Marcus's story →
+          <div className="glass p-6">
+            <img
+              src="/images/marcus.png"
+              alt="Marcus"
+              className="w-full aspect-[4/3] object-cover rounded-2xl mb-4"
+            />
+            <h3 className="text-xl font-bold mb-2">Marcus</h3>
+            <p className="text-sm opacity-80 mb-3">PhD Graduate</p>
+            <p className="text-sm opacity-90 mb-4 leading-relaxed">
+              "Four years of scattered research notes became a coherent PhD defense story through advisor meeting cards."
+            </p>
+            <Link href="/use-cases#marcus" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
+              Read Marcus's story →
             </Link>
           </div>
           
-          <div className="glass p-6 text-center">
-            <div className="mb-4">
-              <img
-                src="/images/lisa.png"
-                alt="Lisa Weber"
-                className="w-16 h-16 rounded-full mx-auto mb-3 object-cover"
-              />
-              <h3 className="text-lg font-semibold">Lisa Weber</h3>
-              <p className="text-sm opacity-80">Language Learner → Multilingual Expert</p>
-            </div>
-            <p className="text-sm opacity-90 mb-4">
-              "SenScript works in all my target languages. I capture native conversations in German, Spanish, French - automatic flashcards in each language."
+          <div className="glass p-6">
+            <img
+              src="/images/lisa.png"
+              alt="Lisa"
+              className="w-full aspect-[4/3] object-cover rounded-2xl mb-4"
+            />
+            <h3 className="text-xl font-bold mb-2">Lisa</h3>
+            <p className="text-sm opacity-80 mb-3">Language Coach</p>
+            <p className="text-sm opacity-90 mb-4 leading-relaxed">
+              "Native conversations → Automatic flashcards → Fluency in 5 languages. Works perfectly in any language."
             </p>
-            <Link href="/about#lisa" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
-              Learn Lisa's story →
+            <Link href="/use-cases#lisa" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
+              Read Lisa's story →
             </Link>
           </div>
         </div>
