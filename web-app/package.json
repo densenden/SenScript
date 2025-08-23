@@ -2,15 +2,29 @@
   "name": "senscript-web-app",
   "version": "1.0.0",
   "description": "Real-time conversation assistant with AI-powered flashcard generation",
-  "main": "server.js",
+  "main": "server-with-auth.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server-with-auth.js",
+    "dev": "node server-with-auth.js",
+    "start:no-auth": "node server.js"
   },
   "dependencies": {
-    "dotenv": "^16.3.1"
+    "@clerk/clerk-js": "^5.88.0",
+    "@prisma/client": "^6.14.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^5.1.0",
+    "prisma": "^6.14.0",
+    "svix": "^1.74.1",
+    "zod": "^4.1.0"
   },
-  "keywords": ["speech-recognition", "ai", "flashcards", "openai"],
+  "keywords": [
+    "speech-recognition",
+    "ai",
+    "flashcards",
+    "openai"
+  ],
   "author": "SenScript",
   "license": "MIT"
 }

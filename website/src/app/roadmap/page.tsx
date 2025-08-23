@@ -4,11 +4,11 @@ import Link from 'next/link';
 
 const roadmapItems = [
   {
-    quarter: "Q1 2025",
+    phase: "Launched Last Week",
     status: "completed",
     items: [
       {
-        title: "SenScript v3.0 Launch",
+        title: "SenScript v3.0 Launch (beta1)",
         description: "Chrome Web App with universal audio capture",
         completed: true
       },
@@ -25,33 +25,75 @@ const roadmapItems = [
     ]
   },
   {
-    quarter: "Q2 2025",
+    phase: "Performance Focus (Next 2-4 weeks)",
     status: "in-progress",
     items: [
       {
-        title: "Mobile Optimization",
-        description: "Enhanced mobile experience with phone microphone capture",
+        title: "Sub-2s Card Generation",
+        description: "Optimize AI processing pipeline for faster card creation",
         completed: false
       },
       {
-        title: "Team Collaboration",
-        description: "Shared card libraries for organizations",
+        title: "Enhanced Card Quality",
+        description: "Improve strategic content accuracy and relevance",
         completed: false
       },
       {
-        title: "Advanced Export Options",
-        description: "Direct integration with Notion, Slack, and Jira",
+        title: "LLM Provider Expansion",
+        description: "Support for DeepSeek, Anthropic Claude, Gemini, and custom endpoints",
         completed: false
       }
     ]
   },
   {
-    quarter: "Q3 2025",
+    phase: "Native Apps (Next month)",
     status: "planned",
     items: [
       {
-        title: "AI Provider Expansion",
-        description: "Support for Gemini, Llama, and custom endpoints",
+        title: "iOS Native App",
+        description: "React Native (Expo) with native STT and RevenueCat billing",
+        completed: false
+      },
+      {
+        title: "Android Native App",
+        description: "Full feature parity with iOS, Google Play Billing integration",
+        completed: false
+      },
+      {
+        title: "Desktop App (Frameless)",
+        description: "Electron/Tauri app with system audio capture and custom rounded UI",
+        completed: false
+      }
+    ]
+  },
+  {
+    phase: "Future Platforms (If userbase grows)",
+    status: "future",
+    items: [
+      {
+        title: "Smart Glasses Integration",
+        description: "Ray-Ban Meta, Apple Vision Pro support for hands-free CheatCards",
+        completed: false
+      },
+      {
+        title: "CarPlay App",
+        description: "Learn during commutes with voice-activated card review",
+        completed: false
+      },
+      {
+        title: "Augmented Reality Mode",
+        description: "Overlay CheatCards in real-world presentations and meetings",
+        completed: false
+      }
+    ]
+  },
+  {
+    phase: "Community Ideas (Backlog)",
+    status: "backlog",
+    items: [
+      {
+        title: "Team Collaboration",
+        description: "Shared card libraries for organizations",
         completed: false
       },
       {
@@ -60,50 +102,8 @@ const roadmapItems = [
         completed: false
       },
       {
-        title: "Desktop System Audio",
-        description: "Native desktop app with system-level audio capture",
-        completed: false
-      }
-    ]
-  },
-  {
-    quarter: "Q4 2025",
-    status: "planned",
-    items: [
-      {
-        title: "Enterprise Features",
-        description: "SSO, admin controls, and compliance tools",
-        completed: false
-      },
-      {
-        title: "Advanced Analytics",
-        description: "Learning insights and performance tracking",
-        completed: false
-      },
-      {
-        title: "API Access",
-        description: "Public API for custom integrations",
-        completed: false
-      }
-    ]
-  },
-  {
-    quarter: "2026 & Beyond",
-    status: "future",
-    items: [
-      {
-        title: "AI-Powered Study Plans",
-        description: "Personalized learning paths based on your cards",
-        completed: false
-      },
-      {
-        title: "Virtual Reality Integration",
-        description: "Practice presentations in VR with CheatCard assistance",
-        completed: false
-      },
-      {
-        title: "Global Knowledge Network",
-        description: "Anonymous insight sharing across industries",
+        title: "Advanced Export Options",
+        description: "Direct integration with Notion, Slack, and Jira",
         completed: false
       }
     ]
@@ -112,19 +112,19 @@ const roadmapItems = [
 
 const features = [
   {
-    icon: "rocket_launch",
-    title: "Speed First",
-    description: "Every feature prioritizes maximum card generation speed"
+    icon: "flash_on",
+    title: "Agentic Coding Approach",
+    description: "Every line serves the user's emotional journey - functional beauty meets speed"
+  },
+  {
+    icon: "trending_up",
+    title: "Velocity Without Compromise",
+    description: "4-8 week MVP cycles, eliminating friction while maintaining quality"
   },
   {
     icon: "psychology",
-    title: "AI-Driven",
-    description: "Continuous AI improvements for better strategic content"
-  },
-  {
-    icon: "security",
-    title: "Privacy First",
-    description: "Your conversations and cards remain private and secure"
+    title: "Systems Thinking",
+    description: "We don't build features. We build ecosystems that evolve with your needs"
   }
 ];
 
@@ -138,7 +138,11 @@ export default function Roadmap() {
             SenScript <span className="text-orange-500">Roadmap</span>
           </h1>
           <p className="text-xl opacity-90 mb-8 leading-relaxed">
-            See what's coming next in CheatCard technology. Your feedback shapes our development priorities.
+            Built with the <strong>SenDev approach</strong> - rapid iteration, single-brain execution, no quarterly delays. 
+            <a href="https://dev.sen.studio" target="_blank" rel="noopener noreferrer" className="btn btn-primary mt-4 inline-flex items-center gap-2">
+              <span className="material-symbols-outlined icon-sm">open_in_new</span>
+              Learn Our Philosophy
+            </a>
           </p>
         </div>
       </section>
@@ -162,41 +166,52 @@ export default function Roadmap() {
       {/* Timeline */}
       <section className="space-section">
         <div className="content-center space-large">
-          <h2 className="text-3xl font-bold">Development Timeline</h2>
-          <p className="text-lg opacity-90">Building the future of strategic learning</p>
+          <h2 className="text-3xl font-bold">Development Pipeline</h2>
+          <p className="text-lg opacity-90">
+            Moving fast with Studio Sen methodology - weeks, not quarters
+          </p>
         </div>
         
         <div className="max-w-4xl mx-auto">
           {roadmapItems.map((quarter, quarterIndex) => (
             <div key={quarterIndex} className="relative mb-12">
-              {/* Timeline line */}
-              {quarterIndex < roadmapItems.length - 1 && (
-                <div className="absolute left-8 top-20 w-0.5 h-full bg-gradient-to-b from-orange-500/50 to-transparent"></div>
-              )}
               
               <div className="glass p-8">
                 {/* Quarter Header */}
                 <div className="flex items-center mb-6">
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-sm mr-6 ${
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-xs mr-6 ${
                     quarter.status === 'completed' ? 'bg-green-500 text-white' :
                     quarter.status === 'in-progress' ? 'bg-orange-500 text-white' :
                     quarter.status === 'planned' ? 'bg-blue-500 text-white' :
+                    quarter.status === 'backlog' ? 'bg-purple-500 text-white' :
                     'bg-gray-500 text-white'
                   }`}>
-                    {quarter.quarter.split(' ')[0]}
+                    <span className={`material-symbols-outlined text-sm ${
+                      quarter.status === 'completed' ? '' :
+                      quarter.status === 'in-progress' ? '' :
+                      quarter.status === 'planned' ? '' :
+                      quarter.status === 'backlog' ? '' : ''
+                    }`} style={{fontVariationSettings: "'wght' 100"}}>
+                      {quarter.status === 'completed' ? 'check_circle' :
+                       quarter.status === 'in-progress' ? 'bolt' :
+                       quarter.status === 'planned' ? 'phone_android' :
+                       quarter.status === 'backlog' ? 'forum' : 'rocket_launch'}
+                    </span>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold">{quarter.quarter}</h3>
+                    <h3 className="text-2xl font-bold">{quarter.phase}</h3>
                     <p className={`text-sm font-medium ${
                       quarter.status === 'completed' ? 'text-green-400' :
                       quarter.status === 'in-progress' ? 'text-orange-400' :
                       quarter.status === 'planned' ? 'text-blue-400' :
+                      quarter.status === 'backlog' ? 'text-purple-400' :
                       'text-gray-400'
                     }`}>
-                      {quarter.status === 'completed' ? 'Completed' :
-                       quarter.status === 'in-progress' ? 'In Progress' :
-                       quarter.status === 'planned' ? 'Planned' :
-                       'Future Vision'}
+                      {quarter.status === 'completed' ? 'Shipped' :
+                       quarter.status === 'in-progress' ? 'Active Development' :
+                       quarter.status === 'planned' ? 'Next Sprint' :
+                       quarter.status === 'backlog' ? 'Community Driven' :
+                       'Vision'}
                     </p>
                   </div>
                 </div>
@@ -230,31 +245,44 @@ export default function Roadmap() {
       {/* Feedback Section */}
       <section className="glass p-8">
         <div className="content-center space-large">
-          <h2 className="text-3xl font-bold">Shape Our Roadmap</h2>
-          <p className="text-lg opacity-90">Your input drives our development priorities</p>
+          <h2 className="text-3xl font-bold">Community-Driven Development</h2>
+          <p className="text-lg opacity-90">Discuss ideas, upvote features, and help us prioritize what matters most</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <div className="glass p-6 text-center">
             <span className="material-symbols-outlined icon-xl text-orange-500 mb-4 block">
-              feedback
+              forum
             </span>
-            <h3 className="text-lg font-semibold mb-2">Feature Requests</h3>
+            <h3 className="text-lg font-semibold mb-2">Feature Discussions</h3>
             <p className="text-sm opacity-90 mb-4">
-              Tell us what CheatCard features would make the biggest impact for you
+              Join conversations about upcoming features and share your ideas
             </p>
             <Link href="/contact" className="btn btn-primary">
-              Submit Request
+              Start Discussion
             </Link>
           </div>
           
           <div className="glass p-6 text-center">
             <span className="material-symbols-outlined icon-xl text-blue-400 mb-4 block">
+              thumb_up
+            </span>
+            <h3 className="text-lg font-semibold mb-2">Upvote Ideas</h3>
+            <p className="text-sm opacity-90 mb-4">
+              Vote on community suggestions to help us prioritize development
+            </p>
+            <Link href="/contact" className="btn">
+              Vote Now
+            </Link>
+          </div>
+          
+          <div className="glass p-6 text-center">
+            <span className="material-symbols-outlined icon-xl text-green-400 mb-4 block">
               bug_report
             </span>
             <h3 className="text-lg font-semibold mb-2">Bug Reports</h3>
             <p className="text-sm opacity-90 mb-4">
-              Help us improve SenScript by reporting issues you encounter
+              Help us maintain quality by reporting issues you encounter
             </p>
             <Link href="/contact" className="btn">
               Report Bug

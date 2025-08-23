@@ -14,24 +14,6 @@
           "exportedName": "createOrReadKeylessAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
-        "app/changelog/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/changelog/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "createOrReadKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/contact/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "createOrReadKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/dashboard/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "createOrReadKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
         "app/demo/page": {
           "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/demo/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -55,32 +37,15 @@
           "async": false,
           "exportedName": "createOrReadKeylessAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/roadmap/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/roadmap/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "createOrReadKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/use-cases/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/use-cases/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "createOrReadKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         }
       },
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
-        "app/changelog/page": "action-browser",
-        "app/contact/page": "action-browser",
-        "app/dashboard/page": "action-browser",
         "app/demo/page": "action-browser",
         "app/more-information/page": "action-browser",
         "app/page": "action-browser",
-        "app/pricing/page": "action-browser",
-        "app/roadmap/page": "action-browser",
-        "app/use-cases/page": "action-browser"
+        "app/pricing/page": "action-browser"
       },
       "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
       "exportedName": "createOrReadKeylessAction"
@@ -99,24 +64,6 @@
           "exportedName": "detectKeylessEnvDriftAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
-        "app/changelog/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/changelog/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "detectKeylessEnvDriftAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/contact/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "detectKeylessEnvDriftAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/dashboard/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "detectKeylessEnvDriftAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
         "app/demo/page": {
           "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/demo/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -140,32 +87,15 @@
           "async": false,
           "exportedName": "detectKeylessEnvDriftAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/roadmap/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/roadmap/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "detectKeylessEnvDriftAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/use-cases/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/use-cases/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "detectKeylessEnvDriftAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         }
       },
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
-        "app/changelog/page": "action-browser",
-        "app/contact/page": "action-browser",
-        "app/dashboard/page": "action-browser",
         "app/demo/page": "action-browser",
         "app/more-information/page": "action-browser",
         "app/page": "action-browser",
-        "app/pricing/page": "action-browser",
-        "app/roadmap/page": "action-browser",
-        "app/use-cases/page": "action-browser"
+        "app/pricing/page": "action-browser"
       },
       "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
       "exportedName": "detectKeylessEnvDriftAction"
@@ -184,24 +114,6 @@
           "exportedName": "deleteKeylessAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
-        "app/changelog/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/changelog/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "deleteKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/contact/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "deleteKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/dashboard/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "deleteKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
         "app/demo/page": {
           "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/demo/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -225,32 +137,15 @@
           "async": false,
           "exportedName": "deleteKeylessAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/roadmap/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/roadmap/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "deleteKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/use-cases/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/use-cases/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "deleteKeylessAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         }
       },
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
-        "app/changelog/page": "action-browser",
-        "app/contact/page": "action-browser",
-        "app/dashboard/page": "action-browser",
         "app/demo/page": "action-browser",
         "app/more-information/page": "action-browser",
         "app/page": "action-browser",
-        "app/pricing/page": "action-browser",
-        "app/roadmap/page": "action-browser",
-        "app/use-cases/page": "action-browser"
+        "app/pricing/page": "action-browser"
       },
       "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
       "exportedName": "deleteKeylessAction"
@@ -269,24 +164,6 @@
           "exportedName": "syncKeylessConfigAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
-        "app/changelog/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/changelog/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "syncKeylessConfigAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/contact/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "syncKeylessConfigAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/dashboard/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "syncKeylessConfigAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
         "app/demo/page": {
           "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/demo/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -310,32 +187,15 @@
           "async": false,
           "exportedName": "syncKeylessConfigAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/roadmap/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/roadmap/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "syncKeylessConfigAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
-        },
-        "app/use-cases/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/use-cases/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "syncKeylessConfigAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         }
       },
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
-        "app/changelog/page": "action-browser",
-        "app/contact/page": "action-browser",
-        "app/dashboard/page": "action-browser",
         "app/demo/page": "action-browser",
         "app/more-information/page": "action-browser",
         "app/page": "action-browser",
-        "app/pricing/page": "action-browser",
-        "app/roadmap/page": "action-browser",
-        "app/use-cases/page": "action-browser"
+        "app/pricing/page": "action-browser"
       },
       "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
       "exportedName": "syncKeylessConfigAction"
@@ -354,24 +214,6 @@
           "exportedName": "invalidateCacheAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
         },
-        "app/changelog/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/changelog/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "invalidateCacheAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
-        },
-        "app/contact/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "invalidateCacheAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
-        },
-        "app/dashboard/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "invalidateCacheAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
-        },
         "app/demo/page": {
           "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/demo/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -395,32 +237,15 @@
           "async": false,
           "exportedName": "invalidateCacheAction",
           "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
-        },
-        "app/roadmap/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/roadmap/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "invalidateCacheAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
-        },
-        "app/use-cases/page": {
-          "moduleId": "[project]/sen_dev/SenScript/website/.next-internal/server/app/use-cases/page/actions.js { ACTIONS_MODULE0 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "invalidateCacheAction",
-          "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
         }
       },
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
-        "app/changelog/page": "action-browser",
-        "app/contact/page": "action-browser",
-        "app/dashboard/page": "action-browser",
         "app/demo/page": "action-browser",
         "app/more-information/page": "action-browser",
         "app/page": "action-browser",
-        "app/pricing/page": "action-browser",
-        "app/roadmap/page": "action-browser",
-        "app/use-cases/page": "action-browser"
+        "app/pricing/page": "action-browser"
       },
       "filename": "sen_dev/SenScript/website/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js",
       "exportedName": "invalidateCacheAction"

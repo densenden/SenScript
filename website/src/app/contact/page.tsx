@@ -40,11 +40,29 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      } else {
+        console.error('Form submission error:', result);
+        alert(`Error: ${result.error || 'Failed to send message'}`);
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert('Failed to send message. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1000);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -52,6 +70,23 @@ export default function Contact() {
       ...prev,
       [e.target.name]: e.target.value
     }));
+  };
+
+  const handleTopicClick = (topicTitle: string) => {
+    // Set the subject
+    setFormData(prev => ({
+      ...prev,
+      subject: topicTitle
+    }));
+    
+    // Smooth scroll to form
+    const formElement = document.getElementById('contact-form');
+    if (formElement) {
+      formElement.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
   return (
@@ -68,27 +103,33 @@ export default function Contact() {
         </div>
       </section>
 
-      {/* Support Topics */}
-      <section className="section-grid mb-8">
-        {supportTopics.map((topic, index) => (
-          <div key={index} className="glass p-6 text-center">
-            <span className={`material-symbols-outlined icon-xl mb-4 block ${
-              index === 0 ? 'text-orange-500' :
-              index === 1 ? 'text-blue-400' :
-              index === 2 ? 'text-red-400' :
-              'text-green-400'
-            }`}>
-              {topic.icon}
-            </span>
-            <h3 className="text-lg font-semibold mb-2">{topic.title}</h3>
-            <p className="text-sm opacity-90">{topic.description}</p>
-          </div>
-        ))}
+      {/* Support Topics - 4 Columns */}
+      <section className="mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {supportTopics.map((topic, index) => (
+            <button
+              key={index}
+              onClick={() => handleTopicClick(topic.title)}
+              className="glass p-6 text-center hover:bg-white/10 transition-all duration-300 transform hover:scale-105 cursor-pointer border-none"
+            >
+              <span className={`material-symbols-outlined icon-xl mb-4 block ${
+                index === 0 ? 'text-orange-500' :
+                index === 1 ? 'text-blue-400' :
+                index === 2 ? 'text-red-400' :
+                'text-green-400'
+              }`}>
+                {topic.icon}
+              </span>
+              <h3 className="text-lg font-semibold mb-2">{topic.title}</h3>
+              <p className="text-sm opacity-90">{topic.description}</p>
+            </button>
+          ))}
+        </div>
       </section>
 
-      {/* Contact Form */}
-      <section className="space-section">
-        <div className="max-w-2xl mx-auto">
+      {/* Contact Form - Full Width */}
+      <section className="space-section" id="contact-form">
+        <div className="w-full">
           {!isSubmitted ? (
             <div className="glass p-8">
               <div className="content-center space-large mb-8">

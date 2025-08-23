@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         * {
             margin: 0;
@@ -134,6 +135,24 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
+        /* Button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
         /* User menu */
         .user-menu {
             position: absolute;
@@ -212,11 +231,23 @@
             </div>
             <h1 class="auth-title">SenScript</h1>
             <p class="auth-subtitle">Smart meeting companion</p>
-            <p class="text-sm opacity-70 mt-4">
-                <a href="https://getscript.sen.studio" target="_blank" class="text-orange-400 hover:text-orange-300 underline">
-                    Visit getscript.sen.studio for more info
+            <div style="margin-top: 16px; margin-bottom: 24px;">
+                <a href="https://getscript.sen.studio" target="_blank" style="
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 8px 12px;
+                    background: rgba(251, 146, 60, 0.2);
+                    color: rgb(251, 146, 60);
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    text-decoration: none;
+                    transition: all 0.3s;
+                    border: 1px solid rgba(251, 146, 60, 0.3);
+                " onmouseover="this.style.background='rgba(251, 146, 60, 0.3)'" onmouseout="this.style.background='rgba(251, 146, 60, 0.2)'">
+                    Info Page
                 </a>
-            </p>
+            </div>
             <div class="auth-buttons">
                 <button id="sign-in-btn" class="auth-button glass-button">
                     Sign In
@@ -232,8 +263,20 @@
     <div id="user-menu" class="user-menu" style="display: none;">
         <div class="flex items-center gap-3">
             <img src="assets/images/logo-white.svg" alt="SenScript" style="width: 32px; height: 32px;">
-            <a href="https://getscript.sen.studio" target="_blank" class="text-orange-400 hover:text-orange-300 text-sm font-medium">
-                getscript.sen.studio
+            <a href="https://getscript.sen.studio" target="_blank" style="
+                display: inline-flex;
+                align-items: center;
+                padding: 0.25rem 0.5rem;
+                background: rgba(251, 146, 60, 0.2);
+                color: rgb(251, 146, 60);
+                border-radius: 0.375rem;
+                font-size: 0.75rem;
+                font-weight: 500;
+                text-decoration: none;
+                transition: all 0.3s;
+                border: 1px solid rgba(251, 146, 60, 0.3);
+            " onmouseover="this.style.background='rgba(251, 146, 60, 0.3)'" onmouseout="this.style.background='rgba(251, 146, 60, 0.2)'">
+                Info
             </a>
         </div>
         <div class="user-info">
@@ -260,7 +303,7 @@
     <script>
         // Initialize authentication and app
         (async function() {
-            const auth = new ClerkAuth();
+            const auth = window.auth;
             const listeningMeter = new ListeningMeter(auth);
             const settingsModal = new SettingsModal(auth, listeningMeter);
             
@@ -269,7 +312,7 @@
             
             // Check authentication status
             const checkAuth = async () => {
-                if (auth.isSignedIn()) {
+                if (auth.isAuthenticated) {
                     // User is signed in
                     document.getElementById('auth-container').style.display = 'none';
                     document.getElementById('app-container').classList.add('authenticated');

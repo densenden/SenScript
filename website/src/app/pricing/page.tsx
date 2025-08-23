@@ -65,9 +65,9 @@ const plans = [
 const testimonials = [
   {
     name: "Sarah",
-    title: "Staff Engineer at Stripe",
+    title: "Software Engineer",
     image: "/images/sarah.png",
-    quote: "Mock interviews → Strategic CheatCards → Staff Engineer at Stripe. The interview prep transformed my career trajectory."
+    quote: "Mock interviews → Strategic CheatCards → Senior Engineer promotion. The interview prep transformed my career trajectory."
   },
   {
     name: "Marcus",

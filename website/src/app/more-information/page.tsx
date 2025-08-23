@@ -1,4 +1,17 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
+const sections = [
+  { id: 'senscript-name', label: 'Why SenScript?' },
+  { id: 'who-built-this', label: 'Who Built This?' },
+  { id: 'use-cases', label: 'Use Cases' },
+  { id: 'cheatcards-vs-flashcards', label: 'Card System' },
+  { id: 'success-stories', label: 'Success Stories' },
+  { id: 'ai-providers', label: 'AI Providers' },
+  { id: 'technical', label: 'Technical' }
+];
 
 const useCases = [
   {
@@ -34,6 +47,34 @@ const useCases = [
 ];
 
 export default function MoreInformation() {
+  const [activeSection, setActiveSection] = useState('senscript-name');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sectionElements = sections.map(section => ({
+        id: section.id,
+        element: document.getElementById(section.id)
+      }));
+
+      // Find which section is currently in view
+      const current = sectionElements.find(section => {
+        if (!section.element) return false;
+        const rect = section.element.getBoundingClientRect();
+        // Consider section active if it's within the viewport (accounting for sticky nav)
+        return rect.top <= 200 && rect.bottom >= 200;
+      });
+
+      if (current) {
+        setActiveSection(current.id);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial state
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="container">
       {/* Hero Section */}
@@ -50,84 +91,152 @@ export default function MoreInformation() {
         </div>
       </section>
 
-      {/* Mission Journey */}
-      <section className="space-section">
-        <div className="content-center space-large">
-          <h2 className="text-3xl font-bold">Our Innovation Journey</h2>
-          <p className="text-lg opacity-90">From discovery to revolution</p>
+      {/* Navigation - Sticky 30px below 80px navbar */}
+      <nav className="sticky top-[110px] z-40 mb-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="glass p-2 rounded-xl border border-white/10">
+            <div className="flex flex-wrap justify-center gap-2">
+              {sections.map((section) => (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  className={`px-3 py-1.5 rounded-lg border transition-all duration-300 transform hover:scale-105 text-xs font-medium ${
+                    activeSection === section.id
+                      ? 'bg-orange-500/20 border-orange-500/40 text-orange-400 shadow-lg'
+                      : 'bg-white/5 border-white/10 hover:bg-white/15 hover:text-orange-400'
+                  }`}
+                >
+                  {section.label}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="section-grid">
-          <div className="glass p-6">
-            <span className="material-symbols-outlined icon-xl text-blue-400 mb-4 block">
-              search
-            </span>
-            <h3 className="text-xl font-semibold mb-3">Discovery</h3>
-            <p className="opacity-90">
-              Traditional flashcards weren't enough for modern interviews. We discovered 
-              that strategic response patterns matter more than memorized facts.
-            </p>
+      </nav>
+
+      {/* SenScript Name & Awareness */}
+      <section className="glass p-8">
+        {/* Anchor target positioned below sticky nav */}
+        <div id="senscript-name" className="relative -top-[175px] invisible h-0"></div>
+        <div className="content-max-width">
+          <h2 className="text-3xl font-bold mb-6 content-center">Why "SenScript"?</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div>
+              <h3 className="text-xl font-semibold text-orange-500 mb-4">The Name Story</h3>
+              <p className="opacity-90 leading-relaxed mb-4">
+                <strong>Sen</strong> represents sensitivity, awareness, and the ability to sense opportunity in every conversation. 
+                <strong> Script</strong> captures the strategic narratives you need for career advancement.
+              </p>
+              <p className="opacity-90 leading-relaxed">
+                SenScript isn't just transcription - it's <em>strategic awareness</em> technology. 
+                We don't record anything; we transcribe and analyze what matters, what to remember, and how to use it.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold text-blue-400 mb-4">Beyond Transcription</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-orange-500 mt-1">psychology</span>
+                  <span className="text-sm"><strong>Deeper Understanding:</strong> Context-aware AI that recognizes strategic patterns</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-blue-400 mt-1">insights</span>
+                  <span className="text-sm"><strong>Strategic Intelligence:</strong> Transforms conversations into tactical advantages</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-green-400 mt-1">trending_up</span>
+                  <span className="text-sm"><strong>Career Advancement:</strong> Patterns that separate seniors from juniors</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-purple-400 mt-1">memory</span>
+                  <span className="text-sm"><strong>Perfect Recall:</strong> Never forget a strategic insight or key learning moment</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div className="glass p-6">
-            <span className="material-symbols-outlined icon-xl text-purple-400 mb-4 block">
-              lightbulb
-            </span>
-            <h3 className="text-xl font-semibold mb-3">Innovation</h3>
-            <p className="opacity-90">
-              CheatCard mode provides tactical advantages - "what to say" vs "what NOT to say" 
-              guidance that transforms how people prepare for high-stakes conversations.
-            </p>
-          </div>
-
-          <div className="glass p-6">
-            <span className="material-symbols-outlined icon-xl text-orange-500 mb-4 block">
-              rocket_launch
-            </span>
-            <h3 className="text-xl font-semibold mb-3">Revolution</h3>
-            <p className="opacity-90">
-              Real-time speech-to-CheatCard technology that captures strategic insights 
-              while conversations happen - no post-processing delays.
+          <div className="bg-gradient-to-r from-orange-500/10 to-blue-500/10 border border-orange-500/20 rounded-2xl p-6">
+            <h3 className="text-lg font-semibold text-orange-500 mb-3">The SenScript Advantage</h3>
+            <p className="opacity-90 leading-relaxed">
+              While others provide transcripts, SenScript provides <strong>transformation</strong>. 
+              We've pioneered CheatCard technology because we understand that success isn't about remembering everything - 
+              it's about remembering the <em>right things</em> at the <em>right time</em>.
             </p>
           </div>
         </div>
       </section>
 
-      {/* CheatCard Philosophy */}
+      {/* Who Built This - Studio Sen Teaser */}
       <section className="glass p-8">
-        <div className="content-max-width space-large">
-          <h2 className="text-3xl font-bold mb-6 content-center">The CheatCard Philosophy</h2>
+        {/* Anchor target positioned below sticky nav */}
+        <div id="who-built-this" className="relative -top-[175px] invisible h-0"></div>
+        <div className="content-max-width">
+          <h2 className="text-3xl font-bold mb-6 content-center">Who Built This?</h2>
           
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
-              <h3 className="text-xl font-semibold text-orange-500 mb-3">Speed First Architecture</h3>
-              <p className="opacity-90 leading-relaxed">
-                Every feature, optimization, and design decision prioritizes faster card generation 
-                over perfect accuracy. Sub-3-second generation means you never miss a strategic insight.
+              <h3 className="text-xl font-semibold text-orange-500 mb-4">Studio Sen</h3>
+              <p className="opacity-90 leading-relaxed mb-4">
+                SenScript was crafted by <strong>Studio Sen</strong> - a design-first software studio that believes 
+                in building products that feel "alive" and invite engagement.
               </p>
+              <p className="opacity-90 leading-relaxed mb-6">
+                Our <em>Agentic Coding</em> methodology ensures every line of code serves the user's emotional journey, 
+                combining functional beauty with lightning speed.
+              </p>
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined text-orange-500">person</span>
+                </div>
+                <div>
+                  <p className="font-medium">Denis Kreuzer</p>
+                  <p className="text-sm opacity-70">Founder & Lead Developer</p>
+                </div>
+              </div>
             </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold text-blue-400 mb-4">Our Philosophy</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-orange-500 mt-1">flash_on</span>
+                  <span className="text-sm"><strong>Speed First:</strong> 4-8 week MVP cycles without compromising quality</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-blue-400 mt-1">psychology</span>
+                  <span className="text-sm"><strong>Single-Brain Execution:</strong> No translation layers between design and code</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-green-400 mt-1">eco</span>
+                  <span className="text-sm"><strong>Systems Thinking:</strong> Building ecosystems that evolve intelligently</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined icon-sm text-purple-400 mt-1">favorite</span>
+                  <span className="text-sm"><strong>Human-First:</strong> "I don't build for screens. I build for people."</span>
+                </li>
+              </ul>
+            </div>
+          </div>
 
-            <div>
-              <h3 className="text-xl font-semibold text-blue-400 mb-3">Strategic Intelligence</h3>
-              <p className="opacity-90 leading-relaxed">
-                CheatCards aren't just facts - they're tactical advantages. Context-aware AI 
-                understands interview strategy, negotiation tactics, and communication patterns 
-                that separate senior professionals from everyone else.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold text-green-400 mb-3">Universal Access</h3>
-              <p className="opacity-90 leading-relaxed">
-                Works with any audio source through your Chrome browser. Teams, Zoom, phone calls, 
-                lectures - if there's speech, there are CheatCards. No integrations required.
-              </p>
-            </div>
+          <div className="bg-gradient-to-r from-orange-500/10 to-blue-500/10 border border-orange-500/20 rounded-2xl p-6 text-center">
+            <h3 className="text-lg font-semibold text-orange-500 mb-3">Learn More About Our Story</h3>
+            <p className="opacity-90 leading-relaxed mb-6">
+              Discover our innovation journey, development philosophy, and the methodology behind SenScript's breakthrough CheatCard technology.
+            </p>
+            <Link href="/about" className="btn btn-primary inline-flex items-center gap-2">
+              <span className="material-symbols-outlined icon-sm">info</span>
+              About SenScript & Studio Sen
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Detailed Use Cases */}
       <section className="space-section">
+        {/* Anchor target positioned below sticky nav */}
+        <div id="use-cases" className="relative -top-[175px] invisible h-0"></div>
         <div className="content-center space-large">
           <h2 className="text-3xl font-bold">CheatCard Use Cases</h2>
           <p className="text-lg opacity-90">Strategic advantages across every profession</p>
@@ -157,204 +266,157 @@ export default function MoreInformation() {
         </div>
       </section>
 
-      {/* Success Stories - Main Focus */}
-      <section className="space-section">
-        <div className="content-center space-large">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Success Stories</h2>
-          <p className="text-xl opacity-90 mb-16">Real people achieving breakthrough results with CheatCard technology</p>
+      {/* Card System Concept */}
+      <section className="glass p-8">
+        {/* Anchor target positioned below sticky nav */}
+        <div id="cheatcards-vs-flashcards" className="relative -top-[175px] invisible h-0"></div>
+        <div className="content-max-width">
+          <h2 className="text-3xl font-bold mb-6 content-center">Card System</h2>
+          <p className="text-lg opacity-90 mb-8 content-center">
+            Understanding the difference and when to use each approach
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-6">
+              <div className="relative">
+                <img 
+                  src="/images/cheatcard-example.png" 
+                  alt="CheatCard example showing quick tactical answers"
+                  className="w-full aspect-[4/3] object-cover rounded-2xl shadow-lg"
+                />
+                <div className="absolute top-4 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                  CheatCard Mode
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-orange-500 mb-3">CheatCards: Quick Strategic Answers</h3>
+                <ul className="space-y-2 text-sm opacity-90">
+                  <li className="flex items-start space-x-2">
+                    <span className="material-symbols-outlined icon-sm text-orange-500 mt-1">bolt</span>
+                    <span><strong>For Tests & Interviews:</strong> Instant tactical responses when you need them most</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="material-symbols-outlined icon-sm text-orange-500 mt-1">psychology</span>
+                    <span><strong>Strategic Intelligence:</strong> "What to say" vs "what NOT to say" guidance</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="material-symbols-outlined icon-sm text-orange-500 mt-1">speed</span>
+                    <span><strong>Real-time Access:</strong> Available during live conversations and presentations</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="relative">
+                <img 
+                  src="/images/flashcard-example.png" 
+                  alt="Flashcard example showing traditional learning format"
+                  className="w-full aspect-[4/3] object-cover rounded-2xl shadow-lg"
+                />
+                <div className="absolute top-4 left-4 bg-blue-400 text-white px-3 py-1 rounded-full text-sm font-bold">
+                  Flashcard Mode
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-blue-400 mb-3">Flashcards: Deep Learning Practice</h3>
+                <ul className="space-y-2 text-sm opacity-90">
+                  <li className="flex items-start space-x-2">
+                    <span className="material-symbols-outlined icon-sm text-blue-400 mt-1">school</span>
+                    <span><strong>For Study Sessions:</strong> Traditional question/answer format for memorization</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="material-symbols-outlined icon-sm text-blue-400 mt-1">repeat</span>
+                    <span><strong>Spaced Repetition:</strong> Long-term retention through repeated practice</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="material-symbols-outlined icon-sm text-blue-400 mt-1">library_books</span>
+                    <span><strong>Knowledge Building:</strong> Comprehensive understanding over time</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-orange-500/10 to-blue-500/10 border border-orange-500/20 rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4 content-center">The SenScript Advantage: Switch Anytime</h3>
+            <p className="opacity-90 leading-relaxed content-center">
+              SenScript doesn't automatically generate both modes. Instead, <strong>you can switch between CheatCard and Flashcard modes anytime while listening to the audio stream</strong>. 
+              Use CheatCards when you need quick answers in real-time situations, and Flashcards when you want to build deep, lasting knowledge.
+            </p>
+          </div>
         </div>
-        
-        <div className="space-y-24 max-w-8xl mx-auto">
-          {/* Sarah Chen - Story 1 */}
-          <div className="glass p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Image with Quote Overlay */}
-              <div className="relative group">
-                <img
-                  src="/images/sarah.png"
-                  alt="Sarah Chen"
-                  className="w-full aspect-[4/3] object-cover rounded-3xl shadow-2xl"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl"></div>
-                <div className="absolute bottom-6 left-6 right-6 text-white">
-                  <h3 className="text-2xl font-bold mb-2">Sarah Chen</h3>
-                  <p className="text-lg font-medium mb-3">Software Engineer</p>
-                  <blockquote className="text-sm italic leading-relaxed">
-                    "CheatCards taught me to speak like a senior engineer. I practiced system design explanations until they became natural."
-                  </blockquote>
-                </div>
-              </div>
-              
-              {/* Big Headlines/Facts */}
-              <div className="space-y-6">
-                <div className="text-center lg:text-left">
-                  <h4 className="text-5xl font-bold text-orange-500 mb-2">Staff Engineer</h4>
-                  <p className="text-xl opacity-90 mb-6">at Stripe in 6 months</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-400">$45k</div>
-                    <div className="text-sm opacity-80">Salary Increase</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-400">127</div>
-                    <div className="text-sm opacity-80">Strategic Cards</div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/5 rounded-2xl p-6">
-                  <h5 className="text-lg font-semibold mb-3 text-orange-500">The Challenge</h5>
-                  <p className="text-sm opacity-90 mb-4">Struggling with technical interviews, couldn't articulate system design concepts clearly</p>
-                  <h5 className="text-lg font-semibold mb-3 text-green-400">The Solution</h5>
-                  <p className="text-sm opacity-90">Used CheatCards during mock interviews and architecture discussions to practice responses</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Example Cards */}
-            <div className="mt-12">
-              <h4 className="text-2xl font-bold mb-6 text-center">CheatCards That Helped Sarah</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {personas[0].cards.map((card, index) => (
-                  <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
-                    <div className="text-xs font-bold text-orange-500 mb-3">{card.category}</div>
-                    <div className="text-lg font-medium mb-4">{card.front}</div>
-                    <div className="text-sm opacity-80 leading-relaxed">{card.back}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      </section>
 
-          {/* Marcus Rodriguez - Story 2 */}
-          <div className="glass p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Big Headlines/Facts */}
-              <div className="space-y-6 lg:order-1">
-                <div className="text-center lg:text-left">
-                  <h4 className="text-5xl font-bold text-purple-500 mb-2">PhD Defense</h4>
-                  <p className="text-xl opacity-90 mb-6">Successfully Completed</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-400">4 Years</div>
-                    <div className="text-sm opacity-80">Research Organized</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-400">156</div>
-                    <div className="text-sm opacity-80">Research Cards</div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/5 rounded-2xl p-6">
-                  <h5 className="text-lg font-semibold mb-3 text-orange-500">The Challenge</h5>
-                  <p className="text-sm opacity-90 mb-4">Overwhelmed by research papers and advisor meetings, couldn't organize knowledge effectively</p>
-                  <h5 className="text-lg font-semibold mb-3 text-green-400">The Solution</h5>
-                  <p className="text-sm opacity-90">Used SenScript to turn research discussions and paper reviews into structured study cards</p>
+      {/* Success Stories Navigation */}
+      <section className="glass p-8">
+        {/* Anchor target positioned below sticky nav */}
+        <div id="success-stories" className="relative -top-[175px] invisible h-0"></div>
+        <div className="content-center">
+          <h2 className="text-3xl font-bold mb-4">Versatile Across Every Profession</h2>
+          <p className="text-lg opacity-90 mb-8">
+            From interviews to research, languages to exams - SenScript adapts to your needs
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <a href="/use-cases#sarah" className="glass overflow-hidden hover:bg-white/10 transition-colors group">
+              <div className="flex items-center gap-4 p-6">
+                <img src="/images/sarah.png" alt="Sarah" className="w-24 h-20 rounded-[12px] object-cover flex-shrink-0" />
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg mb-1">Technical Interviews</h3>
+                  <p className="text-sm opacity-80 mb-2">Sarah - Software Engineer</p>
+                  <p className="text-sm text-orange-500 font-medium group-hover:translate-x-1 transition-transform">Senior role in 6 months →</p>
                 </div>
               </div>
-              
-              {/* Image with Quote Overlay */}
-              <div className="relative group lg:order-2">
-                <img
-                  src="/images/marcus.png"
-                  alt="Marcus Rodriguez"
-                  className="w-full aspect-[4/3] object-cover rounded-3xl shadow-2xl"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl"></div>
-                <div className="absolute bottom-6 left-6 right-6 text-white">
-                  <h3 className="text-2xl font-bold mb-2">Marcus Rodriguez</h3>
-                  <p className="text-lg font-medium mb-3">PhD Student in Computer Science</p>
-                  <blockquote className="text-sm italic leading-relaxed">
-                    "My advisor meetings became structured knowledge. Four years of scattered research turned into a coherent academic story."
-                  </blockquote>
-                </div>
-              </div>
-            </div>
+            </a>
             
-            {/* Example Cards */}
-            <div className="mt-12">
-              <h4 className="text-2xl font-bold mb-6 text-center">Research CheatCards That Helped Marcus</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {personas[1].cards.map((card, index) => (
-                  <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
-                    <div className="text-xs font-bold text-purple-500 mb-3">{card.category}</div>
-                    <div className="text-lg font-medium mb-4">{card.front}</div>
-                    <div className="text-sm opacity-80 leading-relaxed">{card.back}</div>
-                  </div>
-                ))}
+            <a href="/use-cases#marcus" className="glass overflow-hidden hover:bg-white/10 transition-colors group">
+              <div className="flex items-center gap-4 p-6">
+                <img src="/images/marcus.png" alt="Marcus" className="w-24 h-20 rounded-[12px] object-cover flex-shrink-0" />
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg mb-1">Academic Research</h3>
+                  <p className="text-sm opacity-80 mb-2">Marcus - PhD Graduate</p>
+                  <p className="text-sm text-purple-400 font-medium group-hover:translate-x-1 transition-transform">PhD defense success →</p>
+                </div>
               </div>
-            </div>
+            </a>
+            
+            <a href="/use-cases#lisa" className="glass overflow-hidden hover:bg-white/10 transition-colors group">
+              <div className="flex items-center gap-4 p-6">
+                <img src="/images/lisa.png" alt="Lisa" className="w-24 h-20 rounded-[12px] object-cover flex-shrink-0" />
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg mb-1">Language Learning</h3>
+                  <p className="text-sm opacity-80 mb-2">Lisa - Polyglot</p>
+                  <p className="text-sm text-indigo-500 font-medium group-hover:translate-x-1 transition-transform">5 languages mastered →</p>
+                </div>
+              </div>
+            </a>
+            
+            <a href="/use-cases#alex" className="glass overflow-hidden hover:bg-white/10 transition-colors group">
+              <div className="flex items-center gap-4 p-6">
+                <img src="/images/alex.png" alt="Alex" className="w-24 h-20 rounded-[12px] object-cover flex-shrink-0" />
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg mb-1">Academic Excellence</h3>
+                  <p className="text-sm opacity-80 mb-2">Alex - Student</p>
+                  <p className="text-sm text-green-400 font-medium group-hover:translate-x-1 transition-transform">From B- to A grades →</p>
+                </div>
+              </div>
+            </a>
           </div>
-
-          {/* Lisa Weber - Story 3 */}
-          <div className="glass p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Image with Quote Overlay */}
-              <div className="relative group">
-                <img
-                  src="/images/lisa.png"
-                  alt="Lisa Weber"
-                  className="w-full aspect-[4/3] object-cover rounded-3xl shadow-2xl"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl"></div>
-                <div className="absolute bottom-6 left-6 right-6 text-white">
-                  <h3 className="text-2xl font-bold mb-2">Lisa Weber</h3>
-                  <p className="text-lg font-medium mb-3">Polyglot Language Learner</p>
-                  <blockquote className="text-sm italic leading-relaxed">
-                    "SenScript works in all my target languages. I capture native conversations in German, Spanish, French - automatic flashcards in each language."
-                  </blockquote>
-                </div>
-              </div>
-              
-              {/* Big Headlines/Facts */}
-              <div className="space-y-6">
-                <div className="text-center lg:text-left">
-                  <h4 className="text-5xl font-bold text-indigo-500 mb-2">5 Languages</h4>
-                  <p className="text-xl opacity-90 mb-6">Fluently Mastered</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-400">13</div>
-                    <div className="text-sm opacity-80">Languages Supported</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-400">200+</div>
-                    <div className="text-sm opacity-80">Language Cards</div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/5 rounded-2xl p-6">
-                  <h5 className="text-lg font-semibold mb-3 text-orange-500">The Challenge</h5>
-                  <p className="text-sm opacity-90 mb-4">Learning 5 languages simultaneously, couldn't keep track of vocabulary and grammar patterns</p>
-                  <h5 className="text-lg font-semibold mb-3 text-green-400">The Solution</h5>
-                  <p className="text-sm opacity-90">SenScript's 13-language support helped capture native speaker conversations and create multilingual flashcards</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Example Cards */}
-            <div className="mt-12">
-              <h4 className="text-2xl font-bold mb-6 text-center">Multilingual CheatCards That Helped Lisa</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {personas[2].cards.map((card, index) => (
-                  <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
-                    <div className="text-xs font-bold text-indigo-500 mb-3">{card.category}</div>
-                    <div className="text-lg font-medium mb-4">{card.front}</div>
-                    <div className="text-sm opacity-80 leading-relaxed">{card.back}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          
+          <div className="mt-8">
+            <a href="/use-cases" className="btn btn-primary inline-flex items-center gap-2">
+              <span className="material-symbols-outlined icon-sm">diversity_3</span>
+              Explore All Use Cases
+            </a>
           </div>
         </div>
       </section>
 
       {/* LLM Choice Section */}
       <section className="glass p-8">
+        {/* Anchor target positioned below sticky nav */}
+        <div id="ai-providers" className="relative -top-[175px] invisible h-0"></div>
         <div className="content-max-width">
           <h2 className="text-3xl font-bold mb-6 content-center">Your Choice of AI Provider</h2>
           <p className="text-lg opacity-90 mb-8 content-center">
@@ -422,6 +484,8 @@ export default function MoreInformation() {
 
       {/* Technical Deep Dive */}
       <section className="glass p-8">
+        {/* Anchor target positioned below sticky nav */}
+        <div id="technical" className="relative -top-[175px] invisible h-0"></div>
         <div className="content-max-width">
           <h2 className="text-3xl font-bold mb-6 content-center">Universal Audio Capture</h2>
           <p className="text-lg opacity-90 mb-8 content-center">

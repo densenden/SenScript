@@ -17,6 +17,13 @@ const port = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
+// Serve the auth-enabled HTML file as the default
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index-with-auth.html'));
+});
+
+// Static files (excluding index.html to avoid conflicts)
 app.use(express.static(__dirname));
 
 // Import education settings

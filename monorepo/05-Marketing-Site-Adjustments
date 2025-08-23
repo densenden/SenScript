@@ -1,0 +1,86 @@
+# SenScript – Page Corrections & Additions
+
+
+## 1. Home
+- Standard glass containers: use consistent **24px corner radius**.  
+- integratre images 3:2 find here /Users/densen/sen_dev/SenScript/website/public/images/interview-scenarios
+- Tone: currently too focused on **career advancing** → adjust to general productivity for everyday workers in team meetings.  
+- Rename **"Career Transformation Stories" → "Use Cases"**.  
+- Example users (keep as is, but teaser mmore interesign, one sentence how they used it):
+  - Sarah → software engineer preparing for interviews  
+  - Marcus → PhD learner  
+  - Lisa → language learner 
+- Placeholders for two images (meeting situaltion with screenplaz and mobile use), also show our 3 usecase with thumbnail 
+- Mobile version container wit image and info use mic.
+
+---
+
+## 2. Demo
+- Keep the three steps, but **remove orange circles** → use orange only for fonts, containers stay white.  
+- Add two additional images:
+  - App in use during a **Teams meeting** on computer screen, cards popping up during presentation.  
+  - Phone near a **TV**, showing cards generated from audio source.  
+
+---
+
+## 3. Use Cases (new page)
+- Create dedicated **Use Cases page**.  
+- Move 1-3 here, link 
+- Headline: more editorial (e.g. *“Learn how Sarah landed her job as a Staff Engineer”*).  
+- Layout more spacy, editorial style, 
+- Each use case should display **real cards** from the app (mix of AI flashcards + cheat cards) → styled exactly like in-app, not just text columns.  
+- Add new number 4 **exam cheat scenario**: tool helping students bridge gaps during school tests. Subtle hint at “cheating mode.” Make up a name story and cards! For School Use.  
+
+---
+
+## 4. About → renamed to **More Information**
+- Rename “About” to **More Information**.  
+- Clarify architecture section:  
+  - *“Speed First Architecture”* → emphasize **faster card generation over perfection**.  
+  - Talk about LLMs to be chosen in a section (now deepseek, anthropic and openai), and that zou can add own api keys
+
+---
+
+## 5. Roadmap (new page)
+- Accessible via footer under **Resources**.  
+- Content: timeline with  
+  - Features implemented (with dates)  
+  - Current beta version status  
+  - Future steps 
+  - Link container teaser to that page in About Page
+- Learn about native app plans and desktop version, we now use web-app /Users/densen/sen_dev/SenScript/monorepo
+
+
+---
+
+## 6. Changelog (new page)
+- Also under **Resources**.  
+- Pull in Git commits → translate into user-friendly notes.  
+- Authenticated users (OAuth) can **comment** on changelogs with feedback.  
+- Section encouraging user comments/suggestions. 
+- Form for wishes submission 
+
+---
+
+## 7. Footer Adjustments
+- Under **Resources**, remove:
+  - Documentation  
+  - API Reference  
+- Add:
+  - Roadmap  
+  - Changelog  
+- Add **Contact page** under Support → replaces current 404. Simple support form. 
+- Add GDPR info page, reserach useful contennt, say we transcribe only, no records kept, like ai notetaking,  
+
+---
+## 8. Pricing
+- Adjust on stripe and everywhere Essential is 4.99$, Professional 17.99$ (no limits) 
+- Free 90 min ok, but also to use your own API Keys, dev feature keeps it free, descrtibe that in extra container, add screenshot field! 
+
+---
+
+## 9. General Adjustments
+- Remove URLs from **headlines**.  
+- Product name always written as **SenScript** (CamelCase). 
+- Introduce Modern animation and micro reactions of the Design system.
+

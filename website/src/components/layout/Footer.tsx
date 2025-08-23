@@ -9,25 +9,27 @@ const footerSections = [
     title: 'Product',
     links: [
       { name: 'Live Demo', href: '/demo' },
+      { name: 'Card System', href: '/more-information#cheatcards-vs-flashcards' },
       { name: 'Pricing', href: '/pricing' },
-      { name: 'About', href: '/about' },
       { name: 'Features', href: '/#features' },
-    ]
-  },
-  {
-    title: 'Company', 
-    links: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Contact', href: 'https://sen.studio/contact' },
-      { name: 'Studio Sen', href: 'https://sen.studio' },
     ]
   },
   {
     title: 'Resources',
     links: [
+      { name: 'More Information', href: '/more-information' },
+      { name: 'Use Cases', href: '/use-cases' },
       { name: 'Roadmap', href: '/roadmap' },
       { name: 'Changelog', href: '/changelog' },
+    ]
+  },
+  {
+    title: 'Company',
+    links: [
+      { name: 'About', href: '/about' },
       { name: 'Contact', href: '/contact' },
+      { name: 'Sen Dev', href: 'https://dev.sen.studio' },
+      { name: 'Studio Sen', href: 'https://sen.studio' },
     ]
   },
   {

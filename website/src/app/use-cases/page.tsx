@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PersonaCard from '@/components/ui/PersonaCard';
 
@@ -7,13 +8,13 @@ const useCases = [
   {
     id: 'sarah',
     name: 'Sarah',
-    title: 'Software Engineer at Stripe',
+    title: 'Software Engineer',
     image: '/images/sarah.png',
-    headline: 'Learn how Sarah landed her job as a Staff Engineer',
-    challenge: 'Stuck at senior level for 2+ years, struggling with system design interviews',
+    headline: 'Learn how Sarah advanced her software engineering career',
+    challenge: 'Stuck at junior level for 2+ years, struggling with system design interviews',
     solution: 'Used SenScript during mock interviews and architecture discussions to capture expert communication patterns',
-    result: 'Promoted to Staff Engineer with $45k salary increase in 6 months',
-    quote: 'SenScript taught me to speak like a staff engineer. The patterns I captured from architecture reviews became my interview superpower.',
+    result: 'Promoted to senior level with significant salary increase in 6 months',
+    quote: 'SenScript taught me to speak like a senior engineer. The patterns I captured from architecture reviews became my interview superpower.',
     cards: [
       {
         type: 'flashcard',
@@ -167,6 +168,34 @@ const useCases = [
 ];
 
 export default function UseCases() {
+  const [activeSection, setActiveSection] = useState('sarah');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = useCases.map(useCase => ({
+        id: useCase.id,
+        element: document.getElementById(useCase.id)
+      }));
+
+      // Find which section is currently in view
+      const current = sections.find(section => {
+        if (!section.element) return false;
+        const rect = section.element.getBoundingClientRect();
+        // Consider section active if it's within the viewport (accounting for sticky nav)
+        return rect.top <= 200 && rect.bottom >= 200;
+      });
+
+      if (current) {
+        setActiveSection(current.id);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial state
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="container">
       {/* Hero Section */}
@@ -182,19 +211,29 @@ export default function UseCases() {
         </div>
       </section>
 
-      {/* Navigation */}
-      <nav className="sticky top-32 z-40 mb-16">
-        <div className="container max-w-6xl mx-auto px-4">
-          <div className="glass p-4 rounded-2xl border border-white/10">
+      {/* Navigation - Sticky 30px below 80px navbar */}
+      <nav className="sticky top-[110px] z-40 mb-16">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="glass p-2 rounded-xl border border-white/10">
             <div className="flex flex-wrap justify-center gap-3">
               {useCases.map((useCase, index) => (
                 <a
                   key={useCase.id}
                   href={`#${useCase.id}`}
-                  className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 text-sm font-medium hover:text-orange-400 scroll-smooth"
+                  className={`px-2.5 py-1 rounded-lg border transition-all duration-300 transform hover:scale-105 text-sm font-medium ${
+                    activeSection === useCase.id
+                      ? 'bg-orange-500/20 border-orange-500/40 text-orange-400 shadow-lg'
+                      : 'bg-white/5 border-white/10 hover:bg-white/15 hover:text-orange-400'
+                  }`}
                 >
                   <span className="font-medium">{useCase.name}</span>
-                  <span className="text-xs opacity-70 ml-1">• {useCase.title}</span>
+                  <span className="text-xs opacity-70 ml-1">{
+                    useCase.title === 'Software Engineer' ? 'Software Engineer' :
+                    useCase.title === 'PhD Graduate' ? 'Researcher' :
+                    useCase.title === 'Polyglot & Language Coach' ? 'Language Learner' :
+                    useCase.title === 'High School Student' ? 'Highschool Student' :
+                    useCase.title
+                  }</span>
                 </a>
               ))}
             </div>
@@ -204,12 +243,12 @@ export default function UseCases() {
 
       {/* Use Cases */}
       {useCases.map((useCase, index) => (
-        <section key={useCase.id} className="mb-20">
-          {/* Anchor target positioned 60px below submenu */}
-          <div id={useCase.id} className="relative -top-32 invisible h-0"></div>
+        <section key={useCase.id} className="mb-32">
+          {/* Anchor target positioned below sticky nav (110px + nav height ~45px + 20px spacing) */}
+          <div id={useCase.id} className="relative -top-[175px] invisible h-0"></div>
           {/* Full Width Headline */}
-          <div className="text-center mb-12 animate-in slide-in-from-bottom-4 duration-700 delay-100">
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-tight mb-4">
+          <div className="text-center mb-16 animate-in slide-in-from-bottom-4 duration-700 delay-100">
+            <h2 className="text-8xl md:text-9xl lg:text-[12rem] font-bold text-white leading-tight mb-6">
               {useCase.headline}
             </h2>
             <p className="text-xl md:text-2xl opacity-90 max-w-4xl mx-auto">
@@ -266,7 +305,7 @@ export default function UseCases() {
                 </div>
                 
                 {/* Quote under image */}
-                <div className="mt-6">
+                <div className="mt-6 w-4/5 mx-auto">
                   <p className="text-xl font-medium leading-relaxed tracking-widest">
                     {useCase.quote}
                   </p>

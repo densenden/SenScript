@@ -5,12 +5,12 @@ import PersonaCard from '../ui/PersonaCard';
 const personas = [
   {
     name: 'Sarah Chen',
-    title: 'Staff Engineer at Stripe',
+    title: 'Software Engineer',
     image: '/images/sarah.png',
-    challenge: 'Stuck at senior level for 2+ years, struggling with system design interviews and lacking staff-level communication patterns',
-    solution: 'Used SenScript during architecture reviews to capture staff-level communication patterns and strategic decision-making processes',
-    result: '127 Strategic Cards → Staff Promotion in 6 months, $45k salary increase',
-    quote: 'I captured patterns in how staff engineers explain trade-offs during architecture reviews. SenScript turned complex technical discussions into interview-winning knowledge cards.',
+    challenge: 'Stuck at senior level for 2+ years, struggling with system design interviews and lacking senior-level communication patterns',
+    solution: 'Used SenScript during architecture reviews to capture senior-level communication patterns and strategic decision-making processes',
+    result: '127 Strategic Cards → Senior Promotion in 6 months, significant salary increase',
+    quote: 'I captured patterns in how senior engineers explain trade-offs during architecture reviews. SenScript turned complex technical discussions into interview-winning knowledge cards.',
     number: 1
   },
   {

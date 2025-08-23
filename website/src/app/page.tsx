@@ -5,10 +5,10 @@ import FeatureCard from '@/components/ui/FeatureCard';
 const personas = [
   {
     name: "Sarah Chen",
-    title: "Staff Engineer at Stripe",
+    title: "Software Engineer",
     image: "/images/sarah.png",
-    result: "Staff promotion in 6 months with $45k salary increase using 127 Strategic Cards",
-    quote: "SenScript taught me to speak like a staff engineer. The patterns I captured from architecture reviews became my interview superpower."
+    result: "Senior promotion in 6 months with significant salary increase using 127 Strategic Cards",
+    quote: "SenScript taught me to speak like a senior engineer. The patterns I captured from architecture reviews became my interview superpower."
   },
   {
     name: "Marcus Rodriguez", 
@@ -117,7 +117,7 @@ export default function Home() {
             <img 
               src="/images/interview-scenarios/desktop.png" 
               alt="SenScript running during a Teams meeting"
-              className="w-full aspect-[3/2] object-cover rounded-2xl mb-6"
+              className="w-full aspect-[3/2] object-cover rounded-[12px] mb-6"
             />
             <h3 className="text-2xl font-bold mb-4 text-orange-500">Desktop Meeting Listening</h3>
             <p className="text-lg opacity-90 mb-4">Transform every meeting into organized study materials</p>
@@ -131,7 +131,7 @@ export default function Home() {
             <img 
               src="/images/interview-scenarios/mobile.png" 
               alt="Mobile phone near TV capturing audio"
-              className="w-full aspect-[3/2] object-cover rounded-2xl mb-6"
+              className="w-full aspect-[3/2] object-cover rounded-[12px] mb-6"
             />
             <h3 className="text-2xl font-bold mb-4 text-orange-500">Mobile Audio Listening</h3>
             <p className="text-lg opacity-90 mb-4">Learn from any audio source, anywhere</p>
@@ -148,21 +148,21 @@ export default function Home() {
       {/* User Stories Preview */}
       <section className="space-section">
         <div className="content-center space-large mb-8">
-          <h2 className="text-3xl font-bold">Real People, Real Results</h2>
-          <p className="text-lg opacity-90">See how professionals use SenScript to accelerate their learning</p>
+          <h2 className="text-3xl font-bold">Works Across Every Scenario</h2>
+          <p className="text-lg opacity-90">Get instant information without searching - SenScript adapts to your context</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           <div className="glass p-6">
             <img
               src="/images/sarah.png"
               alt="Sarah"
-              className="w-full aspect-[4/3] object-cover rounded-2xl mb-4"
+              className="w-full aspect-[4/3] object-cover rounded-[12px] mb-4"
             />
             <h3 className="text-xl font-bold mb-2">Sarah</h3>
             <p className="text-sm opacity-80 mb-3">Software Engineer</p>
             <p className="text-sm opacity-90 mb-4 leading-relaxed">
-              "Mock interviews → Strategic CheatCards → Staff Engineer promotion. SenScript transformed my interview prep."
+              "Mock interviews → Strategic CheatCards → Senior Engineer promotion. SenScript transformed my interview prep."
             </p>
             <Link href="/use-cases#sarah" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
               Read Sarah's story →
@@ -173,7 +173,7 @@ export default function Home() {
             <img
               src="/images/marcus.png"
               alt="Marcus"
-              className="w-full aspect-[4/3] object-cover rounded-2xl mb-4"
+              className="w-full aspect-[4/3] object-cover rounded-[12px] mb-4"
             />
             <h3 className="text-xl font-bold mb-2">Marcus</h3>
             <p className="text-sm opacity-80 mb-3">PhD Graduate</p>
@@ -189,7 +189,7 @@ export default function Home() {
             <img
               src="/images/lisa.png"
               alt="Lisa"
-              className="w-full aspect-[4/3] object-cover rounded-2xl mb-4"
+              className="w-full aspect-[4/3] object-cover rounded-[12px] mb-4"
             />
             <h3 className="text-xl font-bold mb-2">Lisa</h3>
             <p className="text-sm opacity-80 mb-3">Language Coach</p>
@@ -198,6 +198,22 @@ export default function Home() {
             </p>
             <Link href="/use-cases#lisa" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
               Read Lisa's story →
+            </Link>
+          </div>
+
+          <div className="glass p-6">
+            <img
+              src="/images/alex.png"
+              alt="Alex"
+              className="w-full aspect-[4/3] object-cover rounded-[12px] mb-4"
+            />
+            <h3 className="text-xl font-bold mb-2">Alex</h3>
+            <p className="text-sm opacity-80 mb-3">High School Student</p>
+            <p className="text-sm opacity-90 mb-4 leading-relaxed">
+              "Random teacher questions → Instant cheat cards → Test performance from B- to A. No more stressful moments."
+            </p>
+            <Link href="/use-cases#alex" className="text-orange-500 hover:text-orange-400 text-sm font-medium">
+              Read Alex's story →
             </Link>
           </div>
         </div>
@@ -230,6 +246,21 @@ export default function Home() {
             </span>
             <h3 className="text-lg font-semibold mb-2">Professional</h3>
             <p className="text-sm opacity-90">Interviews, meetings, training</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Coming Soon */}
+      <section className="glass p-8 content-center">
+        <div className="content-max-width">
+          <h2 className="text-3xl font-bold mb-4">Coming Soon</h2>
+          <p className="text-lg opacity-90 mb-8">
+            Features in active development...
+          </p>
+          <div className="flex justify-center">
+            <Link href="/roadmap" className="btn btn-primary text-lg px-8 py-4">
+              View Roadmap
+            </Link>
           </div>
         </div>
       </section>

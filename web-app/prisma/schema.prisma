@@ -1,0 +1,49 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model UserSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  data      String   // JSON string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ListeningSession {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String   @default("web") // e.g., "web" | "ios" | "desktop"
+  startedAt DateTime
+  endedAt   DateTime?
+  minutes   Int      @default(0)
+  meta      String?  // JSON string
+  createdAt DateTime @default(now())
+
+  @@index([userId, startedAt])
+}
+
+model UsageDaily {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime // UTC midnight
+  minutes   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model SettingsAudit {
+  id        String   @id @default(cuid())
+  userId    String
+  changedAt DateTime @default(now())
+  diff      String   // JSON string {added, removed, updated}
+  ip        String?
+  userAgent String?
+}

@@ -7,20 +7,20 @@ import Link from 'next/link';
 const steps = [
   {
     step: 1,
-    title: "Create Free Account",
-    description: "Sign up with OAuth - takes 30 seconds",
+    title: "Sign Up",
+    description: "Auth with Apple ID, GitHub, Google, or email",
     icon: "person_add"
   },
   {
     step: 2,
-    title: "Launch SenScript App",
-    description: "Redirected to script.sen.studio - your 90 minutes start when you record",
+    title: "Start Meeting",
+    description: "Start your meeting or lecture and let SenScript listen",
     icon: "launch"
   },
   {
     step: 3,
-    title: "Generate CheatCards", 
-    description: "Join meetings, capture audio - watch strategic study materials appear instantly",
+    title: "Generate Cards", 
+    description: "Get flashcards and cheatcards instantly",
     icon: "auto_awesome"
   }
 ];
@@ -29,7 +29,7 @@ const useCaseExamples = [
   {
     title: "Job Interviews",
     persona: "Sarah",
-    description: "Mock interviews → Strategic CheatCards → Staff Engineer at Stripe",
+    description: "Mock interviews → Strategic CheatCards → Senior Engineer promotion",
     category: "INTERVIEW TIP",
     example: "How to explain system design concepts clearly?",
     color: "text-orange-500"
@@ -64,16 +64,33 @@ export default function Demo() {
     
     setIsStarting(true);
     
-    // Redirect authenticated users to script.sen.studio
+    // Redirect to info page (webapp not ready yet)
     setTimeout(() => {
-      const scriptUrl = `https://script.sen.studio?auth=${user?.id}&source=demo&trial=true`;
-      window.open(scriptUrl, '_blank');
+      const infoUrl = `https://getscript.sen.studio?source=demo`;
+      window.open(infoUrl, '_blank');
       setIsStarting(false);
     }, 1500);
   };
 
   return (
     <div className="container">
+      {/* Development Notice */}
+      <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 mb-8 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-orange-400 font-medium">
+            🚧 WebApp in Development - Check current status:
+          </p>
+          <a 
+            href="https://getscript.sen.studio" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="btn btn-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 text-sm"
+          >
+            Visit getscript.sen.studio
+          </a>
+        </div>
+      </div>
+
       {/* Hero - Immediate Action */}
       <section className="glass p-8 content-center">
         <div className="content-max-width">
@@ -84,63 +101,93 @@ export default function Demo() {
             No demo simulation - get immediate access to the real SenScript application. 
             Your free trial minutes only count when you're actively recording.
           </p>
-          {isSignedIn ? (
-            <button 
-              onClick={handleStartApp}
-              disabled={isStarting}
-              className={`btn btn-primary text-xl px-12 py-6 flex items-center space-x-3 mx-auto ${
-                isStarting ? 'opacity-75 cursor-not-allowed' : 'hover:scale-105'
-              }`}
-            >
-              {isStarting ? (
-                <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  <span>Opening SenScript App...</span>
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined icon-lg">play_arrow</span>
-                  <span>Launch SenScript Now</span>
-                </>
-              )}
-            </button>
-          ) : (
-            <SignInButton mode="modal">
-              <button className="btn btn-primary text-xl px-12 py-6 flex items-center space-x-3 mx-auto hover:scale-105">
-                <span className="material-symbols-outlined icon-lg">login</span>
-                <span>Sign Up & Start Free</span>
-              </button>
-            </SignInButton>
-          )}
-          <p className="text-sm opacity-70 mt-4">
-            {isSignedIn 
-              ? 'Opens script.sen.studio in new tab • No installation required'
-              : 'Sign up with OAuth • Takes 30 seconds • No installation required'
-            }
-          </p>
+          <div className="flex flex-col items-center gap-4">
+            {isSignedIn ? (
+              <>
+                <button 
+                  onClick={handleStartApp}
+                  disabled={isStarting}
+                  className={`btn btn-primary text-xl px-12 py-6 flex items-center space-x-3 ${
+                    isStarting ? 'opacity-75 cursor-not-allowed' : 'hover:scale-105'
+                  }`}
+                >
+                  {isStarting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                      <span>Opening Info Page...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined icon-lg">info</span>
+                      <span>Get Development Updates</span>
+                    </>
+                  )}
+                </button>
+                <p className="text-sm opacity-70">✓ Already signed in as {user?.firstName || user?.emailAddresses?.[0]?.emailAddress}</p>
+              </>
+            ) : (
+              <SignInButton mode="modal">
+                <button className="btn btn-primary text-xl px-12 py-6 flex items-center space-x-3 hover:scale-105">
+                  <span className="material-symbols-outlined icon-lg">login</span>
+                  <span>Sign Up & Start Free</span>
+                </button>
+              </SignInButton>
+            )}
+          </div>
+          <div className="text-sm opacity-70 mt-4 text-center">
+            {isSignedIn ? (
+              <div className="flex items-center justify-center gap-4">
+                <span>✓ Account ready • Webapp in development</span>
+                <a href="https://getscript.sen.studio" target="_blank" rel="noopener noreferrer" className="btn btn-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-3 py-1">
+                  Updates
+                </a>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-4">
+                <span>Sign up with OAuth • Takes 30 seconds</span>
+                <a href="https://getscript.sen.studio" target="_blank" rel="noopener noreferrer" className="btn btn-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-3 py-1">
+                  Info Page
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
       {/* How It Works */}
       <section className="space-section">
         <div className="content-center space-large">
-          <h2 className="text-3xl font-bold">From Sign-Up to CheatCards in 3 Steps</h2>
-          <p className="text-lg opacity-90">Complete flow takes under 2 minutes</p>
+          <h2 className="text-3xl font-bold">3 Steps to Success</h2>
+          <p className="text-lg opacity-90">Complete flow in under 2 minutes</p>
         </div>
-        <div className="section-grid">
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {steps.map((step, index) => (
-            <div key={index} className="glass p-8 text-center">
-              <div className="w-20 h-20 glass border-2 border-white/20 rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-6">
-                <span className="text-orange-500">{step.step}</span>
+            <div key={index} className="glass p-8 flex flex-col min-h-[400px]">
+              <div className="relative mb-6">
+                <img 
+                  src={`/images/step${step.step}.png`}
+                  alt={`Step ${step.step}: ${step.title}`}
+                  className="w-full aspect-[3/2] object-cover object-top rounded-[12px]"
+                />
               </div>
-              <span className={`material-symbols-outlined icon-xl mb-4 block ${
-                index === 0 ? 'text-blue-400' : 
-                index === 1 ? 'text-purple-400' : 'text-green-400'
-              }`}>
-                {step.icon}
-              </span>
-              <h3 className="text-xl font-semibold mb-4">{step.title}</h3>
-              <p className="opacity-90 leading-relaxed">{step.description}</p>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                  {step.step}
+                </div>
+                <h3 className="text-xl font-semibold">{step.title}</h3>
+              </div>
+              <p className="opacity-90 leading-relaxed flex-1">{step.description}</p>
+              {step.step === 3 && (
+                <div className="mt-6">
+                  <Link 
+                    href="/more-information#cheatcards-vs-flashcards" 
+                    className="btn btn-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-4 py-2"
+                  >
+                    More Info
+                  </Link>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -188,7 +235,7 @@ export default function Demo() {
       {/* App Features Preview */}
       <section className="space-section">
         <div className="content-center space-large">
-          <h2 className="text-3xl font-bold">What You Get in script.sen.studio</h2>
+          <h2 className="text-3xl font-bold">What You'll Get in the SenScript App</h2>
           <p className="text-lg opacity-90">Full-featured CheatCard workspace</p>
         </div>
         <div className="section-grid">
@@ -285,12 +332,12 @@ export default function Demo() {
                 disabled={isStarting}
                 className="btn btn-primary text-lg px-8 py-4"
               >
-                {isStarting ? 'Opening App...' : 'Start Free 90 Minutes'}
+                {isStarting ? 'Opening Info...' : 'Get Development Updates'}
               </button>
             ) : (
               <SignInButton mode="modal">
                 <button className="btn btn-primary text-lg px-8 py-4">
-                  Sign Up & Start Free
+                  Sign Up for Early Access
                 </button>
               </SignInButton>
             )}
@@ -298,9 +345,19 @@ export default function Demo() {
               Read Success Stories
             </Link>
           </div>
-          <p className="text-sm opacity-70 mt-6">
-            ✓ Opens script.sen.studio instantly &nbsp;&nbsp;•&nbsp;&nbsp; ✓ No downloads &nbsp;&nbsp;•&nbsp;&nbsp; ✓ Works in any browser
-          </p>
+          <div className="text-sm opacity-70 mt-6 text-center">
+            {isSignedIn ? (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <span>✓ Account ready for early access</span>
+                <span>•</span>
+                <a href="https://getscript.sen.studio" target="_blank" rel="noopener noreferrer" className="btn btn-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-3 py-1">
+                  Development Updates
+                </a>
+              </div>
+            ) : (
+              <p>✓ Free signup • ✓ Early access • ✓ Development updates</p>
+            )}
+          </div>
         </div>
       </section>
     </div>
