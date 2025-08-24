@@ -3,39 +3,34 @@
   "middleware": {
     "/": {
       "files": [
-        "server/edge/chunks/sen_dev_SenScript_website_58d3835f._.js",
-        "server/edge/chunks/53eeb_@clerk_shared_dist_8569bc73._.js",
-        "server/edge/chunks/53eeb_@clerk_backend_dist_b58f6c9c._.js",
-        "server/edge/chunks/53eeb_@clerk_nextjs_dist_esm_3cfcfefb._.js",
-        "server/edge/chunks/53eeb_cookie_dist_index_d883fe94.js",
-        "server/edge/chunks/[root-of-the-server]__bf058b6d._.js",
-        "server/edge/chunks/turbopack-sen_dev_SenScript_website_edge-wrapper_d92d22da.js"
+        "server/edge-runtime-webpack.js",
+        "server/src/middleware.js"
       ],
-      "name": "middleware",
+      "name": "src/middleware",
       "page": "/",
       "matchers": [
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*))(\\\\.json)?[\\/#\\?]?$",
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*))(\\.json)?[\\/#\\?]?$",
           "originalSource": "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(api|trpc))(.*)(\\\\.json)?[\\/#\\?]?$",
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(api|trpc))(.*)(\\.json)?[\\/#\\?]?$",
           "originalSource": "/(api|trpc)(.*)"
         }
       ],
       "wasm": [],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "development",
-        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "ocgd81bxC9Y8YY4huVuqxOf80GbAdkrgl5Z/1dheyNg=",
-        "__NEXT_PREVIEW_MODE_ID": "e736902bebbad7933da4178dc0b748b1",
-        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "79d0abb057756220138171c6ef06ecc821b9cee70a0d7a275e9a21088563b28c",
-        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "dd7b228cc5e7f0e8a948e65c8543e0df06a3c0e75bdaec4c42ef3f6872fa7497"
+        "__NEXT_BUILD_ID": "Ele31AT4iL8Q8LnPfPxso",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "gfrchDbYaK9g1j1UbBUAEMEue1Zs1AlBe/fESp2bWi8=",
+        "__NEXT_PREVIEW_MODE_ID": "d3cba3b3bf75ee71a5e38fb8cc39b6c6",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "7d94697e22d993f4a45819ab321c5205acf509e25263731f12353bbd1b0a2c16",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "65d84f2530ac33b1d85977ae3079fab7948e941ca8243a7064995f4116d0bd82"
       }
     }
   },
+  "functions": {},
   "sortedMiddleware": [
     "/"
-  ],
-  "functions": {}
+  ]
 }

@@ -4,11 +4,23 @@ const bodyParser = require('body-parser');
 const { createClient } = require('@supabase/supabase-js');
 const { z } = require('zod');
 const path = require('path');
-require('dotenv').config();
 
-// Import existing modules
-const LLMProvider = require('./llm-providers');
-const LLMConversation = require('./llm-conversation');
+// Load environment variables (works differently in serverless)
+try {
+    require('dotenv').config();
+} catch (error) {
+    console.log('[ENV] dotenv not available in serverless environment - using process.env directly');
+}
+
+// Import existing modules with error handling
+let LLMProvider, LLMConversation;
+try {
+    LLMProvider = require('./llm-providers');
+    LLMConversation = require('./llm-conversation');
+} catch (error) {
+    console.error('[ERROR] Failed to load LLM modules:', error.message);
+    throw new Error('Required modules not found');
+}
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -29,26 +41,37 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
-// Import education settings
-let SENSCRIPT_CONFIG = {};
+// Import education settings with robust error handling
+let SENSCRIPT_CONFIG = {
+    EDUCATION: {
+        USER_LEVEL: 1,
+        DETAIL_LEVEL: 5,  
+        EXAMPLE_COMPLEXITY: 3
+    }
+};
+
 try {
-    const { SENSCRIPT_CONFIG: config } = require('./settings-config.js');
-    SENSCRIPT_CONFIG = config;
-    console.log('[Config] Loaded education settings:', config.EDUCATION || 'Default');
+    const settingsModule = require('./settings-config.js');
+    if (settingsModule && settingsModule.SENSCRIPT_CONFIG) {
+        SENSCRIPT_CONFIG = settingsModule.SENSCRIPT_CONFIG;
+        console.log('[Config] Loaded education settings:', SENSCRIPT_CONFIG.EDUCATION || 'Default');
+    } else {
+        console.log('[Config] settings-config.js found but no SENSCRIPT_CONFIG export');
+    }
 } catch (error) {
-    console.log('[Config] Using default settings');
-    SENSCRIPT_CONFIG = {
-        EDUCATION: {
-            USER_LEVEL: 1,
-            DETAIL_LEVEL: 5,  
-            EXAMPLE_COMPLEXITY: 3
-        }
-    };
+    console.log('[Config] settings-config.js not found or error loading, using defaults:', error.message);
 }
 
-// Initialize LLM system
-const llmProvider = new LLMProvider();
-const llmConversation = new LLMConversation(llmProvider, SENSCRIPT_CONFIG.EDUCATION);
+// Initialize LLM system with error handling
+let llmProvider, llmConversation;
+try {
+    llmProvider = new LLMProvider();
+    llmConversation = new LLMConversation(llmProvider, SENSCRIPT_CONFIG.EDUCATION);
+    console.log('[LLM] System initialized successfully');
+} catch (error) {
+    console.error('[ERROR] Failed to initialize LLM system:', error.message);
+    console.log('[LLM] Server will start but LLM features may not work');
+}
 
 // Clerk JWT token verification
 const verifyClerkToken = async (req, res, next) => {
@@ -341,6 +364,15 @@ app.get('/api/usage/summary', async (req, res) => {
 app.post('/api/generate-card', async (req, res) => {
     try {
         const { transcript, language, languageFlag, cardMode } = req.body;
+        
+        // Check if LLM system is initialized
+        if (!llmProvider || !llmConversation) {
+            return res.status(500).json({
+                success: false,
+                error: "LLM system not initialized. Server may be starting up.",
+                details: "Please try again in a few seconds"
+            });
+        }
         
         // Check if any API keys are available
         const enabledProviders = llmProvider.getEnabledProviders();
