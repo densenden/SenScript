@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { auth } from '@clerk/nextjs/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
   try {
     console.log('Contact form API called');
@@ -40,6 +38,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Initialize Resend with API key
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
     // Send email using Resend with verified domain
     const { data, error } = await resend.emails.send({
       from: 'SenScript Contact <noreply@sen.studio>',
