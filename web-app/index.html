@@ -4895,25 +4895,48 @@
                 try {
                     const headers = await auth.getAuthHeaders();
                     const response = await fetch('/api/usage/summary?range=day', { headers });
-                    const usage = await response.json();
+                    const result = await response.json();
                     
-                    // Update usage statistics in the HTML modal
-                    document.getElementById('totalCalls').textContent = usage.totalCalls || 0;
-                    document.getElementById('totalTokens').textContent = usage.totalTokens || 0;
-                    document.getElementById('cardsGenerated').textContent = usage.cardsGenerated || 0;
-                    document.getElementById('avgResponseTime').textContent = 
-                        usage.avgResponseTime ? `${Math.round(usage.avgResponseTime)}ms` : '0ms';
+                    if (!response.ok) {
+                        throw new Error(`API error: ${result.error || 'Unknown error'}`);
+                    }
+                    
+                    const usage = result.data?.stats || {};
+                    
+                    // Update usage statistics in the HTML modal (with null checks)
+                    const totalCallsEl = document.getElementById('totalCalls');
+                    if (totalCallsEl) totalCallsEl.textContent = usage.totalRequests || 0;
+                    
+                    const totalTokensEl = document.getElementById('totalTokens');
+                    if (totalTokensEl) totalTokensEl.textContent = usage.totalTokens || 0;
+                    
+                    const cardsGeneratedEl = document.getElementById('cardsGenerated');
+                    if (cardsGeneratedEl) cardsGeneratedEl.textContent = usage.cardCount || 0;
+                    
+                    const avgResponseTimeEl = document.getElementById('avgResponseTime');
+                    if (avgResponseTimeEl) {
+                        const avgTime = usage.averageResponseTime ? `${Math.round(usage.averageResponseTime * 1000)}ms` : '0ms';
+                        avgResponseTimeEl.textContent = avgTime;
+                    }
                     
                     // Update system status indicators
                     updateSystemStatus();
                     
                 } catch (error) {
                     console.error('Failed to load usage stats:', error);
-                    // Show default values if API fails
-                    document.getElementById('totalCalls').textContent = '0';
-                    document.getElementById('totalTokens').textContent = '0';
-                    document.getElementById('cardsGenerated').textContent = '0';
-                    document.getElementById('avgResponseTime').textContent = '0ms';
+                    
+                    // Show default values if API fails (with null checks)
+                    const totalCallsEl = document.getElementById('totalCalls');
+                    if (totalCallsEl) totalCallsEl.textContent = '0';
+                    
+                    const totalTokensEl = document.getElementById('totalTokens');
+                    if (totalTokensEl) totalTokensEl.textContent = '0';
+                    
+                    const cardsGeneratedEl = document.getElementById('cardsGenerated');
+                    if (cardsGeneratedEl) cardsGeneratedEl.textContent = '0';
+                    
+                    const avgResponseTimeEl = document.getElementById('avgResponseTime');
+                    if (avgResponseTimeEl) avgResponseTimeEl.textContent = '0ms';
                 }
             }
             
