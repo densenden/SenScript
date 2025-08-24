@@ -652,15 +652,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Catch-all route for SPA (serves index.html for all non-API routes)
-app.get('*', (req, res) => {
-    // Don't serve index.html for API routes
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'API route not found' });
-    }
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 // Start server
 app.listen(port, () => {
     console.log(`🔐 SenScript Web App with Auth running at http://localhost:${port}`);
