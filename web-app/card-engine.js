@@ -243,7 +243,7 @@ class CardGenerationEngine {
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                const response = await fetch('http://localhost:3002/api/generate-card', {
+                const response = await fetch('/api/generate-card', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),

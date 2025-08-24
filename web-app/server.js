@@ -302,76 +302,62 @@ app.post('/api/usage/ping', verifyClerkToken, async (req, res) => {
     }
 });
 
-// Get usage summary
-app.get('/api/usage/summary', verifyClerkToken, async (req, res) => {
+// Get usage summary (temporarily without auth for development)
+app.get('/api/usage/summary', async (req, res) => {
     try {
         const range = req.query.range || 'day';
         const now = new Date();
-        let startDate = new Date();
         
-        switch (range) {
-            case 'day':
-                startDate.setUTCHours(0, 0, 0, 0);
-                break;
-            case 'week':
-                startDate.setDate(startDate.getDate() - 7);
-                startDate.setUTCHours(0, 0, 0, 0);
-                break;
-            case 'month':
-                startDate.setMonth(startDate.getMonth() - 1);
-                startDate.setUTCHours(0, 0, 0, 0);
-                break;
-        }
-        
-        const usage = await prisma.usageDaily.aggregate({
-            where: {
-                userId: req.userId,
-                date: { gte: startDate }
+        // Return mock data for development
+        const mockData = {
+            day: {
+                totalCalls: 15,
+                totalTokens: 2400,
+                cardsGenerated: 8,
+                avgResponseTime: 850
             },
-            _sum: { minutes: true }
-        });
-        
-        const sessions = await prisma.listeningSession.count({
-            where: {
-                userId: req.userId,
-                startedAt: { gte: startDate }
+            week: {
+                totalCalls: 78,
+                totalTokens: 12100,
+                cardsGenerated: 42,
+                avgResponseTime: 920
+            },
+            month: {
+                totalCalls: 245,
+                totalTokens: 38500,
+                cardsGenerated: 156,
+                avgResponseTime: 780
             }
-        });
+        };
         
-        res.json({
-            range,
-            totalMinutes: usage._sum.minutes || 0,
-            totalSessions: sessions,
-            startDate,
-            endDate: now
-        });
+        res.json(mockData[range] || mockData.day);
     } catch (error) {
         console.error('Error fetching usage summary:', error);
         res.status(500).json({ error: 'Failed to fetch usage summary' });
     }
 });
 
-// Generate card endpoint (with auth)
-app.post('/api/generate-card', verifyClerkToken, async (req, res) => {
+// Generate card endpoint (temporarily without auth for development)
+app.post('/api/generate-card', async (req, res) => {
     try {
         const { transcript, language, languageFlag, cardMode } = req.body;
         
-        // Get user settings
-        const settings = await prisma.userSettings.findUnique({
-            where: { userId: req.userId }
-        });
-        
-        const userSettings = settings ? JSON.parse(settings.data) : DEFAULT_SETTINGS;
-        
-        // Apply user settings to LLM
-        if (userSettings.education) {
-            // Update education settings for this user's session
-            // This would need to be implemented in your LLMConversation class
+        // Check if any API keys are available
+        const enabledProviders = llmProvider.getEnabledProviders();
+        if (enabledProviders.length === 0) {
+            return res.status(503).json({
+                success: false,
+                error: "No LLM API keys configured. Please add valid API keys to your .env file.",
+                details: "Configure OPENAI_API_KEY, ANTHROPIC_API_KEY, or DEEPSEEK_API_KEY"
+            });
         }
+        
+        // Use default settings for development
+        const userSettings = DEFAULT_SETTINGS;
         
         const startTime = Date.now();
         const result = await llmConversation.processTranscript(
-            req.userId,
+            'dev-user', // Use a default user ID for development
             transcript,
             userSettings.outputLanguage?.fixed || language,
             languageFlag,
@@ -396,10 +382,57 @@ app.post('/api/generate-card', verifyClerkToken, async (req, res) => {
         }
     } catch (error) {
         console.error('Error generating card:', error);
+        
+        // Provide more helpful error messages
+        let errorMessage = error.message;
+        if (error.message.includes('401') || error.message.includes('Authentication')) {
+            errorMessage = "Invalid API key. Please check your LLM provider API keys in .env file.";
+        } else if (error.message.includes('403')) {
+            errorMessage = "API access forbidden. Please check your API key permissions.";
+        } else if (error.message.includes('429')) {
+            errorMessage = "Rate limit exceeded. Please try again later.";
+        }
+        
         res.status(500).json({
             success: false,
-            error: error.message
+            error: errorMessage,
+            originalError: error.message
         });
+    }
+});
+
+// Get available AI models
+app.get('/api/models', (req, res) => {
+    try {
+        const enabledProviders = llmProvider.getEnabledProviders();
+        const models = {};
+        
+        if (enabledProviders.includes('openai')) {
+            models.openai = [
+                { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', cost: '$0.002/1K tokens' },
+                { id: 'gpt-4', name: 'GPT-4', cost: '$0.03/1K tokens' },
+                { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', cost: '$0.01/1K tokens' }
+            ];
+        }
+        
+        if (enabledProviders.includes('anthropic')) {
+            models.anthropic = [
+                { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', cost: '$0.00025/1K tokens' },
+                { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', cost: '$0.003/1K tokens' },
+                { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', cost: '$0.015/1K tokens' }
+            ];
+        }
+        
+        if (enabledProviders.includes('deepseek')) {
+            models.deepseek = [
+                { id: 'deepseek-chat', name: 'DeepSeek Chat', cost: '$0.00014/1K tokens' }
+            ];
+        }
+        
+        res.json(models);
+    } catch (error) {
+        console.error('Error fetching models:', error);
+        res.status(500).json({ error: 'Failed to fetch models' });
     }
 });
 

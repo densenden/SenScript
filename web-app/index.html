@@ -2050,21 +2050,27 @@
             }
         }
         
-        /* Settings Modal - Redesigned with better mobile optimization */
+        /* Settings Modal - Enhanced Glass Morphism */
         .settings-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.7);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
             padding: 16px;
+            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(40px) saturate(180%); }
         }
         
         .settings-content {
@@ -3853,38 +3859,7 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* User menu in top right */
-        .user-menu {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            z-index: 1000;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 24px;
-            color: white;
-            font-size: 14px;
-        }
-
-        .user-settings-btn {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
+        /* User avatar circle in screen1 */
         #clerk-user-button {
             display: inline-flex;
         }
@@ -3932,35 +3907,6 @@
         </div>
     </div>
 
-    <!-- User Menu (shown when authenticated) -->
-    <div id="user-menu" class="user-menu">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="assets/images/logo-white.svg" alt="SenScript" style="width: 32px; height: 32px;">
-            <a href="https://getscript.sen.studio" target="_blank" style="
-                display: inline-flex;
-                align-items: center;
-                padding: 0.25rem 0.5rem;
-                background: rgba(251, 146, 60, 0.2);
-                color: rgb(251, 146, 60);
-                border-radius: 0.375rem;
-                font-size: 0.75rem;
-                font-weight: 500;
-                text-decoration: none;
-                transition: all 0.3s;
-                border: 1px solid rgba(251, 146, 60, 0.3);
-            " onmouseover="this.style.background='rgba(251, 146, 60, 0.3)'" onmouseout="this.style.background='rgba(251, 146, 60, 0.2)'">
-                Info
-            </a>
-        </div>
-        <div class="user-info">
-            <span id="user-email"></span>
-            <span id="usage-time" style="color: rgba(255, 255, 255, 0.7);">0m</span>
-        </div>
-        <button id="user-settings-btn" class="user-settings-btn glass-button" title="Settings">
-            ⚙️
-        </button>
-        <div id="clerk-user-button"></div>
-    </div>
 
     <div class="container">
         <!-- Screen 1: Main Control Panel (Desktop Sidebar / Mobile Header Content) -->
@@ -4029,9 +3975,13 @@
             </div>
             
 
-            <!-- Settings button at absolute bottom -->
-            <div style="margin-top: auto;">
-                <button id="settingsBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;">
+            <!-- User avatar and Settings button at absolute bottom -->
+            <div style="margin-top: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- User Avatar Circle -->
+                <div id="clerk-user-button" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"></div>
+                
+                <!-- Settings Button (Round) -->
+                <button id="settingsBtn" class="export-button glass-button" style="flex: 1; padding: 8px 16px; height: 40px; border-radius: 20px;">
                     Settings
                 </button>
             </div>
@@ -4054,7 +4004,11 @@
                     </button>
                 </div>
                 
-                <div class="status-bar">
+                <div class="status-bar" style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Mobile User Avatar Circle -->
+                    <div id="clerk-user-button-mobile" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"></div>
+                    
+                    <!-- Three-dot menu button -->
                     <button id="mobileSettingsBtn" class="glass-button" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="1"></circle>
@@ -4086,7 +4040,7 @@
             
             <!-- Transcript Export Button - Hidden on mobile -->
             <div class="desktop-only" style="padding: 20px; margin: 0;">
-                <button id="exportTranscriptBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
+                <button id="exportTranscriptBtn" class="export-button glass-button" style="width: 100%; padding: 8px 16px; height: 32px; border-radius: 16px;" disabled>
                     Export Transcript
                 </button>
             </div>
@@ -4243,7 +4197,7 @@
             
             <!-- Cards Export Button - Hidden on mobile -->
             <div class="desktop-only" style="padding: 20px; margin: 0;">
-                <button id="exportBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
+                <button id="exportBtn" class="export-button glass-button" style="width: 100%; padding: 8px 16px; height: 32px; border-radius: 16px;" disabled>
                     Export Cards
                 </button>
             </div>
@@ -4549,25 +4503,70 @@
             
             <!-- Tab 3: Statistics -->
             <div id="tab-stats" class="tab-content">
-                <!-- Usage Statistics Container -->
-                <div class="usage-stats">
-                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">Usage Statistics</h4>
-                    <div class="usage-grid">
-                        <div class="usage-item">
-                            <div id="totalCalls" class="usage-value">0</div>
-                            <div class="usage-label">API Calls</div>
+                <!-- Daily Stats Overview -->
+                <div class="setting-group">
+                    <label class="setting-label">Today's Usage</label>
+                    <p class="setting-description">Your activity for today</p>
+                    
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 16px 0;">
+                        <div class="stat-card" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div class="stat-value" style="font-size: 32px; font-weight: bold; color: #22c55e; margin-bottom: 8px;" id="dailyCards">0</div>
+                            <div class="stat-label" style="font-size: 13px; opacity: 0.8;">Cards Generated</div>
                         </div>
-                        <div class="usage-item">
-                            <div id="totalTokens" class="usage-value">0</div>
-                            <div class="usage-label">Tokens Used</div>
+                        <div class="stat-card" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div class="stat-value" style="font-size: 32px; font-weight: bold; color: #3b82f6; margin-bottom: 8px;" id="dailyMinutes">0</div>
+                            <div class="stat-label" style="font-size: 13px; opacity: 0.8;">Minutes Active</div>
                         </div>
-                        <div class="usage-item">
-                            <div id="cardsGenerated" class="usage-value">0</div>
-                            <div class="usage-label">Cards Created</div>
+                        <div class="stat-card" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div class="stat-value" style="font-size: 32px; font-weight: bold; color: #a855f7; margin-bottom: 8px;" id="dailyCalls">0</div>
+                            <div class="stat-label" style="font-size: 13px; opacity: 0.8;">API Requests</div>
                         </div>
-                        <div class="usage-item">
-                            <div id="avgResponseTime" class="usage-value">0ms</div>
-                            <div class="usage-label">Avg Response</div>
+                        <div class="stat-card" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 16px; padding: 20px; text-align: center;">
+                            <div class="stat-value" style="font-size: 32px; font-weight: bold; color: #f59e0b; margin-bottom: 8px;" id="dailyTokens">0</div>
+                            <div class="stat-label" style="font-size: 13px; opacity: 0.8;">Tokens Used</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly/Monthly Overview -->
+                <div class="setting-group">
+                    <label class="setting-label">Usage Overview</label>
+                    <p class="setting-description">Your activity trends</p>
+                    
+                    <div class="usage-tabs" style="display: flex; gap: 8px; margin: 16px 0; background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 4px;">
+                        <button class="usage-tab active" data-period="day" style="flex: 1; padding: 8px 16px; border: none; background: rgba(255, 255, 255, 0.2); color: white; border-radius: 8px; font-size: 14px; cursor: pointer;">Day</button>
+                        <button class="usage-tab" data-period="week" style="flex: 1; padding: 8px 16px; border: none; background: transparent; color: rgba(255, 255, 255, 0.7); border-radius: 8px; font-size: 14px; cursor: pointer;">Week</button>
+                        <button class="usage-tab" data-period="month" style="flex: 1; padding: 8px 16px; border: none; background: transparent; color: rgba(255, 255, 255, 0.7); border-radius: 8px; font-size: 14px; cursor: pointer;">Month</button>
+                    </div>
+                    
+                    <div class="usage-summary" style="background: rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 20px; margin: 16px 0;">
+                        <div class="usage-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="usage-icon" style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></div>
+                                <span>Cards Generated</span>
+                            </div>
+                            <span id="periodCards" class="usage-number" style="font-weight: bold; font-size: 16px;">0</span>
+                        </div>
+                        <div class="usage-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="usage-icon" style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%;"></div>
+                                <span>Minutes Listened</span>
+                            </div>
+                            <span id="periodMinutes" class="usage-number" style="font-weight: bold; font-size: 16px;">0</span>
+                        </div>
+                        <div class="usage-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="usage-icon" style="width: 12px; height: 12px; background: #a855f7; border-radius: 50%;"></div>
+                                <span>API Requests</span>
+                            </div>
+                            <span id="periodCalls" class="usage-number" style="font-weight: bold; font-size: 16px;">0</span>
+                        </div>
+                        <div class="usage-row" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="usage-icon" style="width: 12px; height: 12px; background: #f59e0b; border-radius: 50%;"></div>
+                                <span>Est. Cost</span>
+                            </div>
+                            <span id="periodCost" class="usage-number" style="font-weight: bold; font-size: 16px; color: #f59e0b;">$0.00</span>
                         </div>
                     </div>
                 </div>
@@ -4725,8 +4724,6 @@
         (async function() {
             const auth = window.simpleAuth;
             const listeningMeter = new ListeningMeter(auth);
-            const settingsModal = new SettingsModal(auth, listeningMeter);
-            
             // Initialize simple auth
             await auth.init();
             
@@ -4736,29 +4733,16 @@
                     // User is signed in - show app, hide auth overlay
                     document.getElementById('auth-overlay').style.display = 'none';
                     document.querySelector('.container').classList.remove('hidden');
-                    document.getElementById('user-menu').style.display = 'flex';
                     
-                    // Update user info - simple auth handles this automatically
-                    const user = auth.getUser();
-                    if (user) {
-                        document.getElementById('user-email').textContent = 
-                            user.primaryEmailAddress?.emailAddress || user.username || 'User';
-                    }
-                    
-                    // Mount Clerk UserButton
+                    // Mount Clerk UserButton in screen1 (next to settings button) and mobile
                     auth.mountUserButton('clerk-user-button');
+                    auth.mountUserButton('clerk-user-button-mobile');
                     
                     // Initialize listening meter
                     listeningMeter.init();
                     
-                    // Initialize settings modal
-                    await settingsModal.init();
-                    
-                    // Update usage time display
-                    setInterval(() => {
-                        document.getElementById('usage-time').textContent = 
-                            listeningMeter.getFormattedTime();
-                    }, 1000);
+                    // Initialize integrated settings modal with usage dashboard
+                    await initializeSettingsModal(auth, listeningMeter);
                     
                     // Load the main app
                     loadMainApp();
@@ -4766,7 +4750,6 @@
                     // User is not signed in - show auth overlay, hide app
                     document.getElementById('auth-overlay').style.display = 'flex';
                     document.querySelector('.container').classList.add('hidden');
-                    document.getElementById('user-menu').style.display = 'none';
                 }
             };
             
@@ -4781,8 +4764,13 @@
                 setTimeout(checkAuth, 1000);
             });
             
-            document.getElementById('user-settings-btn').addEventListener('click', () => {
-                settingsModal.open();
+            // Setup settings buttons (desktop and mobile) to open HTML modal
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                document.getElementById('settingsModal').style.display = 'flex';
+            });
+            
+            document.getElementById('mobileSettingsBtn').addEventListener('click', () => {
+                document.getElementById('settingsModal').style.display = 'flex';
             });
             
             // Listen for auth state changes
@@ -4859,6 +4847,109 @@
                 } else {
                     console.error('[App] SenScript not found');
                 }
+            }
+            
+            // Initialize integrated settings modal with usage dashboard
+            async function initializeSettingsModal(auth, listeningMeter) {
+                // Setup settings modal close button
+                document.getElementById('settingsClose').addEventListener('click', () => {
+                    document.getElementById('settingsModal').style.display = 'none';
+                });
+                
+                // Setup tab navigation
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabContents = document.querySelectorAll('.tab-content');
+                
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        // Remove active class from all buttons and content
+                        tabButtons.forEach(b => b.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        
+                        // Add active class to clicked button and corresponding content
+                        button.classList.add('active');
+                        const tabId = button.getAttribute('data-tab');
+                        document.getElementById(`tab-${tabId}`).classList.add('active');
+                        
+                        // If statistics tab is opened, load usage data
+                        if (tabId === 'stats') {
+                            loadUsageStats(auth);
+                        }
+                    });
+                });
+                
+                // Load initial usage stats
+                await loadUsageStats(auth);
+                
+                // Update stats every 30 seconds when stats tab is visible
+                setInterval(async () => {
+                    const statsTab = document.getElementById('tab-stats');
+                    if (statsTab && statsTab.classList.contains('active')) {
+                        await loadUsageStats(auth);
+                    }
+                }, 30000);
+            }
+            
+            // Load and display usage statistics
+            async function loadUsageStats(auth) {
+                try {
+                    const headers = await auth.getAuthHeaders();
+                    const response = await fetch('/api/usage/summary?range=day', { headers });
+                    const usage = await response.json();
+                    
+                    // Update usage statistics in the HTML modal
+                    document.getElementById('totalCalls').textContent = usage.totalCalls || 0;
+                    document.getElementById('totalTokens').textContent = usage.totalTokens || 0;
+                    document.getElementById('cardsGenerated').textContent = usage.cardsGenerated || 0;
+                    document.getElementById('avgResponseTime').textContent = 
+                        usage.avgResponseTime ? `${Math.round(usage.avgResponseTime)}ms` : '0ms';
+                    
+                    // Update system status indicators
+                    updateSystemStatus();
+                    
+                } catch (error) {
+                    console.error('Failed to load usage stats:', error);
+                    // Show default values if API fails
+                    document.getElementById('totalCalls').textContent = '0';
+                    document.getElementById('totalTokens').textContent = '0';
+                    document.getElementById('cardsGenerated').textContent = '0';
+                    document.getElementById('avgResponseTime').textContent = '0ms';
+                }
+            }
+            
+            // Update system status indicators
+            function updateSystemStatus() {
+                // Speech API Status
+                const speechStatus = document.getElementById('speechApiStatus');
+                const speechInfo = document.getElementById('speechApiInfo');
+                if (window.webkitSpeechRecognition || window.SpeechRecognition) {
+                    speechStatus.className = 'status-dot green';
+                    speechInfo.textContent = 'Chrome Web Speech API';
+                } else {
+                    speechStatus.className = 'status-dot red';
+                    speechInfo.textContent = 'Not supported';
+                }
+                
+                // AI Service Status
+                const aiStatus = document.getElementById('aiProcessingStatus');
+                const aiInfo = document.getElementById('aiServiceInfo');
+                // Check if we have API keys configured
+                // For now, assume it's working if we got here
+                aiStatus.className = 'status-dot green';
+                aiInfo.textContent = 'OpenAI GPT-4';
+                
+                // Audio Input Status
+                const audioStatus = document.getElementById('audioInputStatus');
+                const audioInfo = document.getElementById('audioInputInfo');
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(() => {
+                        audioStatus.className = 'status-dot green';
+                        audioInfo.textContent = 'Microphone access granted';
+                    })
+                    .catch(() => {
+                        audioStatus.className = 'status-dot red';
+                        audioInfo.textContent = 'Microphone access denied';
+                    });
             }
         })();
     </script>

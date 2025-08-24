@@ -31,10 +31,6 @@ class SenScript {
         this.lastSentenceProcessed = 0;  // Timestamp of last sentence processing
         this.sessionId = `session_${Date.now()}`;
         
-        // Initialize new card generation engine for speed and reliability
-        this.cardEngine = new CardGenerationEngine(this.apiSettings, this.sessionId);
-        console.log('🎯 [INIT] Card engine initialized');
-        
         // Memory management for long sessions  
         this.memoryCleanupInterval = null;
         this.startMemoryCleanup();
@@ -60,6 +56,11 @@ class SenScript {
             },
             interviewMode: false
         };
+        
+        // Initialize new card generation engine for speed and reliability (AFTER apiSettings are defined)
+        this.cardEngine = new CardGenerationEngine(this.apiSettings, this.sessionId);
+        console.log('🎯 [INIT] Card engine initialized');
+        
         this.startTime = Date.now();
         
         this.init();
@@ -2765,7 +2766,7 @@ class SenScript {
             console.log('   Education Payload:', payload.education);
             console.log('   Full Payload:', JSON.stringify(payload, null, 2));
             
-            const response = await fetch('http://localhost:3002/api/settings', {
+            const response = await fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -2827,7 +2828,7 @@ class SenScript {
             console.log('📤 [CARD-API] Sending request to server:', queryPayload);
             
             // Call AI API via our server with text-specific language
-            const response = await fetch('http://localhost:3002/api/generate-card', {
+            const response = await fetch('/api/generate-card', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3237,7 +3238,22 @@ class SenScript {
     }
     
     updateCardCount() {
-        this.els.cardCount.textContent = `${this.cards.length} cards`;
+        const totalCards = this.cards.length;
+        const cheatCards = this.cards.filter(c => c.cardType === 'cheat').length;
+        const flashCards = this.cards.filter(c => c.cardType === 'flash').length;
+        
+        if (totalCards === 0) {
+            this.els.cardCount.textContent = '0 cards';
+        } else if (cheatCards > 0 && flashCards > 0) {
+            // Show breakdown when both types exist
+            this.els.cardCount.textContent = `${totalCards} cards (${flashCards} flash + ${cheatCards} cheat)`;
+        } else if (cheatCards > 0) {
+            // Only cheat cards
+            this.els.cardCount.textContent = `${totalCards} cheat cards`;
+        } else {
+            // Only flash cards (or default)
+            this.els.cardCount.textContent = `${totalCards} flash cards`;
+        }
     }
     
     addSplitSegmentToUI(segment) {
@@ -4827,8 +4843,7 @@ class SenScript {
         this.els.exampleComplexity.value = this.apiSettings.education.exampleComplexity || 3;
         this.updateEducationDisplay();
         
-        // Load usage stats
-        await this.loadUsageStats();
+        // Load usage stats only when stats tab is opened (moved to tab click handler)
         
         this.els.settingsModal.style.display = 'flex';
     }
@@ -4883,7 +4898,7 @@ class SenScript {
     
     async loadAvailableModels() {
         try {
-            const response = await fetch('http://localhost:3002/api/models');
+            const response = await fetch('/api/models');
             const models = await response.json();
             
             let html = '';
@@ -4933,27 +4948,99 @@ class SenScript {
     
     async loadUsageStats() {
         try {
-            const response = await fetch(`http://localhost:3002/api/usage?sessionId=${this.sessionId}`);
-            const stats = await response.json();
+            // Load usage data for different time periods
+            const [dayData, weekData, monthData] = await Promise.all([
+                fetch('/api/usage/summary?range=day').then(r => r.json()).catch(() => null),
+                fetch('/api/usage/summary?range=week').then(r => r.json()).catch(() => null),
+                fetch('/api/usage/summary?range=month').then(r => r.json()).catch(() => null)
+            ]);
             
-            this.els.totalCalls.textContent = stats.global?.totalCalls || 0;
-            this.els.totalTokens.textContent = stats.global?.totalTokens || 0;
-            this.els.cardsGenerated.textContent = this.cards.length;
+            // Current session data
+            const sessionStats = this.cardEngine ? this.cardEngine.getStats() : {
+                successfulCards: 0,
+                totalRequests: 0,
+                avgResponseTime: 0
+            };
             
-            // Calculate average response time
-            if (stats.global?.byProvider) {
-                const avgTimes = Object.values(stats.global.byProvider)
-                    .map(p => p.avgResponseTime)
-                    .filter(t => t > 0);
-                    
-                if (avgTimes.length > 0) {
-                    const avgResponse = avgTimes.reduce((a, b) => a + b, 0) / avgTimes.length;
-                    this.els.avgResponseTime.textContent = Math.round(avgResponse) + 'ms';
-                }
+            // Update daily stats (main stat cards)
+            const dailyStats = dayData || { cardsGenerated: 0, minutesListened: 0, apiCalls: 0, tokensUsed: 0 };
+            
+            // Check if statistics elements exist before trying to update them
+            const dailyCardsEl = document.getElementById('dailyCards');
+            const dailyMinutesEl = document.getElementById('dailyMinutes');
+            const dailyCallsEl = document.getElementById('dailyCalls');
+            const dailyTokensEl = document.getElementById('dailyTokens');
+            
+            if (dailyCardsEl && dailyMinutesEl && dailyCallsEl && dailyTokensEl) {
+                dailyCardsEl.textContent = dailyStats.cardsGenerated || sessionStats.successfulCards;
+                dailyMinutesEl.textContent = Math.round(dailyStats.minutesListened || 0);
+                dailyCallsEl.textContent = dailyStats.apiCalls || sessionStats.totalRequests;
+                dailyTokensEl.textContent = Math.round(dailyStats.tokensUsed || 0);
             }
+            
+            // Store data for period switching
+            this.usageData = {
+                day: dailyStats,
+                week: weekData || { cardsGenerated: 0, minutesListened: 0, apiCalls: 0, tokensUsed: 0 },
+                month: monthData || { cardsGenerated: 0, minutesListened: 0, apiCalls: 0, tokensUsed: 0 }
+            };
+            
+            // Update the period view (default to day)
+            this.updateUsagePeriod('day');
+            
+            // Set up period tab switching
+            const tabs = document.querySelectorAll('.usage-tab');
+            tabs.forEach(tab => {
+                tab.onclick = () => {
+                    // Remove active from all tabs
+                    tabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.style.background = 'transparent';
+                        t.style.color = 'rgba(255, 255, 255, 0.7)';
+                    });
+                    // Add active to clicked tab
+                    tab.classList.add('active');
+                    tab.style.background = 'rgba(255, 255, 255, 0.2)';
+                    tab.style.color = 'white';
+                    // Update display
+                    this.updateUsagePeriod(tab.dataset.period);
+                };
+            });
             
         } catch (error) {
             console.error('[Settings] Failed to load usage stats:', error);
+            // Set fallback values only if elements exist
+            const dailyCardsEl = document.getElementById('dailyCards');
+            const dailyMinutesEl = document.getElementById('dailyMinutes');
+            const dailyCallsEl = document.getElementById('dailyCalls');
+            const dailyTokensEl = document.getElementById('dailyTokens');
+            
+            if (dailyCardsEl && dailyMinutesEl && dailyCallsEl && dailyTokensEl) {
+                dailyCardsEl.textContent = '0';
+                dailyMinutesEl.textContent = '0';
+                dailyCallsEl.textContent = '0';
+                dailyTokensEl.textContent = '0';
+            }
+        }
+    }
+    
+    updateUsagePeriod(period) {
+        if (!this.usageData) return;
+        
+        const data = this.usageData[period] || {};
+        const estimatedCost = (data.tokensUsed || 0) * 0.000001; // Rough estimate
+        
+        // Check if period elements exist before updating
+        const periodCardsEl = document.getElementById('periodCards');
+        const periodMinutesEl = document.getElementById('periodMinutes');
+        const periodCallsEl = document.getElementById('periodCalls');
+        const periodCostEl = document.getElementById('periodCost');
+        
+        if (periodCardsEl && periodMinutesEl && periodCallsEl && periodCostEl) {
+            periodCardsEl.textContent = data.cardsGenerated || 0;
+            periodMinutesEl.textContent = Math.round(data.minutesListened || 0);
+            periodCallsEl.textContent = data.apiCalls || 0;
+            periodCostEl.textContent = '$' + estimatedCost.toFixed(3);
         }
     }
     
@@ -5185,6 +5272,13 @@ class SenScript {
         
         if (targetButton) targetButton.classList.add('active');
         if (targetContent) targetContent.classList.add('active');
+        
+        // Load usage stats when stats tab is opened
+        if (tabName === 'stats') {
+            this.loadUsageStats().catch(error => 
+                console.error('[Settings] Failed to load stats for tab:', error)
+            );
+        }
     }
     
     // Setup Theme Selection Options
@@ -5258,10 +5352,12 @@ class SenScript {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         console.log('[App] DOM loaded, starting SenScript...');
+        window.SenScript = SenScript;
         window.senscript = new SenScript();
     });
 } else {
     console.log('[App] DOM already loaded, starting SenScript...');
+    window.SenScript = SenScript;
     window.senscript = new SenScript();
 }
 
