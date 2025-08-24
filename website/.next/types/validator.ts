@@ -107,6 +107,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies AppPageConfig<"/roadmap">
 }
 
+// Validate ../../src/app/sign-in/[[...sign-in]]/page.tsx
+{
+  const handler = {} as typeof import("../../src/app/sign-in/[[...sign-in]]/page.js")
+  handler satisfies AppPageConfig<"/sign-in/[[...sign-in]]">
+}
+
+// Validate ../../src/app/sign-up/[[...sign-up]]/page.tsx
+{
+  const handler = {} as typeof import("../../src/app/sign-up/[[...sign-up]]/page.js")
+  handler satisfies AppPageConfig<"/sign-up/[[...sign-up]]">
+}
+
+// Validate ../../src/app/success/page.tsx
+{
+  const handler = {} as typeof import("../../src/app/success/page.js")
+  handler satisfies AppPageConfig<"/success">
+}
+
 // Validate ../../src/app/use-cases/page.tsx
 {
   const handler = {} as typeof import("../../src/app/use-cases/page.js")
@@ -117,6 +135,30 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   const handler = {} as typeof import("../../src/app/api/contact/route.js")
   handler satisfies RouteHandlerConfig<"/api/contact">
+}
+
+// Validate ../../src/app/api/create-checkout-session/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/create-checkout-session/route.js")
+  handler satisfies RouteHandlerConfig<"/api/create-checkout-session">
+}
+
+// Validate ../../src/app/api/create-portal-session/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/create-portal-session/route.js")
+  handler satisfies RouteHandlerConfig<"/api/create-portal-session">
+}
+
+// Validate ../../src/app/api/roadmap/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/roadmap/route.js")
+  handler satisfies RouteHandlerConfig<"/api/roadmap">
+}
+
+// Validate ../../src/app/api/roadmap/vote/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/roadmap/vote/route.js")
+  handler satisfies RouteHandlerConfig<"/api/roadmap/vote">
 }
 
 // Validate ../../src/app/api/stripe/checkout/route.ts
@@ -131,10 +173,28 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies RouteHandlerConfig<"/api/stripe/webhook">
 }
 
+// Validate ../../src/app/api/usage/sync/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/usage/sync/route.js")
+  handler satisfies RouteHandlerConfig<"/api/usage/sync">
+}
+
+// Validate ../../src/app/api/user/dashboard/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/user/dashboard/route.js")
+  handler satisfies RouteHandlerConfig<"/api/user/dashboard">
+}
+
 // Validate ../../src/app/api/user/profile/route.ts
 {
   const handler = {} as typeof import("../../src/app/api/user/profile/route.js")
   handler satisfies RouteHandlerConfig<"/api/user/profile">
+}
+
+// Validate ../../src/app/api/webhooks/stripe/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/webhooks/stripe/route.js")
+  handler satisfies RouteHandlerConfig<"/api/webhooks/stripe">
 }
 
 

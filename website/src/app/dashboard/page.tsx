@@ -1,95 +1,129 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 
-interface UserData {
+interface SubscriptionData {
   id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  profileImage?: string;
-  subscription: {
-    status: string;
-    plan: string;
-    minutesUsed: number;
-    minutesTotal: number;
-    expiresAt: string;
-  };
-  stats: {
-    totalSessions: number;
-    totalCards: number;
-    languagesUsed: string[];
-    averageSessionLength: string;
-  };
-  createdAt: string;
+  plan_name: string;
+  status: string;
+  monthly_minutes: number;
+  current_period_end: string;
+}
+
+interface UsageData {
+  used: number;
+  limit: number;
 }
 
 export default function Dashboard() {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const { user, isLoaded } = useUser();
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
+  const [usage, setUsage] = useState<UsageData>({ used: 0, limit: 90 });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      // Fetch user data from API
-      fetchUserData();
+    if (isLoaded && user) {
+      loadDashboardData();
+    } else if (isLoaded && !user) {
+      // Redirect to sign in
+      window.location.href = '/sign-in';
     }
-  }, [isLoaded, isSignedIn]);
+  }, [user, isLoaded]);
 
-  const fetchUserData = async () => {
+  const loadDashboardData = async () => {
     try {
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setUserData(data);
+      setLoading(true);
+      
+      // Load dashboard data from API
+      const response = await fetch('/api/user/dashboard');
+      if (!response.ok) {
+        throw new Error('Failed to load dashboard data');
       }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+      
+      const { subscription, usage } = await response.json();
+      
+      setSubscription(subscription);
+      setUsage(usage);
+    } catch (err) {
+      console.error('Failed to load dashboard data:', err);
+      setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
   };
 
-  const startSenScript = () => {
-    // Redirect to script.sen.studio with auth token
-    const scriptUrl = `${process.env.NEXT_PUBLIC_SCRIPT_APP_URL || 'https://script.sen.studio'}?auth=${user?.id}`;
-    window.open(scriptUrl, '_blank');
+  const handleManageSubscription = async () => {
+    try {
+      const response = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const { url, error } = await response.json();
+
+      if (error) {
+        console.error('Portal error:', error);
+        alert('Failed to open customer portal. Please try again.');
+        return;
+      }
+
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Portal error:', error);
+      alert('Failed to open customer portal. Please try again.');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getUsagePercentage = () => {
+    if (usage.limit === -1) return 0; // Unlimited
+    return Math.min((usage.used / usage.limit) * 100, 100);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-400';
+      case 'trialing': return 'text-blue-400';
+      case 'past_due': return 'text-yellow-400';
+      case 'canceled': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
   };
 
   if (!isLoaded || loading) {
     return (
-      <div className="container">
-        <div className="glass p-8 content-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-lg">Loading your dashboard...</p>
+      <div className="container min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4">⏳</div>
+          <h1 className="text-2xl font-bold mb-2">Loading your dashboard...</h1>
+          <p className="opacity-90">Please wait</p>
         </div>
       </div>
     );
   }
 
-  if (!isSignedIn) {
+  if (error) {
     return (
-      <div className="container">
-        <div className="glass p-8 content-center">
-          <h1 className="text-3xl font-bold mb-4">Please Sign In</h1>
-          <p className="text-lg opacity-90 mb-8">You need to be signed in to access your dashboard.</p>
-          <Link href="/" className="btn btn-primary">
-            Go Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!userData) {
-    return (
-      <div className="container">
-        <div className="glass p-8 content-center">
-          <h1 className="text-3xl font-bold mb-4">Error Loading Dashboard</h1>
-          <p className="text-lg opacity-90 mb-8">Unable to load your account information.</p>
-          <button onClick={fetchUserData} className="btn btn-primary">
+      <div className="container min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold mb-2">Error loading dashboard</h1>
+          <p className="opacity-90 mb-6">{error}</p>
+          <button onClick={loadDashboardData} className="btn btn-primary">
             Try Again
           </button>
         </div>
@@ -99,148 +133,156 @@ export default function Dashboard() {
 
   return (
     <div className="container">
-      {/* Welcome Section */}
-      <section className="glass p-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      {/* Header */}
+      <section className="glass p-8 mb-8">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold mb-2">
-              Welcome back, {user.firstName || user.emailAddresses[0]?.emailAddress?.split('@')[0]}!
+              Welcome back, {user?.firstName || 'there'}! 👋
             </h1>
-            <p className="text-xl opacity-90">Ready to turn conversations into CheatCards?</p>
+            <p className="text-lg opacity-90">
+              Manage your SenScript subscription and track your usage
+            </p>
           </div>
-          <button
-            onClick={startSenScript}
-            className="btn btn-primary text-lg px-8 py-4 flex items-center space-x-2"
-          >
-            <span className="material-symbols-outlined">play_arrow</span>
-            <span>Start SenScript</span>
-          </button>
-        </div>
-      </section>
-
-      {/* Usage Stats */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div className="glass p-6 text-center">
-          <div className="text-4xl font-bold text-purple-400 mb-2">
-            {userData.stats.totalCards}
-          </div>
-          <div className="text-sm opacity-80">CheatCards Created</div>
-          <div className="text-xs opacity-60 mt-2">
-            Across {userData.stats.totalSessions} sessions
-          </div>
-        </div>
-        <div className="glass p-6 text-center">
-          <div className="text-4xl font-bold text-orange-500 mb-2">
-            {userData.subscription.minutesTotal - userData.subscription.minutesUsed}
-          </div>
-          <div className="text-sm opacity-80">Minutes Remaining</div>
-          <div className="w-full bg-white/10 rounded-full h-2 mt-4">
-            <div 
-              className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-              style={{ 
-                width: `${((userData.subscription.minutesTotal - userData.subscription.minutesUsed) / userData.subscription.minutesTotal) * 100}%` 
-              }}
-            ></div>
-          </div>
-        </div>
-
-        <div className="glass p-6 text-center">
-          <div className="text-4xl font-bold text-blue-400 mb-2">
-            {userData.subscription.minutesUsed}
-          </div>
-          <div className="text-sm opacity-80">Minutes Used</div>
-          <div className="text-xs opacity-60 mt-2">
-            Total processed time
-          </div>
-        </div>
-
-        <div className="glass p-6 text-center">
-          <div className="text-2xl font-bold text-green-400 mb-2 capitalize">
-            {userData.subscription.plan}
-          </div>
-          <div className="text-sm opacity-80">Current Plan</div>
-          <div className="text-xs opacity-60 mt-2 capitalize">
-            {userData.subscription.status}
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="glass p-8">
-        <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <button
-            onClick={startSenScript}
-            className="glass p-6 text-center hover:bg-white/10 transition-colors group"
-          >
-            <span className="material-symbols-outlined icon-xl text-orange-500 mb-4 block group-hover:scale-110 transition-transform">
-              record_voice_over
-            </span>
-            <h3 className="font-semibold mb-2">Start Recording</h3>
-            <p className="text-sm opacity-80">Begin creating CheatCards</p>
-          </button>
-
-          <Link href="/pricing" className="glass p-6 text-center hover:bg-white/10 transition-colors group">
-            <span className="material-symbols-outlined icon-xl text-blue-400 mb-4 block group-hover:scale-110 transition-transform">
-              upgrade
-            </span>
-            <h3 className="font-semibold mb-2">Upgrade Plan</h3>
-            <p className="text-sm opacity-80">Get more minutes & features</p>
-          </Link>
-
-          <Link href="/dashboard/history" className="glass p-6 text-center hover:bg-white/10 transition-colors group">
-            <span className="material-symbols-outlined icon-xl text-green-400 mb-4 block group-hover:scale-110 transition-transform">
-              history
-            </span>
-            <h3 className="font-semibold mb-2">View History</h3>
-            <p className="text-sm opacity-80">See your CheatCards</p>
-          </Link>
-
-          <Link href="/dashboard/settings" className="glass p-6 text-center hover:bg-white/10 transition-colors group">
-            <span className="material-symbols-outlined icon-xl text-purple-400 mb-4 block group-hover:scale-110 transition-transform">
-              settings
-            </span>
-            <h3 className="font-semibold mb-2">Settings</h3>
-            <p className="text-sm opacity-80">Manage your account</p>
+          <Link href="https://app.senscript.com" className="btn btn-primary">
+            Open App
           </Link>
         </div>
       </section>
 
-      {/* Getting Started Guide */}
-      {userData.subscription.minutesUsed === 0 && (
-        <section className="glass p-8">
-          <h2 className="text-2xl font-bold mb-6">Getting Started</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Subscription Status */}
+        <section className="glass p-6">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
+            <span>💳</span>
+            Subscription Status
+          </h2>
+          
+          {subscription ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-semibold">{subscription.plan_name} Plan</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(subscription.status)} bg-white/10`}>
+                  {subscription.status}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 p-4 rounded-lg">
+                  <p className="text-sm opacity-70 mb-1">Monthly Limit</p>
+                  <p className="text-xl font-bold">
+                    {subscription.monthly_minutes === -1 ? 'Unlimited' : `${subscription.monthly_minutes} min`}
+                  </p>
+                </div>
+                <div className="bg-white/5 p-4 rounded-lg">
+                  <p className="text-sm opacity-70 mb-1">Renewal Date</p>
+                  <p className="text-xl font-bold">
+                    {formatDate(subscription.current_period_end)}
+                  </p>
+                </div>
+              </div>
+
+              <button 
+                onClick={handleManageSubscription}
+                className="w-full btn mt-4"
+              >
+                Manage Subscription
+              </button>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">🆓</div>
+              <h3 className="text-xl font-bold mb-2">Free Plan</h3>
+              <p className="opacity-90 mb-4">You're currently using our free tier</p>
+              <Link href="/pricing" className="btn btn-primary">
+                Upgrade Plan
+              </Link>
+            </div>
+          )}
+        </section>
+
+        {/* Usage Statistics */}
+        <section className="glass p-6">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
+            <span>📊</span>
+            Usage This Month
+          </h2>
+          
           <div className="space-y-4">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                1
+            <div className="flex items-center justify-between">
+              <span>Minutes Used</span>
+              <span className="text-xl font-bold">
+                {usage.used} / {usage.limit === -1 ? '∞' : usage.limit}
+              </span>
+            </div>
+
+            {usage.limit !== -1 && (
+              <div className="w-full bg-white/10 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-orange-500 to-blue-500 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${getUsagePercentage()}%` }}
+                ></div>
               </div>
-              <div>
-                <h3 className="font-semibold mb-1">Click "Start SenScript"</h3>
-                <p className="text-sm opacity-80">Opens script.sen.studio in a new tab</p>
+            )}
+
+            <div className="grid grid-cols-2 gap-4 mt-6">
+              <div className="bg-white/5 p-4 rounded-lg text-center">
+                <p className="text-2xl font-bold text-orange-500">{usage.used}</p>
+                <p className="text-sm opacity-70">Minutes Used</p>
+              </div>
+              <div className="bg-white/5 p-4 rounded-lg text-center">
+                <p className="text-2xl font-bold text-blue-400">
+                  {usage.limit === -1 ? '∞' : usage.limit - usage.used}
+                </p>
+                <p className="text-sm opacity-70">Remaining</p>
               </div>
             </div>
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                2
+
+            {usage.used > usage.limit * 0.8 && usage.limit !== -1 && (
+              <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mt-4">
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <span>⚠️</span>
+                  You've used {Math.round(getUsagePercentage())}% of your monthly limit
+                </p>
               </div>
-              <div>
-                <h3 className="font-semibold mb-1">Join a Meeting or Start Recording</h3>
-                <p className="text-sm opacity-80">Works with Teams, Zoom, Meet, or any audio source</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                3
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Watch CheatCards Generate</h3>
-                <p className="text-sm opacity-80">AI creates study materials in real-time</p>
-              </div>
-            </div>
+            )}
           </div>
         </section>
-      )}
+      </div>
+
+      {/* Quick Actions */}
+      <section className="glass p-6 mt-8">
+        <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white/5 p-6 rounded-lg text-center">
+            <div className="text-3xl mb-3">🎤</div>
+            <h3 className="font-semibold mb-2">Start Recording</h3>
+            <p className="text-sm opacity-70 mb-4">Open the SenScript app and begin creating CheatCards</p>
+            <Link href="https://app.senscript.com" className="btn btn-primary w-full">
+              Open App
+            </Link>
+          </div>
+
+          <div className="bg-white/5 p-6 rounded-lg text-center">
+            <div className="text-3xl mb-3">📋</div>
+            <h3 className="font-semibold mb-2">View Roadmap</h3>
+            <p className="text-sm opacity-70 mb-4">See what features we're building next</p>
+            <Link href="/roadmap" className="btn w-full">
+              View Roadmap
+            </Link>
+          </div>
+
+          <div className="bg-white/5 p-6 rounded-lg text-center">
+            <div className="text-3xl mb-3">💬</div>
+            <h3 className="font-semibold mb-2">Get Support</h3>
+            <p className="text-sm opacity-70 mb-4">Need help? Contact our support team</p>
+            <Link href="/contact" className="btn w-full">
+              Contact Support
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

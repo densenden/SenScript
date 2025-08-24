@@ -178,6 +178,36 @@ class SimpleClerkAuth {
         return this.isAuthenticated;
     }
 
+    // Compatibility methods for existing code
+    isSignedIn() {
+        return this.isAuthenticated;
+    }
+
+    getUser() {
+        return this.user;
+    }
+
+    // Mount UserProfile (for settings modal)
+    mountUserProfile(containerId) {
+        if (!this.clerk) {
+            console.warn('[SimpleAuth] Cannot mount UserProfile - Clerk not initialized');
+            return;
+        }
+
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn('[SimpleAuth] Container not found:', containerId);
+            return;
+        }
+
+        try {
+            this.clerk.mountUserProfile(container);
+            console.log('[SimpleAuth] UserProfile mounted successfully');
+        } catch (error) {
+            console.error('[SimpleAuth] Failed to mount UserProfile:', error);
+        }
+    }
+
     async getToken() {
         if (!this.clerk?.session) return null;
         

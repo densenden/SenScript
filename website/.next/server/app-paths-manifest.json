@@ -1,9 +1,10 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/about/page": "app/about/page.js",
-  "/demo/page": "app/demo/page.js",
+  "/api/roadmap/route": "app/api/roadmap/route.js",
+  "/api/roadmap/vote/route": "app/api/roadmap/vote/route.js",
+  "/api/user/dashboard/route": "app/api/user/dashboard/route.js",
+  "/changelog/page": "app/changelog/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/more-information/page": "app/more-information/page.js",
   "/page": "app/page.js",
-  "/pricing/page": "app/pricing/page.js"
+  "/roadmap/page": "app/roadmap/page.js"
 }

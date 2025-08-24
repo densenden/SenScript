@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 
 const plans = [
   {
@@ -39,7 +40,7 @@ const plans = [
     cta: "Start Essential",
     ctaLink: "#",
     popular: true,
-    stripePriceId: "price_essential_monthly"
+    stripePriceId: "price_1QZGvdH7v8GqiLJwQjkB3muQ" // Real Stripe price ID
   },
   {
     name: "Professional",
@@ -58,7 +59,7 @@ const plans = [
     cta: "Start Professional",
     ctaLink: "#",
     popular: false,
-    stripePriceId: "price_professional_monthly"
+    stripePriceId: "price_1QZGwRH7v8GqiLJwvE2xYvzH" // Real Stripe price ID
   }
 ];
 
@@ -159,10 +160,59 @@ function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
 }
 
 export default function Pricing() {
+  const { user, isLoaded } = useUser();
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index);
+  };
+
+  const handlePlanSelect = async (plan: typeof plans[0]) => {
+    if (!plan.stripePriceId) {
+      // Free plan - redirect to demo
+      window.location.href = plan.ctaLink;
+      return;
+    }
+
+    if (!user) {
+      // Redirect to sign up
+      window.location.href = '/sign-up';
+      return;
+    }
+
+    setLoadingPlan(plan.name);
+
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId: plan.stripePriceId,
+          successUrl: `${window.location.origin}/success`,
+          cancelUrl: `${window.location.origin}/pricing`,
+        }),
+      });
+
+      const { url, error } = await response.json();
+
+      if (error) {
+        console.error('Checkout error:', error);
+        alert('Failed to create checkout session. Please try again.');
+        return;
+      }
+
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to create checkout session. Please try again.');
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   return (
@@ -242,16 +292,24 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <Link 
-                href={plan.ctaLink}
-                className={`w-full text-center block py-3 px-6 rounded-lg font-semibold transition-all ${
+              <button
+                onClick={() => handlePlanSelect(plan)}
+                disabled={loadingPlan === plan.name}
+                className={`w-full py-3 px-6 rounded-lg font-semibold transition-all disabled:opacity-50 ${
                   plan.popular 
                     ? 'btn-primary' 
                     : 'btn'
                 }`}
               >
-                {plan.cta}
-              </Link>
+                {loadingPlan === plan.name ? (
+                  <>
+                    <span className="inline-block animate-spin mr-2">⏳</span>
+                    Loading...
+                  </>
+                ) : (
+                  plan.cta
+                )}
+              </button>
             </div>
           ))}
         </div>

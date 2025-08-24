@@ -56,12 +56,12 @@ LANGUAGE: Always respond in the same language as the input transcript.`;
         return this.systemPrompt;
     }
     
-    async processTranscript(sessionId, transcript, language, languageFlag, cardMode = null, outputLanguage = null) {
+    async processTranscript(sessionId, transcript, language, languageFlag, cardMode = null, outputLanguage = null, selectedModel = 'auto') {
         // Get or create conversation for this session
         let conversation = this.conversations.get(sessionId);
         
         if (!conversation) {
-            conversation = this.createNewConversation(language);
+            conversation = this.createNewConversation(language, selectedModel);
             this.conversations.set(sessionId, conversation);
         }
         
@@ -146,10 +146,10 @@ Generate a flashcard if ANY educational value exists. MODE: ${isCheatMode ? 'CHE
         }
     }
     
-    createNewConversation(language) {
+    createNewConversation(language, selectedModel = 'auto') {
         return {
             id: Date.now(),
-            provider: this.selectOptimalProvider(),
+            provider: this.selectOptimalProvider(selectedModel),
             messages: [
                 {
                     role: 'system',
@@ -191,8 +191,21 @@ Generate a flashcard if ANY educational value exists. MODE: ${isCheatMode ? 'CHE
         }
     }
     
-    selectOptimalProvider() {
-        // Select provider based on performance metrics
+    selectOptimalProvider(selectedModel = 'auto') {
+        // If specific model is selected, use it
+        if (selectedModel !== 'auto') {
+            const provider = this.provider.providers[selectedModel];
+            if (!provider || !provider.enabled) {
+                console.warn(`[LLM] Selected model '${selectedModel}' not available, falling back to auto selection`);
+                // Fall through to auto selection
+            } else {
+                console.log(`[LLM] Using selected provider: ${selectedModel}`);
+                return selectedModel;
+            }
+        }
+        
+        // Auto selection - choose based on performance metrics
+        console.log('[LLM] Auto-selecting optimal provider based on performance');
         const enabledProviders = Object.entries(this.provider.providers)
             .filter(([_, config]) => config.enabled);
         
@@ -215,7 +228,9 @@ Generate a flashcard if ANY educational value exists. MODE: ${isCheatMode ? 'CHE
             return configA.failures - configB.failures;
         });
         
-        return enabledProviders[0][0]; // Return provider name
+        const selectedProvider = enabledProviders[0][0];
+        console.log(`[LLM] Optimal provider selected: ${selectedProvider}`);
+        return selectedProvider; // Return provider name
     }
     
     async callProviderWithConversation(providerName, messages) {

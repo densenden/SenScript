@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { PrismaClient } = require('@prisma/client');
+const { createClient } = require('@supabase/supabase-js');
 const { z } = require('zod');
 const path = require('path');
 require('dotenv').config();
@@ -11,8 +11,18 @@ const LLMProvider = require('./llm-providers');
 const LLMConversation = require('./llm-conversation');
 
 const app = express();
-const prisma = new PrismaClient();
 const port = process.env.PORT || 3001;
+
+// Initialize Supabase client with fallback values
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key';
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.log('[Warning] Supabase environment variables not configured - using placeholder values');
+    console.log('For production, configure: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Middleware
 app.use(cors());
@@ -40,8 +50,7 @@ try {
 const llmProvider = new LLMProvider();
 const llmConversation = new LLMConversation(llmProvider, SENSCRIPT_CONFIG.EDUCATION);
 
-// Clerk webhook endpoint to verify JWT tokens (server-side)
-const { Webhook } = require('svix');
+// Clerk JWT token verification
 const verifyClerkToken = async (req, res, next) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     
@@ -53,9 +62,24 @@ const verifyClerkToken = async (req, res, next) => {
         // For development, we'll use a simple decode (in production, verify with Clerk SDK)
         const base64Payload = token.split('.')[1];
         const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString());
-        req.userId = payload.sub || payload.userId;
+        req.clerkUserId = payload.sub || payload.userId;
+        
+        // Get user from database
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('clerk_user_id', req.clerkUserId)
+            .single();
+            
+        if (error && error.code !== 'PGRST116') {
+            console.error('Database error during auth:', error);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        req.user = user;
         next();
     } catch (error) {
+        console.error('Token verification error:', error);
         return res.status(401).json({ error: 'Invalid token' });
     }
 };
@@ -130,12 +154,8 @@ const rateLimit = (userId, limit = 1, windowMs = 15000) => {
 // Get user settings
 app.get('/api/settings', verifyClerkToken, async (req, res) => {
     try {
-        const settings = await prisma.userSettings.findUnique({
-            where: { userId: req.userId }
-        });
-        
-        const data = settings ? JSON.parse(settings.data) : DEFAULT_SETTINGS;
-        res.json(data);
+        // Return default settings for now
+        res.json(DEFAULT_SETTINGS);
     } catch (error) {
         console.error('Error fetching settings:', error);
         res.status(500).json({ error: 'Failed to fetch settings' });
@@ -356,7 +376,8 @@ app.post('/api/generate-card', verifyClerkToken, async (req, res) => {
             userSettings.outputLanguage?.fixed || language,
             languageFlag,
             cardMode || userSettings.defaultCardType || 'flash',
-            userSettings.outputLanguage
+            userSettings.outputLanguage,
+            userSettings.selectedModel || 'auto'
         );
         
         // Track time as listening minutes
@@ -384,9 +405,181 @@ app.post('/api/generate-card', verifyClerkToken, async (req, res) => {
 
 // Public endpoint to get Clerk publishable key
 app.get('/api/auth/config', (req, res) => {
+    const publishableKey = process.env.VITE_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    console.log('[Server] Auth config requested');
+    console.log('[Server] Publishable key length:', publishableKey ? publishableKey.length : 'NONE');
+    console.log('[Server] Publishable key (first 20 chars):', publishableKey ? publishableKey.substring(0, 20) : 'NO_KEY');
+    console.log('[Server] Publishable key (last 5 chars):', publishableKey ? publishableKey.slice(-5) : 'NO_KEY');
+    
     res.json({
-        publishableKey: process.env.CLERK_PUBLISHABLE_KEY
+        publishableKey: publishableKey
     });
+});
+
+// User sync endpoint for Clerk authentication
+app.post('/api/users/sync', verifyClerkToken, async (req, res) => {
+    try {
+        const { clerkUserId, email, firstName, lastName, profileImageUrl } = req.body;
+        
+        if (!clerkUserId || !email) {
+            return res.status(400).json({ error: 'Missing required fields: clerkUserId, email' });
+        }
+        
+        // Upsert user in database
+        const { data: user, error } = await supabase
+            .rpc('upsert_user_from_clerk', {
+                clerk_id: clerkUserId,
+                email_addr: email,
+                first_n: firstName || null,
+                last_n: lastName || null,
+                profile_img: profileImageUrl || null
+            });
+            
+        if (error) {
+            console.error('Failed to sync user:', error);
+            return res.status(500).json({ error: 'Failed to sync user with database' });
+        }
+        
+        res.json({ success: true, user });
+    } catch (error) {
+        console.error('User sync error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// User settings endpoint
+app.get('/api/user/settings', verifyClerkToken, async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const { data: settings, error } = await supabase
+            .from('user_settings')
+            .select('*')
+            .eq('user_id', req.user.id)
+            .single();
+            
+        if (error && error.code !== 'PGRST116') {
+            console.error('Failed to get user settings:', error);
+            return res.status(500).json({ error: 'Failed to retrieve settings' });
+        }
+        
+        // Return default settings if none exist
+        if (!settings) {
+            const defaultSettings = {
+                auto_start_listening: false,
+                default_card_type: 'flash',
+                language: 'auto',
+                selected_model: 'auto',
+                use_fallback: true,
+                output_language: { auto: true },
+                education_settings: {
+                    userLevel: 1,
+                    detailLevel: 5,
+                    exampleComplexity: 3
+                }
+            };
+            return res.json(defaultSettings);
+        }
+        
+        res.json({
+            auto_start_listening: settings.auto_start_listening,
+            default_card_type: settings.default_card_type,
+            language: settings.language,
+            selected_model: settings.selected_model,
+            use_fallback: settings.use_fallback,
+            output_language: settings.output_language,
+            education_settings: settings.education_settings,
+            api_keys: settings.api_keys
+        });
+    } catch (error) {
+        console.error('Settings retrieval error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Update user settings endpoint
+app.patch('/api/user/settings', verifyClerkToken, async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const updates = req.body;
+        
+        // Convert camelCase to snake_case for database
+        const dbUpdates = {};
+        if (updates.autoStartListening !== undefined) dbUpdates.auto_start_listening = updates.autoStartListening;
+        if (updates.defaultCardType !== undefined) dbUpdates.default_card_type = updates.defaultCardType;
+        if (updates.language !== undefined) dbUpdates.language = updates.language;
+        if (updates.selectedModel !== undefined) dbUpdates.selected_model = updates.selectedModel;
+        if (updates.useFallback !== undefined) dbUpdates.use_fallback = updates.useFallback;
+        if (updates.outputLanguage !== undefined) dbUpdates.output_language = updates.outputLanguage;
+        if (updates.educationSettings !== undefined) dbUpdates.education_settings = updates.educationSettings;
+        if (updates.apiKeys !== undefined) dbUpdates.api_keys = updates.apiKeys;
+        
+        const { data: settings, error } = await supabase
+            .from('user_settings')
+            .upsert({
+                user_id: req.user.id,
+                ...dbUpdates
+            })
+            .select()
+            .single();
+            
+        if (error) {
+            console.error('Failed to update user settings:', error);
+            return res.status(500).json({ error: 'Failed to update settings' });
+        }
+        
+        res.json({ success: true, settings });
+    } catch (error) {
+        console.error('Settings update error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Cross-app usage tracking endpoint
+app.post('/api/usage/record', verifyClerkToken, async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const { minutes, source = 'web-app', sessionId, metadata } = req.body;
+        
+        if (!minutes || minutes <= 0) {
+            return res.status(400).json({ error: 'Invalid minutes value' });
+        }
+        
+        const now = new Date();
+        const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        // Record usage in Supabase
+        const { error } = await supabase
+            .from('usage_records')
+            .insert({
+                user_id: req.user.id,
+                minutes_used: minutes,
+                source: source,
+                session_id: sessionId,
+                metadata: metadata || {},
+                billing_period_start: periodStart.toISOString(),
+                billing_period_end: periodEnd.toISOString()
+            });
+            
+        if (error) {
+            console.error('Failed to record usage:', error);
+            return res.status(500).json({ error: 'Failed to record usage' });
+        }
+        
+        res.json({ success: true, minutes });
+    } catch (error) {
+        console.error('Usage recording error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // Start server
@@ -397,7 +590,7 @@ app.listen(port, () => {
 });
 
 // Cleanup on exit
-process.on('SIGINT', async () => {
-    await prisma.$disconnect();
+process.on('SIGINT', () => {
+    console.log('\nShutting down web-app server...');
     process.exit();
 });

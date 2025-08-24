@@ -1,24 +1,20 @@
 {
   "pages": {
     "/about/page": [
-      "static/chunks/53eeb_next_dist_cb70f4e7._.js",
-      "static/chunks/sen_dev_SenScript_website_src_app_favicon_ico_mjs_7a773de4._.js",
-      "static/chunks/[root-of-the-server]__0f7656bf._.css",
-      "static/chunks/53eeb_@clerk_nextjs_dist_esm_app-router_3b44c89f._.js",
-      "static/chunks/53eeb_80bd87e7._.js",
-      "static/chunks/sen_dev_SenScript_website_src_components_layout_99f530bf._.js",
-      "static/chunks/sen_dev_SenScript_website_src_app_layout_tsx_bc4d277e._.js",
-      "static/chunks/53eeb_next_dist_client_components_builtin_global-error_7c9e0d28.js",
-      "static/chunks/sen_dev_SenScript_website_src_app_about_page_tsx_7c9e0d28._.js",
-      "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_0acae430._.js",
-      "static/chunks/53eeb_next_dist_compiled_react-dom_74f6fe78._.js",
-      "static/chunks/53eeb_next_dist_compiled_next-devtools_index_735b0ae0.js",
-      "static/chunks/53eeb_next_dist_compiled_1a4b3922._.js",
-      "static/chunks/53eeb_next_dist_client_96edb765._.js",
-      "static/chunks/53eeb_next_dist_da0e7121._.js",
-      "static/chunks/53eeb_@swc_helpers_cjs_0272f3c0._.js",
-      "static/chunks/sen_dev_SenScript_website_a0ff3932._.js",
-      "static/chunks/turbopack-sen_dev_SenScript_website_effdfc74._.js"
+      "static/chunks/c0f2e3dc55ceff91.js",
+      "static/chunks/c6b4ecc1c4366140.js",
+      "static/chunks/e87349a26047c83b.css",
+      "static/chunks/fe3d0a73adf0a6dc.js",
+      "static/chunks/5d5d4d43aa1ec45a.js",
+      "static/chunks/e77e9b53ce085758.js",
+      "static/chunks/2bb71f9bff25ea60.js",
+      "static/chunks/b47242b9465018e5.js",
+      "static/chunks/59f7855b678f6f6c.js",
+      "static/chunks/1144016573ba7b9f.js",
+      "static/chunks/89a35b3c3732a2c3.js",
+      "static/chunks/8585f7197c03434a.js",
+      "static/chunks/1f3d3c17789e8feb.js",
+      "static/chunks/turbopack-3a61206014ae500f.js"
     ]
   }
 }

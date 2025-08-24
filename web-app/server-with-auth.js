@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { PrismaClient } = require('@prisma/client');
+const { createClient } = require('@supabase/supabase-js');
 const { z } = require('zod');
 const path = require('path');
 require('dotenv').config();
@@ -11,7 +11,12 @@ const LLMProvider = require('./llm-providers');
 const LLMConversation = require('./llm-conversation');
 
 const app = express();
-const prisma = new PrismaClient();
+
+// Initialize Supabase client (fallback to development values)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 const port = process.env.PORT || 3001;
 
 // Middleware

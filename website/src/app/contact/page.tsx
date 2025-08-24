@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 
 const supportTopics = [
   {
@@ -26,6 +27,8 @@ const supportTopics = [
 ];
 
 export default function Contact() {
+  const { user, isLoaded } = useUser();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,17 +39,46 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // Pre-fill form with user data when available
+  useEffect(() => {
+    if (isLoaded && user) {
+      const displayName = user.firstName 
+        ? `${user.firstName} ${user.lastName || ''}`.trim()
+        : user.fullName || user.username || '';
+      
+      setFormData(prev => ({
+        ...prev,
+        name: displayName,
+        email: user.primaryEmailAddress?.emailAddress || ''
+      }));
+    }
+  }, [user, isLoaded]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
+      // Map subject to category
+      const categoryMap: Record<string, string> = {
+        'General Support': 'general',
+        'Feature Request': 'feature_request', 
+        'Bug Report': 'bug_report',
+        'Enterprise': 'billing',
+        'Other': 'general'
+      };
+      
+      const submissionData = {
+        ...formData,
+        category: categoryMap[formData.subject] || 'general'
+      };
+      
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
 
       const result = await response.json();
@@ -135,6 +167,14 @@ export default function Contact() {
               <div className="content-center space-large mb-8">
                 <h2 className="text-3xl font-bold">Send us a Message</h2>
                 <p className="text-lg opacity-90">We typically respond within 24 hours</p>
+                {user && (
+                  <p className="text-sm opacity-70 mt-2 flex items-center justify-center gap-2">
+                    <span className="material-symbols-outlined" style={{fontSize: '16px'}}>
+                      person_check
+                    </span>
+                    Form pre-filled with your account information
+                  </p>
+                )}
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">

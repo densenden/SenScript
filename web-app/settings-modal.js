@@ -263,6 +263,38 @@ class SettingsModal {
                                 </select>
                             </div>
 
+                            <!-- AI Model Selection -->
+                            <div class="pref-item">
+                                <label style="color: white; font-weight: 500; display: block; margin-bottom: 8px;">
+                                    AI Model
+                                </label>
+                                <select id="selectedModel" class="glass-button" style="
+                                    width: 100%;
+                                    padding: 10px;
+                                    background: rgba(255, 255, 255, 0.1);
+                                    border: 1px solid rgba(255, 255, 255, 0.2);
+                                    color: white;
+                                    border-radius: 12px;
+                                    font-size: 16px;
+                                ">
+                                    <option value="auto" ${this.settings.selectedModel === 'auto' ? 'selected' : ''}>
+                                        🚀 Auto (Fastest Response)
+                                    </option>
+                                    <option value="openai" ${this.settings.selectedModel === 'openai' ? 'selected' : ''}>
+                                        🧠 OpenAI GPT (Versatile)
+                                    </option>
+                                    <option value="anthropic" ${this.settings.selectedModel === 'anthropic' ? 'selected' : ''}>
+                                        🎯 Anthropic Claude (Precise)
+                                    </option>
+                                    <option value="deepseek" ${this.settings.selectedModel === 'deepseek' ? 'selected' : ''}>
+                                        ⚡ DeepSeek (Fast & Efficient)
+                                    </option>
+                                </select>
+                                <div style="color: rgba(255, 255, 255, 0.5); font-size: 12px; margin-top: 8px;">
+                                    Auto mode races all available models for fastest response
+                                </div>
+                            </div>
+
                             <!-- Language Settings -->
                             <div class="pref-item">
                                 <label style="color: white; font-weight: 500; display: block; margin-bottom: 8px;">
@@ -386,6 +418,11 @@ class SettingsModal {
         // Default card type
         modal.querySelector('#defaultCardType').addEventListener('change', (e) => {
             debouncedSave({ defaultCardType: e.target.value });
+        });
+        
+        // Selected model
+        modal.querySelector('#selectedModel').addEventListener('change', (e) => {
+            debouncedSave({ selectedModel: e.target.value });
         });
         
         // Output language

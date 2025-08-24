@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SenScript - Smart meeting companion</title>
+    <title>SenScript - AI Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
         * {
             margin: 0;
@@ -21,7 +20,7 @@
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
-            font-size: 1.2em;
+            font-size: 1.2em; /* 1.2x bigger body font */
         }
         
         /* iOS 16 Glass Morphism */
@@ -62,18 +61,3736 @@
             transform: scale(0.98);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
         }
+        
+        /* Light theme button styles - WHITE buttons for screen-2 and screen-3 only */
+        .light .screen-2 .glass-button,
+        .light .screen-3 .glass-button {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(20px) saturate(180%);
+        }
+        
+        .light .screen-2 .glass-button:hover,
+        .light .screen-3 .glass-button:hover {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+        
+        .light .screen-2 .glass-button:active,
+        .light .screen-3 .glass-button:active {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            transform: translateY(0);
+        }
+        
+        /* Light theme button styles - DARK buttons for screen-1 (keep original dark appearance) */
+        .light .screen-1 .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px) saturate(180%);
+        }
+        
+        .light .screen-1 .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 3px 6px rgba(0, 0, 0, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        .light .screen-1 .glass-button:active {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+            transform: translateY(0);
+        }
+        
+        /* Mobile-first responsive design - APP-LIKE LAYOUT */
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0 0 120px 0; /* Bottom padding for round navbar + overlap space */
+            gap: 0; /* Remove gaps for seamless app feel */
+        }
+        
+        /* Mobile Portrait: Move navbar to bottom with overlap space */
+        .app-header {
+            order: 3; /* Move to bottom after cards */
+            flex: 0 0 auto;
+            position: fixed;
+            bottom: 40px; /* Move up a bit more - navbar is gorgeous! */
+            left: 16px;
+            right: 16px;
+            top: auto;
+            z-index: 100;
+            margin: 0;
+        }
+        
+        /* Mobile Navbar theme inversion: opposite to global content theme */
+        /* Default (dark mode): content is dark, navbar should be light */
+        body:not(.light) .app-header .mobile-header-content {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        body:not(.light) .app-header .mobile-header-content *,
+        body:not(.light) .app-header .mobile-header-content h1,
+        body:not(.light) .app-header .mobile-header-content button {
+            color: #1f2937 !important;
+        }
+        
+        /* Dark mode: white background needs black logo */
+        body:not(.light) .app-header .logo-section img {
+            content: url('assets/images/logo-black.svg') !important;
+        }
+        
+        /* Light mode: content is light, navbar should be dark */
+        body.light .app-header .mobile-header-content {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        body.light .app-header .mobile-header-content *,
+        body.light .app-header .mobile-header-content h1,
+        body.light .app-header .mobile-header-content button {
+            color: white !important;
+        }
+        
+        /* Light mode: dark background needs white logo */
+        body.light .app-header .logo-section img {
+            content: url('assets/images/logo-white.svg') !important;
+        }
+        
+        /* Mobile Navbar - Round Design (height = 2x radius) */
+        .app-header .mobile-header-content {
+            padding: 0 70px 0 70px; /* Adjusted for smaller logo (30px + 20px margin each side) */
+            border-radius: 35px; /* Half of height for perfect circle */
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Center the content */
+            height: 70px; /* Height = 2x radius (35px) for round shape */
+            position: relative; /* For absolute positioned elements */
+        }
+        
+        /* Logo and text positioned absolutely on the left */
+        .app-header .logo-section {
+            position: absolute;
+            left: 20px; /* 20px padding for 30px logo */
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0px; /* No padding needed for exact 30px circle */
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: transparent; /* No backdrop - transparent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* No border or backdrop - transparent logo section */
+        }
+        
+        .app-header .logo-section img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        
+        .app-header .logo-text {
+            position: absolute;
+            left: 60px; /* Adjusted for smaller logo (30px + 20px left margin + 10px gap) */
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Status bar positioned absolutely on the right */
+        .app-header .status-bar {
+            position: absolute;
+            right: 20px; /* Fixed position from right edge */
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0;
+            margin: 0;
+            flex: 0 0 auto;
+            gap: 8px;
+            display: flex; /* Force display on mobile */
+        }
+        
+        /* Settings button visible on mobile */
+        .app-header #settingsBtn {
+            display: flex !important;
+        }
+        
+        .app-header .logo-text h1 {
+            font-size: 14px; /* Smaller to prevent layout blow */
+            margin: 0;
+            font-weight: 500; /* Medium weight for better visibility */
+        }
+        
+        .app-header .logo-text p {
+            display: none; /* Hide subtitle in mobile */
+        }
+        
+        .app-header .controls-section {
+            padding: 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .app-header .record-button {
+            width: 80px; /* Much larger for overlap effect */
+            height: 80px;
+            padding: 0;
+            margin: 0;
+            border-radius: 50%; /* Perfect circle */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; /* Absolute positioning for perfect centering */
+            z-index: 10; /* Above navbar */
+            left: 50%; /* Center horizontally */
+            top: 50%; /* Center vertically */
+            transform: translateX(-50%) translateY(-50%); /* Perfect centering with navbar */
+            
+            /* Enhanced glass morphism with more blur and refraction */
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 
+                       0 4px 12px rgba(0, 0, 0, 0.1),
+                       inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Recording state: clean square transformation */
+        .app-header .record-button.recording {
+            border-radius: 20px; /* Rounded square when recording */
+            animation: recordingPulse 2s ease-in-out infinite;
+            /* Keep same transform as normal state - stay centered */
+            transform: translateX(-50%) translateY(-50%);
+        }
+        
+        @keyframes recordingPulse {
+            0%, 100% { 
+                opacity: 0.9;
+            }
+            50% { 
+                opacity: 1;
+            }
+        }
+        
+        .app-header .record-button span:not(.record-dot) {
+            display: none; /* Hide text on mobile */
+        }
+        
+        .app-header .audio-source-toggle {
+            display: none; /* Hide audio toggle in tiny header */
+        }
+        
+        .app-header .status-bar {
+            padding: 0;
+            margin: 0;
+            flex: 0 0 auto;
+            gap: 8px;
+            display: flex; /* Force display on mobile */
+        }
+        
+        .app-header .theme-toggle {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* GLASS MORPHISM for mobile buttons */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px) saturate(150%);
+            -webkit-backdrop-filter: blur(10px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .app-header .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .app-header .theme-toggle span:not(.theme-circle):not(.status-dot) {
+            display: none; /* Hide text on mobile */
+        }
+        
+        .app-header .integrated-status {
+            display: none !important; /* Completely invisible on mobile */
+        }
+        
+        /* Make features section completely invisible on mobile */
+        .features-list {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        /* Hide integrated-status only on mobile */
+        .desktop-only {
+            display: none !important; /* Hide on mobile */
+        }
+        
+        /* Mobile: Hide main screen-1, show app-header/app-footer */
+        .screen-1 {
+            display: none; /* Hide on mobile - use app-header instead */
+        }
+        
+        .app-content {
+            order: 1; /* Content comes first now */
+            flex: 1;
+            display: flex;
+            flex-direction: column; /* Stack vertically: transcript top, cards bottom */
+            overflow: hidden;
+            gap: 8px;
+            margin: 16px 16px 80px 16px; /* Top margin, bottom margin for navbar */
+        }
+        
+        .app-footer {
+            display: none; /* Hide footer in mobile portrait - navbar is now bottom */
+        }
+        
+        /* Mobile Footer theme inversion: opposite to global content theme */
+        /* Default (dark mode): content is dark, footer should be light */
+        body:not(.light) .app-footer .screen-4 {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        body:not(.light) .app-footer .screen-4 *,
+        body:not(.light) .app-footer .screen-4 h4 {
+            color: #1f2937 !important;
+        }
+        
+        /* Light mode: content is light, footer should be dark */
+        body.light .app-footer .screen-4 {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        body.light .app-footer .screen-4 *,
+        body.light .app-footer .screen-4 h4 {
+            color: white !important;
+        }
+        
+        /* Super Tiny Footer - Same Height as Header */
+        .app-footer .screen-4 {
+            padding: 8px 20px; /* Standard 20px horizontal padding */
+            border-radius: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px; /* Exact same height as header */
+            box-sizing: border-box;
+        }
+        
+        .app-footer .info-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* More space between mobile status items */
+            padding: 0 8px; /* Side padding to use full width better */
+            width: 100%; /* Use full available width */
+        }
+        
+        .app-footer .info-card {
+            flex: 1; /* Use equal width for each card */
+            text-align: center;
+            min-width: 0; /* Allow shrinking */
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .app-footer .info-card h4 {
+            font-size: 10px;
+            margin: 0;
+            opacity: 0.7;
+        }
+        
+        .app-footer .status-dot {
+            width: 8px;
+            height: 8px;
+        }
+        
+        /* Hide features and export in footer on mobile */
+        .app-footer .features-list,
+        .app-footer .export-section {
+            display: none;
+        }
 
-        /* Auth container */
-        .auth-container {
+        /* Screen 1: Logo + Record Controls - NOW HEADER */
+        .screen-1 {
+            order: 1;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 0; /* No internal padding - use screen-1 padding */
+            margin-bottom: 20px;
+        }
+        
+        .logo-section img {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .logo-text h1 {
+            font-size: 21px;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .logo-text p {
+            font-size: 14px;
+            opacity: 0.7;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .light .logo-text h1,
+        .light .logo-text p {
+            color: #1f2937;
+        }
+        
+        .controls-section {
+            padding: 0; /* No internal padding - use screen-1 padding */
+        }
+        
+        .audio-selector {
+            width: 100%;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 20px;
+        }
+        
+        .light .audio-selector {
+            color: #1f2937;
+        }
+        
+        .light .audio-selector option {
+            color: #1f2937;
+            background: white;
+        }
+        
+        .record-button {
+            width: 100%;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .light .record-button {
+            color: #1f2937;
+        }
+        
+        .record-dot {
+            width: 16px;
+            height: 16px;
+            background: #ef4444; /* Red instead of grey */
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .light .record-dot {
+            background: #ef4444; /* Red in light mode too */
+        }
+        
+        /* Mobile record button: red dot becomes square when recording */
+        .app-header .record-button.recording .record-dot {
+            border-radius: 4px; /* Larger square red dot when recording */
+            width: 20px; /* Bigger dot for bigger button */
+            height: 20px;
+        }
+        
+        .app-header .record-button .record-dot {
+            width: 20px; /* Bigger dot for bigger button */
+            height: 20px;
+        }
+        
+        /* Active state - red blinking */
+        .record-dot.pulse {
+            background: #ef4444;
+            animation: redBlink 1.5s infinite;
+        }
+        
+        @keyframes redBlink {
+            0%, 100% { 
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0; /* No internal padding - use screen-1 padding */
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .language-info {
+            font-weight: 600;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .light .language-info {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-toggle {
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: white;
+            border-radius: 15px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .light .theme-toggle {
+            color: #1f2937;
+        }
+        
+        /* Integrated Status & Features */
+        .integrated-status {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0; /* No internal padding - use screen-1 padding */
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px; /* Reduced gap for more compact design */
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px; /* Reduced height - less vertical padding */
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .light .status-item {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-label {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .light .status-label {
+            color: #1f2937;
+        }
+        
+        .features-list {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        
+        .light .features-list {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .features-list h4 {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .light .features-list h4 {
+            color: #1f2937;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .light .features-list ul {
+            color: #1f2937;
+        }
+        
+        /* Universal text color fixes */
+        .glass-dark,
+        .glass-dark *,
+        .glass-dark h1,
+        .glass-dark h2, 
+        .glass-dark h3,
+        .glass-dark h4,
+        .glass-dark p,
+        .glass-dark span,
+        .glass-dark div,
+        .glass-dark li,
+        .glass-dark ul,
+        .glass-dark button,
+        .glass-dark label,
+        .glass-dark .features-list ul,
+        .glass-dark .features-list li,
+        .glass-dark .features-list h4 {
+            color: white !important;
+        }
+        
+        /* Universal light mode text fixes - FORCE black text */
+        .glass-light,
+        .glass-light *,
+        .glass-light h1,
+        .glass-light h2, 
+        .glass-light h3,
+        .glass-light h4,
+        .glass-light p,
+        .glass-light span,
+        .glass-light div,
+        .glass-light li,
+        .glass-light ul,
+        .glass-light button,
+        .glass-light label,
+        .glass-light .features-list ul,
+        .glass-light .features-list li,
+        .glass-light .features-list h4 {
+            color: #1f2937 !important;
+        }
+        
+        /* Keep specific elements with their own colors */
+        .glass-light .status-dot,
+        .glass-light .record-dot,
+        .glass-light .theme-circle::before,
+        .glass-light .theme-circle::after {
+            color: transparent !important;
+        }
+        
+        .features-list li {
+            margin-bottom: 4px;
+        }
+        
+        .export-section {
+            margin-top: auto;
+        }
+        
+        .export-button {
+            width: 100%;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            border-radius: 20px;
+        }
+        
+        .light .export-button {
+            color: #1f2937;
+        }
+        
+        .export-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        
+        .light .export-button:disabled {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+        
+        /* Screen 2: Transcript - Mobile Portrait: 30% height */
+        .screen-2 {
+            order: 1; /* Transcript first */
+            flex: 0 1 30%; /* Back to 30% for mobile portrait */
+            display: flex;
+            flex-direction: column;
+            border-radius: 36px; /* Glass morphism design */
+            overflow: hidden;
+            min-height: 180px; /* Increased for better readability */
+            box-shadow: none !important; /* Remove shadow from transcript frame */
+        }
+        
+        .transcript-container {
+            padding: 20px; /* Standard 20px padding */
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .transcript-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .transcript-title {
+            font-size: 18px;
+            font-weight: 600;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .light .transcript-title {
+            color: #1f2937;
+        }
+        
+        .language-indicator {
+            font-weight: 600;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .language-indicator span {
+            line-height: 1;
+        }
+        
+        /* When confidence is empty, center the language code perfectly */
+        .language-indicator:has(span:empty) {
+            gap: 0;
+        }
+        
+        .light .language-indicator {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .transcript-content {
+            font-size: 24px;
+            line-height: 1.4;
+            flex: 1;
+            padding: 20px;
+            background: transparent;
+            border-radius: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            font-weight: 500;
+            text-align: left;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+        }
+        
+        /* THREE-ROW TRANSCRIPT STRUCTURE */
+        .transcript-rows {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: flex-start;
+            gap: 8px;
+        }
+        
+        .transcript-row {
+            display: flex;
+            align-items: baseline;
+            min-height: 40px;
+            padding: 8px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .transcript-row .time {
+            font-size: 14px;
+            opacity: 0.6;
+            min-width: 80px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .transcript-row .text {
+            flex: 1;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        
+        /* Row opacity levels for visual hierarchy */
+        .transcript-row.old {
+            opacity: 0.4;
+            transform: translateY(-2px);
+        }
+        
+        .transcript-row.previous {
+            opacity: 0.7;
+        }
+        
+        .transcript-row.current {
+            opacity: 1;
+            font-weight: 500;
+        }
+        
+        .transcript-row.interim {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #007AFF;
+            padding-left: 12px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Light mode transcript rows */
+        .light .transcript-row.interim {
+            background: rgba(0, 0, 0, 0.03);
+            border-left-color: #007AFF;
+        }
+        
+        /* Enhanced transcript animations */
+        .transcript-rows.enhanced {
+            transition: all 0.2s ease;
+        }
+        
+        /* Line-specific enhanced styling */
+        .transcript-row.line-1 {
+            opacity: 0.3;
+            font-size: 14px;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .transcript-row.line-2 {
+            opacity: 0.7;
+            font-size: 15px;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .transcript-row.line-3 {
+            opacity: 1;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Building/typing state for line 3 */
+        .transcript-row.line-3.building {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            padding-left: 12px;
+        }
+        
+        .transcript-row.line-3.building .text.typing {
+            animation: typing-pulse 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes typing-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Smooth flip animations */
+        .transcript-rows.enhanced.anim-interim-update .line-3 {
+            transform: rotateX(5deg);
+            transition: transform 0.15s ease;
+        }
+        
+        .transcript-rows.enhanced.anim-complete-sentence .line-3 {
+            animation: complete-flip 0.3s ease-out;
+        }
+        
+        @keyframes complete-flip {
+            0% { transform: rotateX(0deg); opacity: 1; }
+            50% { transform: rotateX(90deg); opacity: 0.7; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+        
+        .transcript-rows.enhanced.anim-shift-up {
+            animation: shift-up-smooth 0.4s ease-out;
+        }
+        
+        @keyframes shift-up-smooth {
+            0% { transform: translateY(0); }
+            30% { transform: translateY(-8px); opacity: 0.95; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Direct add animation */
+        .transcript-rows.enhanced.anim-direct-add .line-3 {
+            animation: fade-slide-in 0.2s ease-out;
+        }
+        
+        @keyframes fade-slide-in {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Language switch animation */
+        .transcript-rows.enhanced.anim-language-switch {
+            animation: language-switch-highlight 0.6s ease-out;
+        }
+        
+        @keyframes language-switch-highlight {
+            0% { background: rgba(59, 130, 246, 0); }
+            30% { background: rgba(59, 130, 246, 0.15); border-radius: 8px; }
+            100% { background: rgba(59, 130, 246, 0); }
+        }
+        
+        /* Test Transcripts Button Styling - Enhanced Visibility */
+        .test-progress-dots {
+            display: flex !important;
+            gap: 6px !important;
+            justify-content: center !important;
+        }
+        
+        .test-progress-dots .test-dot {
+            width: 8px !important;
+            height: 8px !important;
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .test-progress-dots .test-dot.active {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6) !important;
+            animation: test-dot-pulse 0.8s ease-in-out infinite !important;
+        }
+        
+        .test-progress-dots .test-dot.completed {
+            background: #10b981 !important;
+            border-color: #10b981 !important;
+            transform: scale(1.2) !important;
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.5) !important;
+        }
+        
+        @keyframes test-dot-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        
+        /* Test button active state matching audio source button */
+        #testTranscriptsBtn.active {
+            background: rgba(59, 130, 246, 0.2) !important;
+            border-color: rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        #testTranscriptsBtn.active .button-text {
+            color: #3b82f6 !important;
+        }
+        
+        /* Controls section layout adjustments */
+        .controls-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        /* Subtle waving animation for transcript lines 1 and 2 */
+        .transcript-row.line-1,
+        .transcript-row.line-2 {
+            animation: subtle-wave 3s ease-in-out infinite;
+        }
+        
+        .transcript-row.line-2 {
+            animation-delay: 0.5s; /* Offset for natural wave effect */
+        }
+        
+        @keyframes subtle-wave {
+            0%, 100% { transform: translateY(0) rotateZ(0deg); }
+            25% { transform: translateY(-0.5px) rotateZ(0.2deg); }
+            50% { transform: translateY(0) rotateZ(0deg); }
+            75% { transform: translateY(0.5px) rotateZ(-0.2deg); }
+        }
+        
+        /* Horizontal flip animation for interim text */
+        .transcript-row.line-3.building .text {
+            animation: horizontal-flip 0.4s ease-in-out;
+        }
+        
+        @keyframes horizontal-flip {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            50% { transform: rotateY(90deg); opacity: 0.7; }
+            100% { transform: rotateY(0deg); opacity: 1; }
+        }
+        
+        /* Monospace font for test transcript details */
+        .transcript-row.test-detail .text {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace !important;
+            font-size: 15px !important;
+            line-height: 1.4 !important;
+            letter-spacing: 0.02em !important;
+        }
+        
+        /* Placeholder styling */
+        .transcript-row .placeholder {
+            color: rgba(255, 255, 255, 0.3);
+            font-style: italic;
+            font-size: 14px;
+        }
+        
+        /* Light mode enhancements */
+        .light .transcript-row.line-3.building {
+            background: rgba(59, 130, 246, 0.08);
+            border-left-color: #3b82f6;
+        }
+        
+        .light .transcript-row .placeholder {
+            color: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Legacy transcript line styles (for compatibility) */
+        .transcript-line {
+            display: block;
+            margin-bottom: 8px;
+            transition: opacity 0.4s ease, transform 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .transcript-line.current {
+            opacity: 1;
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+        
+        .light .transcript-line.current {
+            color: #1f2937;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .light .transcript-line.previous,
+        .light .transcript-line.old {
+            color: #374151;
+        }
+        
+        .transcript-line.previous {
+            opacity: 0.6;
+            transform: translateY(-4px);
+            font-size: 0.9em;
+        }
+        
+        .transcript-line.old {
+            opacity: 0.2;
+            transform: translateY(-8px);
+            font-size: 0.75em;
+            transition: all 2s ease-out;
+        }
+        
+        .transcript-line.fadeout {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.9);
+            transition: all 2.5s ease-out;
+            filter: blur(1px);
+        }
+        
+        .transcript-line.very-old {
+            opacity: 0.1;
+            transform: translateY(-12px) scale(0.95);
+            font-size: 0.7em;
+            transition: all 3s ease-out;
+            filter: blur(0.5px);
+        }
+        
+        /* Sound wave letter animation */
+        .transcript-letter {
+            display: inline-block;
+            animation: soundWave 3s ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+        
+        @keyframes soundWave {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            25% {
+                transform: translateY(-2px);
+            }
+            75% {
+                transform: translateY(1px);
+            }
+        }
+        
+        /* Interim text (current speech) */
+        .transcript-interim {
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .light .transcript-interim {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        /* Screen 3: Flashcards - Main content area below transcript */
+        .screen-3 {
+            order: 2; /* Cards second, below transcript */
+            flex: 1; /* Take remaining space - biggest area */
+            display: flex;
+            flex-direction: column;
+            border-radius: 36px; /* Glass morphism design */
+            overflow: hidden;
+        }
+        
+        .cards-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 20px 12px; /* Standard 20px padding */
+        }
+        
+        .cards-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .light .cards-title {
+            color: #1f2937;
+        }
+        
+        .cards-count {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .light .cards-count {
+            color: #1f2937;
+        }
+        
+        .language-bubble {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .language-bubble:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        .light .language-bubble {
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+        }
+        
+        .light .language-bubble:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Language Dropdown Styling */
+        #languageDropdown {
+            background: rgba(31, 41, 55, 0.95) !important;
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        .light #languageDropdown {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .language-dropdown-option {
+            transition: all 0.2s ease;
+            color: white;
+        }
+        
+        .language-dropdown-option:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .light .language-dropdown-option {
+            color: #1f2937;
+        }
+        
+        .light .language-dropdown-option:hover {
+            background: rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .language-checkbox {
+            accent-color: #007AFF;
+        }
+        
+        /* New card entry animation */
+        @keyframes cardEnter {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+                height: 20px;
+            }
+            100% {
+                opacity: 0.6;
+                transform: translateY(0) scale(1);
+                height: 40px;
+            }
+        }
+        
+        /* Card waiting animation */
+        @keyframes cardWaiting {
+            0%, 100% { 
+                opacity: 0.6;
+                transform: scale(0.98);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: scale(1.02);
+            }
+        }
+        
+        /* UNIFIED CARD BIRTH ANIMATIONS */
+        @keyframes cardBirth {
+            0% {
+                height: 12px;
+                padding: 4px 12px;
+                opacity: 0.7;
+                border-radius: 6px;
+                transform: scale(0.95);
+            }
+            100% {
+                height: auto;
+                padding: 20px;
+                opacity: 1;
+                border-radius: 20px;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes cardBreeding {
+            0%, 100% { transform: translateX(0) scale(1); }
+            25% { transform: translateX(-1px) scale(1.02); }
+            50% { transform: translateX(1px) scale(0.98); }
+            75% { transform: translateX(-0.5px) scale(1.01); }
+        }
+
+        .cards-container {
+            padding: 0 20px 0px; /* Standard 20px padding */
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            background: transparent;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* UNIFIED CARD BIRTH STATES */
+        
+        /* Birth state: 12px collapsed container */
+        .card.card-birth {
+            height: 12px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        
+        /* CheatCard birth colors */
+        .card.card-birth[data-card-type="cheat"] {
+            background: rgba(255, 99, 71, 0.15);
+            border-color: rgba(255, 99, 71, 0.3);
+        }
+        
+        /* FlashCard birth colors */
+        .card.card-birth[data-card-type="flash"] {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Breeding animation: slight shake/pulse before growing */
+        .card.card-breeding {
+            animation: cardBreeding 0.3s ease-in-out infinite;
+            opacity: 0.5;
+            width: 100%;
+        }
+        
+        /* Opening animation: 12px -> full height */
+        .card.card-open {
+            animation: cardBirth 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        /* All content hidden during birth and opening */
+        .card.card-birth .card-content,
+        .card.card-open .card-content {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        
+        /* Content fade-in only when fully ready */
+        .card.card-ready .card-content {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .light .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+        
+        .light .card-header,
+        .light .card-front,
+        .light .card-back {
+            color: #1f2937;
+        }
+        
+        /* Reduce animation noise - calm movements only */
+        .card:not(.card-birth):not(.card-open) {
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+        }
+        
+        /* Latest card should be on top */
+        .card:first-child {
+            z-index: 10; /* Highest z-index for newest card */
+        }
+        
+        /* Card Type Based Styling */
+        .card[data-card-type="cheat"] {
+            background: linear-gradient(135deg, rgba(255, 153, 102, 0.25) 0%, rgba(255, 204, 102, 0.2) 100%);
+            border: 2px solid rgba(255, 153, 102, 0.4);
+            box-shadow: 0 12px 40px rgba(255, 153, 102, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .light .card[data-card-type="cheat"] {
+            background: linear-gradient(135deg, rgba(255, 153, 102, 0.15) 0%, rgba(255, 204, 102, 0.1) 100%);
+            border: 2px solid rgba(255, 153, 102, 0.3);
+            box-shadow: 0 12px 40px rgba(255, 153, 102, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Larger fonts for cheat cards */
+        .card[data-card-type="cheat"] .card-front {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+        }
+        
+        .card[data-card-type="cheat"] .card-back {
+            font-size: 16px !important;
+            line-height: 1.5 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Larger fonts for flash cards too */
+        .card[data-card-type="flash"] .card-front {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            line-height: 1.4 !important;
+        }
+        
+        .card[data-card-type="flash"] .card-back {
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            font-weight: 400 !important;
+        }
+        
+        /* Enhanced emoji visibility in cheat card mode */
+        .card[data-card-type="cheat"] .card-back li,
+        .card[data-card-type="cheat"] .card-back p {
+            font-size: 16px !important;
+            margin: 8px 0 !important;
+        }
+        
+        /* Card hover effects */
+        .card:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card[data-card-type="cheat"]:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 20px 60px rgba(255, 153, 102, 0.25), 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Category-specific colors for cheat cards */
+        .cheat-card-mode .card[data-category="MEETING TIP"] {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(147, 197, 253, 0.2) 100%);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="PRESENTATION TIP"] {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(110, 231, 183, 0.2) 100%);
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="INTERVIEW TIP"] {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(196, 181, 253, 0.2) 100%);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="QUICK WIN"] {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(134, 239, 172, 0.2) 100%);
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 12px 40px rgba(34, 197, 94, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="AVOID THIS"] {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(252, 165, 165, 0.2) 100%);
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="KEY FACTS"] {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(251, 191, 36, 0.2) 100%);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cheat-card-mode .card[data-category="WHAT TO SAY"] {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(221, 214, 254, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 12px 40px rgba(168, 85, 247, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Interactive card button styling */
+        .card .llm-chat-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card .llm-chat-btn:hover {
+            background: rgba(59, 130, 246, 0.25) !important;
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+        
+        .card .llm-chat-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Enhanced styling in cheat card mode */
+        .cheat-card-mode .card .llm-chat-btn {
+            font-size: 12px !important;
+            padding: 8px 16px !important;
+            font-weight: 700 !important;
+            background: rgba(59, 130, 246, 0.2) !important;
+            border: 2px solid rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        .cheat-card-mode .card .llm-chat-btn:hover {
+            background: rgba(59, 130, 246, 0.35) !important;
+            border-color: rgba(59, 130, 246, 0.6) !important;
+            transform: translateY(-2px) scale(1.05);
+        }
+        
+        /* Card actions container styling */
+        .card .card-actions {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        
+        .light .card .card-actions {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes cardSlideFromLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-100px) scale(0.9);
+                filter: blur(2px);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            }
+            30% {
+                opacity: 0.6;
+                transform: translateX(-40px) scale(0.95);
+                filter: blur(1px);
+                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+            }
+            70% {
+                opacity: 0.9;
+                transform: translateX(-10px) scale(1.02);
+                filter: blur(0.5px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                filter: blur(0);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+        }
+        
+        @keyframes cardFloatUp {
+            0% {
+                opacity: 0;
+                transform: translateY(60px) scale(0.9) rotateX(10deg);
+                filter: blur(4px);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            }
+            30% {
+                opacity: 0.6;
+                transform: translateY(40px) scale(0.95) rotateX(5deg);
+                filter: blur(2px);
+                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+            }
+            70% {
+                opacity: 0.9;
+                transform: translateY(10px) scale(1.02) rotateX(0deg);
+                filter: blur(1px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0deg);
+                filter: blur(0);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card-header {
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        
+        .card-front {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .card-back {
+            font-size: 13px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        /* Screen 4: Hidden - integrated into screen-1 */
+        .screen-4 {
+            order: 4;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0; /* Prevent squashing */
+            margin: 0 0 0 12px; /* Add left margin for breathing room */
+        }
+        
+        .theme-circle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .theme-circle.dark::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: black;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        
+        .theme-circle.dark::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .theme-circle.light::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        
+        .theme-circle.light::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: black;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .green { background: #10b981; }
+        .red { background: #ef4444; }
+        .yellow { background: #f59e0b; }
+        
+        /* Audio Waveform Animation */
+        .waveform-bar {
+            transition: height 0.1s ease;
+            animation: waveformPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes waveformPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        /* Sophisticated Toggle Switch */
+        .audio-source-toggle {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 100%;
+            padding: 0;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 44px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        /* Vertical Divider Line */
+        .toggle-divider {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 50%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        
+        .light .toggle-divider {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Remove separate indicator - use option background instead */
+        
+        .toggle-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .toggle-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px; /* Standard padding */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            background: transparent;
+            margin: 0;
+        }
+        
+        .toggle-option:first-child {
+            border-radius: 12px 0 0 12px;
+        }
+        
+        .toggle-option:last-child {
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .toggle-icon {
+            font-size: 20px;
+            transition: all 0.3s ease;
+            position: relative; /* CRITICAL: For absolute positioning of status-dot */
+            display: inline-block; /* Ensure proper positioning context */
+        }
+        
+        /* Status Button (LLM button) specific styling */
+        .status-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            background: transparent;
+            margin: 0;
+            position: relative; /* For status-dot positioning */
+        }
+        
+        .status-button .status-dot {
+            position: static; /* Override absolute positioning for inline layout */
+            transform: none; /* Remove centering transform */
+            margin-right: 6px; /* Space between dot and text */
+            margin-left: 0;
+        }
+        
+        /* Status item containers - override absolute positioning */
+        .status-item .status-dot,
+        .info-card .status-dot {
+            position: static;
+            transform: none;
+            margin-left: auto;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0; /* Maintain circle shape */
+        }
+        
+        .status-item,
+        .info-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px; /* More padding for better spacing */
+            margin: 4px 0; /* Vertical spacing between items */
+            width: 100%; /* Use full available width */
+        }
+        
+        .toggle-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .light .toggle-text {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        /* Active state - Dark theme colors */
+        .toggle-option.active {
+            background: rgba(59, 130, 246, 0.2); /* Dark blue background */
+            border: none;
+            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .toggle-option.active .toggle-text {
+            color: #3b82f6; /* Dark blue text */
+            font-weight: 700;
+        }
+        
+        /* Inactive state - Muted */
+        .toggle-option:not(.active) {
+            opacity: 0.6;
+        }
+        
+        .toggle-option:not(.active) .toggle-text {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .light .toggle-option:not(.active) .toggle-text {
+            color: rgba(31, 41, 55, 0.5);
+        }
+        
+        .light .toggle-option.active {
+            background: rgba(59, 130, 246, 0.15);
+        }
+        
+        .light .toggle-option.active .toggle-text {
+            color: #1d4ed8; /* Darker blue for light mode */
+        }
+        
+        /* Hover effects */
+        .toggle-option:not(.active):hover {
+            transform: scale(1.02);
+            opacity: 0.7;
+        }
+        
+        
+        /* Transcript Content - Enhanced with animations */
+        .transcript-content {
+            position: relative;
+            background: transparent;
+            height: 100%;
+            overflow-y: hidden;
+        }
+        
+        /* Enhanced transcript line animations */
+        .transcript-line {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Push up animation when new content appears - gentler */
+        .transcript-line.push-up {
+            animation: pushUp 0.25s ease forwards;
+        }
+        
+        @keyframes pushUp {
+            from {
+                transform: translateY(0);
+            }
+            to {
+                transform: translateY(-20px);
+            }
+        }
+        
+        /* Current line - stable, no wobbling animation */
+        .transcript-line.current {
+            /* Remove animation that was causing wobbling */
+            /* animation: currentLineEntrance 0.4s ease-out; */
+        }
+        
+        /* Interim text typing animation */
+        .transcript-line.interim {
+            animation: interimPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes interimPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        /* Audio Level Dots - Real Audio Level Indicators */
+        .audio-level-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            margin-top: 6px;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease;
+        }
+        
+        .toggle-option.active .audio-level-dots {
+            opacity: 1; /* Show when button is active */
+        }
+        
+        .level-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(156, 163, 175, 0.3); /* Grey by default */
+            transition: background-color 0.1s ease, transform 0.1s ease;
+        }
+        
+        /* Active dots show theme color */
+        .level-dot.active {
+            background-color: #10b981; /* Theme green */
+            transform: scale(1.1);
+            box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+        }
+        
+        .light .level-dot.active {
+            background-color: #059669;
+            box-shadow: 0 0 4px rgba(5, 150, 105, 0.4);
+        }
+        
+        /* Make audio source toggle match Start button height */
+        .toggle-switch {
+            height: 56px; /* Match record button height */
+            min-height: 56px;
+        }
+        
+        .toggle-option {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 8px 16px;
+        }
+        
+        .toggle-text {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 400px) {
+            .toggle-text {
+                font-size: 11px;
+            }
+            
+            .toggle-icon {
+                font-size: 18px;
+            }
+            
+            .toggle-switch {
+                padding: 20px;
+            }
+        }
+        
+        /* Settings Modal - Redesigned with better mobile optimization */
+        .settings-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 16px;
+        }
+        
+        .settings-content {
+            padding: 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            font-family: 'Inter', system-ui, sans-serif;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+        
+        .light .settings-content {
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Fix light mode text visibility in modal - make text dark */
+        .light .settings-content.glass-dark {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        .light .settings-content.glass-dark *,
+        .light .settings-content.glass-dark h1,
+        .light .settings-content.glass-dark h2, 
+        .light .settings-content.glass-dark h3,
+        .light .settings-content.glass-dark h4,
+        .light .settings-content.glass-dark p,
+        .light .settings-content.glass-dark span,
+        .light .settings-content.glass-dark div,
+        .light .settings-content.glass-dark li,
+        .light .settings-content.glass-dark ul,
+        .light .settings-content.glass-dark button,
+        .light .settings-content.glass-dark label,
+        .light .settings-content.glass-dark input,
+        .light .settings-content.glass-dark select {
+            color: #1f2937 !important;
+        }
+        
+        /* Keep specific elements with their intended colors in light mode */
+        .light .settings-content.glass-dark .status-dot,
+        .light .settings-content.glass-dark .record-dot,
+        .light .settings-content.glass-dark .theme-circle::before,
+        .light .settings-content.glass-dark .theme-circle::after {
+            color: transparent !important;
+        }
+        
+        /* Tab buttons in light mode */
+        .light .modal-tabs .tab-button {
+            color: #1f2937 !important;
+        }
+        
+        .light .modal-tabs .tab-button.active {
+            color: #f97316 !important;
+        }
+        
+        /* Form elements in light mode */
+        .light .settings-content.glass-dark .setting-description {
+            color: #6b7280 !important;
+        }
+        
+        .light .settings-content.glass-dark .api-key-input,
+        .light .settings-content.glass-dark .setting-input {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        .light .settings-content.glass-dark .api-key-input::placeholder,
+        .light .settings-content.glass-dark .setting-input::placeholder {
+            color: #9ca3af !important;
+        }
+        
+        /* Model buttons and glass buttons in light mode */
+        .light .settings-content.glass-dark .model-button {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 2px solid rgba(0, 0, 0, 0.08) !important;
+            color: #1e293b !important;
+        }
+        
+        .light .settings-content.glass-dark .glass-button {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* Interview Test Companion example cards in light mode */
+        .light .settings-content.glass-dark .example-card {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .light .settings-content.glass-dark .card-category {
+            color: #f97316 !important;
+        }
+        
+        .light .settings-content.glass-dark .nav-button {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            color: #1f2937 !important;
+        }
+        
+        .light .settings-content.glass-dark .nav-button:hover {
+            background: rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Toggle Switch Styling - Settings Modal Specific */
+        .settings-content .toggle-switch {
+            position: relative !important;
+            display: inline-block !important;
+            width: 44px !important;
+            height: 24px !important;
+            min-height: 24px !important;
+            max-height: 24px !important;
+            flex-shrink: 0 !important;
+            background: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            cursor: pointer !important;
+            vertical-align: middle !important;
+        }
+        
+        .settings-content .toggle-switch input {
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            z-index: -1 !important;
+        }
+        
+        .settings-content .toggle-slider {
+            position: absolute !important;
+            cursor: pointer !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 44px !important;
+            height: 24px !important;
+            background-color: rgba(255, 255, 255, 0.3) !important;
+            transition: all 0.3s ease !important;
+            border-radius: 12px !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            z-index: 1 !important;
+            display: block !important;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .settings-content .toggle-slider:before {
+            position: absolute !important;
+            content: "" !important;
+            height: 18px !important;
+            width: 18px !important;
+            left: 2px !important;
+            top: 2px !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+            transition: all 0.3s ease !important;
+            border-radius: 50% !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+            z-index: 2 !important;
+            display: block !important;
+        }
+        
+        /* Active/ON state */
+        .settings-content .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+            border-color: #f97316 !important;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2), inset 0 1px 3px rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        .settings-content .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px) !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+        }
+        
+        /* Light mode toggle styling */
+        .light .settings-content .toggle-slider {
+            background-color: rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid rgba(0, 0, 0, 0.25) !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .light .settings-content .toggle-slider:before {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .light .settings-content .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+            border-color: #f97316 !important;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2), inset 0 1px 3px rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        .light .settings-content .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px) !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        /* Toggle label styling */
+        .settings-content .toggle-label {
+            font-weight: 600 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            margin-bottom: 12px !important;
+            cursor: pointer !important;
+            user-select: none !important;
+            height: auto !important;
+            line-height: 1.5 !important;
+        }
+        
+        /* Tab Navigation - Match webapp card patterns */
+        .modal-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0;
+            margin: 0;
+        }
+        
+        .light .modal-tabs {
+            background: rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 16px 12px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            text-align: center;
+        }
+        
+        .tab-button:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab-button.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: white;
+        }
+        
+        .light .tab-button {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        .light .tab-button:hover {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .light .tab-button.active {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .light .tab-button.active::after {
+            background: #1f2937;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 24px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-icon {
+            display: none;
+        }
+        
+        /* Modal Header - Match webapp card patterns */
+        .settings-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0;
+        }
+        
+        .light .settings-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-title-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .settings-logo {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        
+        .light .settings-logo {
+            content: url('assets/images/logo-black.svg');
+        }
+        
+        .settings-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #f8fafc;
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+        
+        .light .settings-title {
+            color: #0f172a;
+        }
+        
+        .settings-close {
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            /* Glass button styling inherited from .glass-button */
+        }
+        
+        /* Modal Body - Scrollable */
+        .settings-body {
+            padding: 24px;
+            max-height: calc(90vh - 80px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        
+        .settings-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .settings-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .settings-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .light .settings-body::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Setting Groups - Container Based */
+        .setting-group {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting-group:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .light .setting-group {
+            background: rgba(255, 255, 255, 1.0);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .light .setting-group:hover {
+            background: rgba(255, 255, 255, 1.0);
+            border-color: rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Setting Labels - Improved Typography */
+        .setting-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 8px;
+            display: block;
+            letter-spacing: -0.025em;
+        }
+        
+        .light .setting-label {
+            color: #1f2937;
+        }
+        
+        .setting-description {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .light .setting-description {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        /* Input Fields - Modern Design */
+        .setting-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        
+        .setting-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        .light .setting-input {
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(0, 0, 0, 0.12);
+            color: #1f2937;
+        }
+        
+        .light .setting-input:focus {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
+        }
+        
+        .light .setting-input::placeholder {
+            color: rgba(31, 41, 55, 0.5);
+        }
+
+        /* Range Sliders - Better Design */
+        .setting-range {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            outline: none;
+            margin: 12px 0;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .setting-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .setting-range::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5), 0 3px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .setting-range::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .light .setting-range {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Improved Checkbox Styling */
+        input[type="checkbox"].language-checkbox,
+        input[type="checkbox"].mode-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: #f97316;
+            cursor: pointer;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        input[type="checkbox"].language-checkbox:checked,
+        input[type="checkbox"].mode-checkbox:checked {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-color: #f97316;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        
+        input[type="checkbox"].language-checkbox:checked::after,
+        input[type="checkbox"].mode-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .light input[type="checkbox"].language-checkbox,
+        .light input[type="checkbox"].mode-checkbox {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .light input[type="checkbox"].language-checkbox:checked,
+        .light input[type="checkbox"].mode-checkbox:checked {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-color: #f97316;
+        }
+        
+        /* Mode Description Styling for Light Mode */
+        .light .mode-description {
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: #1f2937 !important;
+        }
+
+        /* Range Labels - Improved Spacing */
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding: 0 4px;
+        }
+
+        .range-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #10b981;
+            padding: 4px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .range-description {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .light .range-description {
+            color: rgba(31, 41, 55, 0.6);
+            background: rgba(0, 0, 0, 0.05);
+            border-left: 3px solid rgba(0, 0, 0, 0.2);
+        }
+        
+        .light .usage-label {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        .light .checkbox-wrapper label {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        .light .metric-label {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        .api-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        .light .api-label {
+            color: rgba(31, 41, 55, 0.7);
+        }
+        
+        .range-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .light .range-label {
+            color: rgba(31, 41, 55, 0.6);
+        }
+        
+        .settings-text-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .settings-text-button:hover {
+            opacity: 0.8;
+        }
+        
+        .light .settings-text-button {
+            color: #1f2937;
+        }
+        
+        /* Model Grid - Card-based Layout */
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .model-button {
+            padding: 16px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            color: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .model-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .model-button:hover::before {
+            opacity: 1;
+        }
+        
+        .light .model-button {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            color: #1e293b;
+        }
+        
+        .model-button:hover {
+            border-color: rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+        }
+        
+        .model-button.selected {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .model-button.selected::before {
+            opacity: 0;
+        }
+        
+        .model-name {
+            font-weight: 700;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .model-cost {
+            font-size: 12px;
+            opacity: 0.7;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Status Indicators - Colored Dots */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .status-indicator.green {
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .status-indicator.yellow {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+        
+        .status-indicator.red {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Usage Stats - Modern Card */
+        .usage-stats {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+        
+        .light .usage-stats {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.04));
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+        
+        .usage-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            font-size: 14px;
+        }
+        
+        .usage-item {
+            text-align: center;
+            padding: 16px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .light .usage-item {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        .usage-value {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .usage-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .light .usage-label {
+            color: #64748b;
+        }
+        
+        /* Save Button - Glass Style */
+        .save-button {
+            width: 100%;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .save-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        
+        .save-button:active {
+            transform: translateY(0);
+        }
+        
+        /* Checkbox Styling */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #10b981;
+            cursor: pointer;
+        }
+        
+        .checkbox-wrapper label {
+            font-size: 14px;
+            color: #94a3b8;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .light .checkbox-wrapper label {
+            color: #64748b;
+        }
+        
+        /* Theme Options */
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .theme-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-option:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .theme-option.selected {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            color: #f1f5f9;
+        }
+        
+        .light .theme-option {
+            background: rgba(0, 0, 0, 0.04);
+            border: 2px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        .light .theme-option:hover {
+            border-color: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.08);
+        }
+        
+        .light .theme-option.selected {
+            border-color: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.12);
+            color: #1e293b;
+        }
+        
+        .theme-preview {
+            width: 32px;
+            height: 20px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .system-preview {
+            background: linear-gradient(90deg, #1f2937 50%, #f8fafc 50%);
+        }
+        
+        .dark-preview {
+            background: #1f2937;
+        }
+        
+        .light-preview {
+            background: #f8fafc;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-option span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* Performance Metrics */
+        .metric-card {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .light .metric-card {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .light .metric-label {
+            color: #64748b;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 640px) {
+            .settings-content {
+                margin: auto;
+                max-height: 75vh;
+                height: auto;
+                border-radius: 24px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: calc(100% - 32px);
+                max-width: 400px;
+            }
+            
+            .settings-header {
+                padding: 16px 20px;
+            }
+            
+            .tab-content {
+                padding: 20px;
+                max-height: calc(75vh - 140px);
+                overflow-y: auto;
+            }
+            
+            .setting-group {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .model-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .usage-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .performance-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .theme-options {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .setting-label {
+                font-size: 15px;
+            }
+            
+            .setting-description {
+                font-size: 13px;
+            }
+            
+            .tab-button {
+                padding: 12px 8px;
+                font-size: 12px;
+            }
+            
+            .tab-icon {
+                font-size: 14px;
+            }
+        }
+        
+        /* Mobile Landscape View - Complete Override */
+        @media (max-width: 1023px) and (orientation: landscape) {
+            /* FORCE mobile landscape layout - override everything */
+            .container {
+                display: flex !important;
+                flex-direction: row !important;
+                padding: 0 !important;
+                gap: 0 !important;
+                height: 100vh !important;
+            }
+            
+            /* Hide all desktop elements */
+            .screen-1,
+            .app-footer {
+                display: none !important;
+            }
+            
+            /* Content area - horizontal split */
+            .app-content {
+                order: 1 !important;
+                flex: 1 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 8px !important;
+                margin: 8px 8px 64px 8px !important;
+                height: calc(100vh - 72px) !important;
+            }
+            
+            /* Transcript: Left side, 40% width */
+            .screen-2 {
+                order: 1 !important;
+                flex: 0 0 40% !important;
+                min-height: auto !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                border-radius: 24px !important;
+                overflow: hidden !important;
+            }
+            
+            .screen-2 .transcript-container {
+                padding: 20px !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 !important;
+            }
+            
+            .screen-2 .transcript-content {
+                font-size: 16px !important;
+                flex: 1 !important;
+            }
+            
+            /* Cards: Right side, 60% width */
+            .screen-3 {
+                order: 2 !important;
+                flex: 1 !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                border-radius: 24px !important;
+                overflow: hidden !important;
+            }
+            
+            .screen-3 .cards-header {
+                padding: 20px 20px 12px !important;
+                flex: 0 0 auto !important;
+            }
+            
+            .screen-3 .cards-container {
+                padding: 0 20px !important;
+                flex: 1 !important;
+                overflow-y: auto !important;
+            }
+            
+            .screen-3 .card {
+                padding: 10px !important;
+                margin-bottom: 8px !important;
+                font-size: 13px !important;
+            }
+            
+            .screen-3 .card-front {
+                font-size: 13px !important;
+            }
+            
+            .screen-3 .card-back {
+                font-size: 12px !important;
+            }
+            
+            /* Landscape: Same ROUND navbar design with more space */
+            .app-header {
+                order: 3 !important;
+                position: fixed !important;
+                bottom: 16px !important;
+                left: 20px !important;
+                right: 20px !important;
+                top: auto !important;
+                margin: 0 !important;
+                z-index: 100 !important;
+            }
+            
+            .app-header .mobile-header-content {
+                padding: 0 100px 0 100px !important; /* Equal padding with space for absolute positioned elements */
+                border-radius: 40px !important; /* Height = 2x radius for perfect round */
+                height: 80px !important; /* Bigger for landscape */
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important; /* Center the content */
+            }
+            
+            /* Logo section - absolute positioning for landscape */
+            .app-header .logo-section {
+                position: absolute !important;
+                left: 20px !important; /* 5% further left (was 25px, now 20px) */
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                width: 30px !important; /* Consistent with portrait mode */
+                height: 30px !important;
+                border-radius: 50% !important;
+                background: transparent !important; /* No backdrop - transparent */
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15) !important; /* More visible border */
+                padding: 4px !important;
+            }
+            
+            .app-header .logo-section img {
+                width: 30px !important; /* Properly sized for landscape circle */
+                height: 30px !important;
+                border-radius: 50% !important;
+            }
+            
+            .app-header .logo-text {
+                position: absolute !important;
+                left: 88px !important; /* Adjusted for logo's new position (was 93px, now 88px) */
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
+            /* Status bar positioned absolutely on the right for landscape */
+            .app-header .status-bar {
+                position: absolute !important;
+                right: 25px !important; /* Fixed position from right edge */
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                flex: 0 0 auto !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+            
+            .app-header .logo-text h1 {
+                font-size: 16px !important;
+                margin: 0 !important;
+                font-weight: 500 !important;
+            }
+            
+            /* Record button - LARGE for landscape overlap */
+            .app-header .record-button {
+                width: 100px !important; /* Much bigger for landscape */
+                height: 100px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+                position: absolute !important;
+                z-index: 10 !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translateX(-50%) translateY(-50%) !important; /* Perfect centering with navbar */
+                /* Enhanced glass morphism with more blur and refraction */
+                background: rgba(255, 255, 255, 0.12) !important;
+                backdrop-filter: blur(50px) saturate(200%) brightness(1.2) !important;
+                -webkit-backdrop-filter: blur(50px) saturate(200%) brightness(1.2) !important;
+                border: 1px solid rgba(255, 255, 255, 0.4) !important;
+                box-shadow: 0 16px 45px rgba(0, 0, 0, 0.2), 
+                           0 6px 16px rgba(0, 0, 0, 0.12),
+                           inset 0 2px 0 rgba(255, 255, 255, 0.25) !important;
+            }
+            
+            .app-header .record-button .record-dot {
+                width: 25px !important; /* Bigger dot for bigger button */
+                height: 25px !important;
+            }
+            
+            /* Recording state for landscape - square morphing animation */
+            .app-header .record-button.recording {
+                border-radius: 20px !important; /* Rounded square when recording (bigger than portrait) */
+                animation: recordingPulse 2s ease-in-out infinite !important;
+                /* Keep same transform as normal state - stay centered */
+                transform: translateX(-50%) translateY(-50%) !important;
+            }
+            
+            /* Recording state: red dot becomes square when recording (landscape) */
+            .app-header .record-button.recording .record-dot {
+                border-radius: 6px !important; /* Bigger square red dot for landscape */
+                width: 25px !important;
+                height: 25px !important;
+            }
+            
+            /* Status section - compact horizontal */
+            .app-header .status-bar {
+                flex: 0 0 auto !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+            
+            .app-header .theme-toggle {
+                width: 24px !important;
+                height: 24px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+            }
+        }
+        
+        /* Desktop layout - Restore original perfect layout */
+        @media (min-width: 768px) and (orientation: portrait), (min-width: 1024px) {
+            /* Reset container to original desktop layout */
+            .container {
+                display: flex;
+                flex-direction: row;
+                padding: 20px;
+                gap: 16px;
+                height: 100vh;
+            }
+            
+            /* Hide mobile-specific app header/footer on desktop */
+            .app-header,
+            .app-footer {
+                display: none;
+            }
+            
+            /* Show app-content as main content area on desktop */
+            .app-content {
+                display: flex;
+                flex-direction: column; /* Stack transcript and cards vertically on right */
+                flex: 1;
+                gap: 16px;
+                margin: 0;
+            }
+            
+            /* Show main Screen 1 as sidebar on desktop with inverted theme */
+            .screen-1 {
+                display: flex !important; /* Override mobile hiding */
+                order: 1;
+                flex: 0 0 350px;
+                flex-direction: column;
+                border-radius: 36px;
+            }
+            
+            /* Desktop sidebar theme inversion: opposite to global content theme */
+            /* Default (dark mode): content is dark, sidebar should be light */
+            body:not(.light) .screen-1 {
+                background: rgba(255, 255, 255, 0.9) !important;
+                backdrop-filter: blur(40px) saturate(180%);
+                -webkit-backdrop-filter: blur(40px) saturate(180%);
+                border: 1px solid rgba(0, 0, 0, 0.15) !important;
+                padding: 20px;
+            }
+            
+            body:not(.light) .screen-1 *,
+            body:not(.light) .screen-1 h1,
+            body:not(.light) .screen-1 h4,
+            body:not(.light) .screen-1 p,
+            body:not(.light) .screen-1 ul,
+            body:not(.light) .screen-1 li,
+            body:not(.light) .screen-1 button {
+                color: #1f2937 !important;
+            }
+            
+            /* Dark mode: white desktop sidebar needs black logo */
+            body:not(.light) .screen-1 .logo-section img {
+                content: url('assets/images/logo-black.svg') !important;
+            }
+            
+            /* Light mode: content is light, sidebar should be dark */
+            body.light .screen-1 {
+                background: rgba(0, 0, 0, 0.8) !important;
+                backdrop-filter: blur(40px) saturate(180%);
+                -webkit-backdrop-filter: blur(40px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                padding: 20px; /* Reduce padding for more button space */
+            }
+            
+            body.light .screen-1 *,
+            body.light .screen-1 h1,
+            body.light .screen-1 h4,
+            body.light .screen-1 p,
+            body.light .screen-1 ul,
+            body.light .screen-1 li,
+            body.light .screen-1 button {
+                color: white !important;
+            }
+            
+            /* Light mode: dark desktop sidebar needs white logo */
+            body.light .screen-1 .logo-section img {
+                content: url('assets/images/logo-white.svg') !important;
+            }
+            
+            .screen-1 .logo-section {
+                display: flex;
+                flex-direction: column; /* Stack vertically on desktop */
+                align-items: flex-start;
+                justify-content: flex-start;
+                gap: 0;
+                padding: 0; /* No internal padding - use screen-1 padding */
+                margin-bottom: 150px; /* 150px space after logo part */
+            }
+            
+            .screen-1 .logo-section img {
+                width: 32px;
+                height: 32px; /* Logo height 32px */
+                margin-bottom: 20px; /* 20px before SenScript text */
+            }
+            
+            .screen-1 .logo-text h1 {
+                font-size: 21px;
+                font-weight: 400;
+                margin: 0 0 8px 0; /* Margin only below, tight spacing */
+                line-height: 1.2;
+            }
+            
+            .screen-1 .logo-text {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .screen-1 .logo-text p {
+                display: block;
+                font-size: 14px;
+                opacity: 0.7;
+                margin: 0;
+                line-height: 1.2;
+            }
+            
+            .screen-1 .controls-section {
+                padding: 0; /* No internal padding - use screen-1 padding */
+                flex-direction: column;
+            }
+            
+            .screen-1 .audio-source-toggle {
+                display: block;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .screen-1 .record-button {
+                width: 100%;
+                padding: 20px;
+                font-size: 20px;
+                font-weight: 600;
+                border-radius: 20px;
+                margin-bottom: 20px;
+                height: auto;
+            }
+            
+            .screen-1 .status-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0; /* No internal padding - use screen-1 padding */
+                font-size: 14px;
+                margin-bottom: 12px; /* Reduce margin */
+                gap: 16px;
+            }
+            
+            .screen-1 .theme-toggle {
+                padding: 12px 20px;
+                font-size: 14px;
+                font-weight: 500;
+                height: 44px;
+                border-radius: 15px;
+                white-space: normal;
+                
+                /* GLASS MORPHISM for desktop buttons */
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .screen-1 .theme-toggle:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-1px);
+            }
+            
+            /* Show features on desktop */
+            .desktop-only {
+                display: block !important; /* Show on desktop */
+            }
+            
+            /* Hide mobile elements on desktop */
+            .mobile-only {
+                display: none !important; /* Hide on desktop */
+            }
+            
+            .screen-1 .integrated-status {
+                display: flex !important;
+                flex: 1;
+                flex-direction: column;
+                gap: 16px;
+                padding: 0; /* No internal padding - use screen-1 padding */
+                margin-top: auto;
+            }
+            
+            .screen-1 .features-list {
+                display: block !important;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 20px;
+                margin-bottom: 16px; /* Reduce margin */
+            }
+            
+            .screen-1 .status-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px; /* Reduced gap for more compact design */
+                margin-top: auto;
+                padding-top: 12px;
+            }
+            
+            /* Screen 2: Transcript on top right */
+            .screen-2 {
+                order: 1; /* First in right column */
+                flex: 0 1 40%; /* Fixed height, about 40% */
+                display: flex;
+                flex-direction: column;
+                min-height: 300px;
+                border-radius: 36px;
+                overflow: hidden; /* Prevent content overflow */
+            }
+            
+            .screen-2 .transcript-container {
+                padding: 20px 20px 0 20px; /* Standard 20px padding */
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-height: 0; /* Allow shrinking */
+            }
+            
+            /* Make transcript content scrollable */
+            .screen-2 .transcript-content {
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            
+            /* Fix export button positioning */
+            .screen-2 .desktop-only {
+                flex: 0 0 auto; /* Fixed size, no shrinking */
+                padding: 8px 20px 20px 20px !important; /* Standard 20px padding */
+                margin: 0 !important;
+            }
+            
+            /* Screen 3: Flashcards below transcript on right */
+            .screen-3 {
+                order: 2; /* Second in right column */
+                flex: 1; /* Take remaining space */
+                display: flex;
+                flex-direction: column;
+                min-height: 400px; /* Bigger for flashcards */
+                border-radius: 36px;
+            }
+            
+            .screen-3 .cards-header {
+                padding: 20px 20px 16px;
+            }
+            
+            .screen-3 .cards-container {
+                padding: 0 20px 0px;
+            }
+            
+            /* Hide screen-4 on desktop (integrated into screen-1) */
+            .screen-4 {
+                display: none;
+            }
+        }
+        
+        /* Large desktop */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+            
+            .screen-1 {
+                flex: 0 0 350px;
+            }
+            
+            .screen-4 {
+                flex: 0 0 300px;
+            }
+        }
+        
+        /* Tablet portrait */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .container {
+                flex-wrap: wrap;
+            }
+            
+            .screen-1, .screen-4 {
+                flex: 0 0 calc(50% - 12px);
+            }
+            
+            .screen-2, .screen-3 {
+                flex: 0 0 100%;
+            }
+        }
+        
+        /* About page logo - 80% size, black in light mode */
+        .about-logo {
+            width: 48px; /* 80% of what appears to be ~60px */
+            height: 48px;
+            border-radius: 50%;
+        }
+        
+        .light .about-logo {
+            content: url('assets/images/logo-black.svg');
+        }
+        
+        /* Company card using exact frontend patterns */
+        .company-card {
+            background: rgba(255, 255, 255, 0.15); /* Exact frontend pattern */
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; /* Exact frontend border-radius */
+            padding: 20px; /* Standard frontend padding */
+            margin-bottom: 20px;
+        }
+        
+        .light .company-card {
+            background: rgba(255, 255, 255, 0.85); /* Exact light mode pattern */
+            border: 1px solid rgba(31, 41, 55, 0.1);
+        }
+        
+        /* System Status Cards - Bold Design */
+        .status-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .status-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .light .status-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(31, 41, 55, 0.1);
+        }
+        
+        .light .status-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .status-icon {
+            font-size: 28px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .light .status-icon {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .status-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .light .status-name {
+            color: #1f2937;
+        }
+        
+        /* Light mode: Transcript and AI windows should be white like inverted nav */
+        .light .screen-2.glass-light,
+        .light .screen-3.glass-light {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        /* Ensure text is dark in light mode for these screens */
+        .light .screen-2.glass-light *,
+        .light .screen-3.glass-light * {
+            color: #1f2937 !important;
+        }
+        
+        /* Keep specific colored elements */
+        .light .screen-2.glass-light .status-dot,
+        .light .screen-3.glass-light .status-dot,
+        .light .screen-2.glass-light .language-indicator,
+        .light .screen-3.glass-light .card {
+            color: inherit !important;
+        }
+
+        /* Light mode styles for glass-dark containers (transcript and cards) */
+        .light .screen-2.glass-dark,
+        .light .screen-3.glass-dark {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Ensure text is dark in light mode for glass-dark screens */
+        .light .screen-2.glass-dark,
+        .light .screen-3.glass-dark {
+            color: #1f2937 !important;
+        }
+        
+        .light .screen-2.glass-dark *,
+        .light .screen-3.glass-dark * {
+            color: #1f2937 !important;
+        }
+        
+        /* Language Dropdown Styles */
+        .language-dropdown-option {
+            transition: background-color 0.2s ease;
+        }
+        
+        .language-dropdown-option:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .language-dropdown-option:active {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* Authentication Overlay */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #3b82f6 50%, #1d4ed8 75%, #1e3a8a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             z-index: 9999;
         }
 
@@ -123,6 +3840,7 @@
             border: 1px solid rgba(59, 130, 246, 0.5);
             cursor: pointer;
             transition: all 0.3s;
+            border-radius: 15px;
         }
 
         .auth-button:hover {
@@ -135,30 +3853,12 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Button styles */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-sm {
-            padding: 0.5rem 0.75rem;
-            font-size: 0.875rem;
-        }
-
-        /* User menu */
+        /* User menu in top right */
         .user-menu {
-            position: absolute;
+            position: fixed;
             top: 24px;
             right: 24px;
-            display: flex;
+            display: none;
             align-items: center;
             gap: 12px;
             z-index: 1000;
@@ -175,7 +3875,7 @@
             font-size: 14px;
         }
 
-        .settings-button {
+        .user-settings-btn {
             width: 40px;
             height: 40px;
             display: flex;
@@ -189,42 +3889,15 @@
             display: inline-flex;
         }
 
-        /* Animations */
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-
-        /* Hide main app until authenticated */
-        .app-container {
+        /* Hide app when not authenticated */
+        .container.hidden {
             display: none;
-        }
-
-        .app-container.authenticated {
-            display: block;
         }
     </style>
 </head>
 <body>
-    <!-- Authentication Container -->
-    <div id="auth-container" class="auth-container">
+    <!-- Authentication Overlay (shown when not logged in) -->
+    <div id="auth-overlay" class="auth-overlay">
         <div class="auth-box glass-dark">
             <div class="auth-logo">
                 <img src="assets/images/logo-white.svg" alt="SenScript" style="width: 64px; height: 64px;">
@@ -260,8 +3933,8 @@
     </div>
 
     <!-- User Menu (shown when authenticated) -->
-    <div id="user-menu" class="user-menu" style="display: none;">
-        <div class="flex items-center gap-3">
+    <div id="user-menu" class="user-menu">
+        <div style="display: flex; align-items: center; gap: 12px;">
             <img src="assets/images/logo-white.svg" alt="SenScript" style="width: 32px; height: 32px;">
             <a href="https://getscript.sen.studio" target="_blank" style="
                 display: inline-flex;
@@ -283,22 +3956,769 @@
             <span id="user-email"></span>
             <span id="usage-time" style="color: rgba(255, 255, 255, 0.7);">0m</span>
         </div>
-        <button id="settings-btn" class="settings-button glass-button" title="Settings">
+        <button id="user-settings-btn" class="user-settings-btn glass-button" title="Settings">
             ⚙️
         </button>
         <div id="clerk-user-button"></div>
     </div>
 
-    <!-- Main App Container -->
-    <div id="app-container" class="app-container">
-        <!-- Your existing app content goes here -->
-        <!-- This will be shown only after authentication -->
-    </div>
+    <div class="container">
+        <!-- Screen 1: Main Control Panel (Desktop Sidebar / Mobile Header Content) -->
+        <div class="screen-1 glass-dark" id="screen1">
+            <div class="logo-section">
+                <img id="logo" src="assets/images/logo-white.svg" alt="SenScript">
+                <div class="logo-text">
+                    <h1>SenScript</h1>
+                    <p>Smart Meeting Companion</p>
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <!-- Sophisticated Audio Source Toggle Switch -->
+                <div class="audio-source-toggle">
+                    <div id="audioSourceSwitch" class="toggle-switch glass-button">
+                        <div class="toggle-divider"></div>
+                        <div class="toggle-labels">
+                            <div class="toggle-option active" data-value="microphone">
+                                <div class="toggle-text">Microphone</div>
+                                <div class="audio-level-dots" id="micLevelDots">
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                </div>
+                            </div>
+                            <div class="toggle-option" data-value="system">
+                                <div class="toggle-text">Device Output</div>
+                                <div class="audio-level-dots" id="deviceLevelDots">
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                    <div class="level-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="recordBtn" class="record-button glass-button">
+                    <span id="recordDot" class="record-dot"></span>
+                    <span id="recordText">Start</span>
+                </button>
+            </div>
+            
+            
+            <!-- Status & Features (desktop only) -->
+            <div class="integrated-status desktop-only" style="margin-top: auto; padding: 0; margin: 0; display: flex; flex-direction: column;">
+                <div class="features-list" style="margin-bottom: 20px; border-radius: 20px;">
+                    <h4>Key Features</h4>
+                    <ul>
+                        <li>• Real-time transcription</li>
+                        <li>• Auto language detection</li>
+                        <li>• AI flashcard generation</li>
+                        <li>• System audio capture</li>
+                        <li>• Export to JSON</li>
+                    </ul>
+                </div>
+            </div>
+            
 
+            <!-- Settings button at absolute bottom -->
+            <div style="margin-top: auto;">
+                <button id="settingsBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;">
+                    Settings
+                </button>
+            </div>
+        </div>
+        
+        <!-- App Header: Mobile Navigation (clone of screen-1 content) -->
+        <div class="app-header">
+            <div class="mobile-header-content glass-dark">
+                <div class="logo-section">
+                    <img src="assets/images/logo-white.svg" alt="SenScript">
+                    <div class="logo-text">
+                        <h1>SenScript</h1>
+                    </div>
+                </div>
+                
+                <div class="controls-section">
+                    <button id="mobileRecordBtn" class="record-button glass-button mobile-only">
+                        <span class="record-dot"></span>
+                        <span>Start</span>
+                    </button>
+                </div>
+                
+                <div class="status-bar">
+                    <button id="mobileSettingsBtn" class="glass-button" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="12" cy="5" r="1"></circle>
+                            <circle cx="12" cy="19" r="1"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- App Content: 1/3 Transcript, 2/3 Cards -->
+        <div class="app-content">
+            <!-- Screen 2: Live Transcript -->
+            <div class="screen-2 glass-dark" id="screen2">
+            <div class="transcript-container">
+                <div class="transcript-header">
+                    <h2 class="transcript-title">Live Transcript</h2>
+                    <div id="transcriptLanguageIndicator" class="language-bubble" title="Detected input language">
+                        <span id="transcriptLanguageFlag">🌐</span>
+                        <span id="langCodeTranscript">AUTO</span>
+                    </div>
+                </div>
+                <!-- Transcript Content -->
+                <div id="transcript" class="transcript-content">
+                    Click "Start" to begin transcription...
+                </div>
+            </div>
+            
+            <!-- Transcript Export Button - Hidden on mobile -->
+            <div class="desktop-only" style="padding: 20px; margin: 0;">
+                <button id="exportTranscriptBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
+                    Export Transcript
+                </button>
+            </div>
+            </div> <!-- Close screen-2 -->
+        
+            <!-- Screen 3: Flashcards -->
+            <div class="screen-3 glass-dark" id="screen3">
+            <div class="cards-header">
+                <h2 class="cards-title" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="flip-card" style="perspective: 1000px; width: auto; height: auto;">
+                        <div id="cardsModeToggle" class="flip-card-inner" style="
+                            position: relative;
+                            width: 100%;
+                            height: 100%;
+                            cursor: pointer;
+                            transition: transform 0.6s;
+                            transform-style: preserve-3d;
+                            border-radius: 12px;
+                        ">
+                            <!-- Front side (FlashCards) -->
+                            <div class="flip-card-front" style="
+                                position: absolute;
+                                width: 100%;
+                                height: 100%;
+                                backface-visibility: hidden;
+                                background: rgba(255, 255, 255, 0.1);
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                border-radius: 12px;
+                                padding: 8px 16px;
+                                display: flex;
+                                align-items: center;
+                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                                transition: all 0.3s ease;
+                            ">
+                                <span id="cardsMainTitle" style="font-size: 16px; font-weight: 600;">FlashCards</span>
+                            </div>
+                            
+                            <!-- Back side (CheatCards) -->
+                            <div class="flip-card-back" style="
+                                position: absolute;
+                                width: 100%;
+                                height: 100%;
+                                backface-visibility: hidden;
+                                background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.15));
+                                border: 1px solid rgba(239, 68, 68, 0.3);
+                                border-radius: 12px;
+                                padding: 8px 16px;
+                                display: flex;
+                                align-items: center;
+                                transform: rotateY(180deg);
+                                box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
+                                transition: all 0.3s ease;
+                                position: relative;
+                                overflow: hidden;
+                            ">
+                                <span style="font-size: 16px; font-weight: 600; color: #fee2e2;">CheatCards</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="modeInfoButton" class="glass-button" style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; opacity: 0.7; padding: 0;" title="Learn more about CheatCards">
+                        i
+                    </button>
+                </h2>
+                <div style="display: flex; align-items: center; gap: 12px; position: relative;">
+                    <span id="cardCount" class="cards-count">0 cards</span>
+                    <div id="languageIndicator" class="language-bubble" title="Card output language (click to change)" style="cursor: pointer;">
+                        <span id="languageFlag">🌐</span>
+                        <span id="languageText">AUTO</span>
+                        <span style="margin-left: 4px; font-size: 8px;">▼</span>
+                    </div>
+                    
+                    <!-- Language Dropdown -->
+                    <div id="languageDropdown" style="
+                        position: absolute;
+                        top: 100%;
+                        right: 0;
+                        background: rgba(31, 41, 55, 0.95);
+                        backdrop-filter: blur(20px) saturate(180%);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 12px;
+                        padding: 8px;
+                        margin-top: 4px;
+                        display: none;
+                        z-index: 1000;
+                        min-width: 160px;
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                    ">
+                        <div class="language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🌐</span>
+                            <span>Auto-detect</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇩🇪</span>
+                            <span>German</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇺🇸</span>
+                            <span>English</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇫🇷</span>
+                            <span>French</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="es-ES" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇪🇸</span>
+                            <span>Spanish</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="it-IT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇮🇹</span>
+                            <span>Italian</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="pt-PT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇵🇹</span>
+                            <span>Portuguese</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="nl-NL" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇳🇱</span>
+                            <span>Dutch</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ru-RU" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇷🇺</span>
+                            <span>Russian</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="zh-CN" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇨🇳</span>
+                            <span>Chinese</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ja-JP" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇯🇵</span>
+                            <span>Japanese</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ko-KR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇰🇷</span>
+                            <span>Korean</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="ar-SA" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇸🇦</span>
+                            <span>Arabic</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="el-GR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇬🇷</span>
+                            <span>Greek</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="cardsContainer" class="cards-container">
+                <div style="text-align: center; opacity: 0.5; padding: 40px 20px;">
+                    <p>Flashcards will appear here</p>
+                    <p style="font-size: 12px; margin-top: 8px;">AI analyzes your speech in real-time</p>
+                </div>
+            </div>
+            
+            <!-- Cards Export Button - Hidden on mobile -->
+            <div class="desktop-only" style="padding: 20px; margin: 0;">
+                <button id="exportBtn" class="export-button glass-button" style="width: 100%; padding: 14px; border-radius: 16px;" disabled>
+                    Export Cards
+                </button>
+            </div>
+            </div> <!-- Close screen-3 -->
+        </div> <!-- Close app-content -->
+        
+        <!-- App Footer: Status Indicators -->
+        <div class="app-footer">
+            <!-- Screen 4: Info & Status - Now Footer -->
+            <div class="screen-4 glass-dark" id="screen4">
+            
+            <!-- Features section hidden on mobile -->
+            
+            <div class="export-section">
+                <button id="exportBtn" class="export-button glass-button" disabled>
+                    💾 Export Cards
+                </button>
+            </div>
+            </div> <!-- Close screen-4 -->
+        </div> <!-- Close app-footer -->
+    </div> <!-- Close container -->
+    
+    
+    <!-- Settings Modal - Redesigned with Tabs -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-content glass-dark">
+            <!-- Modal Header -->
+            <div class="settings-header">
+                <div class="settings-title-container">
+                    <img src="assets/images/logo-white.svg" alt="SenScript" class="settings-logo">
+                    <h2 class="settings-title">SenScript Settings</h2>
+                </div>
+                <button id="settingsClose" class="settings-close glass-button">×</button>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="modal-tabs">
+                <button class="tab-button active" data-tab="app">
+                    App Controls
+                </button>
+                <button class="tab-button" data-tab="interview">
+                    CheatCards
+                </button>
+                <button class="tab-button" data-tab="ai">
+                    AI & API
+                </button>
+                <button class="tab-button" data-tab="stats">
+                    Statistics
+                </button>
+                <button class="tab-button" data-tab="about">
+                    About
+                </button>
+            </div>
+            
+            <!-- Tab 1: App Controls -->
+            <div id="tab-app" class="tab-content active">
+                <!-- Theme Settings -->
+                <div class="setting-group">
+                    <label class="setting-label">Theme Settings</label>
+                    <p class="setting-description">Choose your preferred appearance theme.</p>
+                    
+                    <div class="theme-options" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+                        <div class="theme-option" data-theme="system">
+                            <div class="theme-preview system-preview"></div>
+                            <span>System</span>
+                        </div>
+                        <div class="theme-option" data-theme="dark">
+                            <div class="theme-preview dark-preview"></div>
+                            <span>Dark</span>
+                        </div>
+                        <div class="theme-option" data-theme="light">
+                            <div class="theme-preview light-preview"></div>
+                            <span>Light</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Output Language -->
+                <div class="setting-group">
+                    <label class="setting-label">Card Language</label>
+                    <p class="setting-description">Choose the language for AI-generated flashcards.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="toggle-label">
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="autoLanguage" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                            <span><strong>AUTO - Match input language</strong></span>
+                        </label>
+                        
+                        <div id="languageSelectContainer" style="display: none;">
+                            <label class="api-label">Fixed Output Language</label>
+                            <select id="outputLanguage" class="setting-input">
+                                <option value="de-DE">🇩🇪 German</option>
+                                <option value="en-US">🇺🇸 English</option>
+                                <option value="fr-FR">🇫🇷 French</option>
+                                <option value="es-ES">🇪🇸 Spanish</option>
+                                <option value="it-IT">🇮🇹 Italian</option>
+                                <option value="pt-PT">🇵🇹 Portuguese</option>
+                                <option value="nl-NL">🇳🇱 Dutch</option>
+                                <option value="ru-RU">🇷🇺 Russian</option>
+                                <option value="zh-CN">🇨🇳 Chinese</option>
+                                <option value="ja-JP">🇯🇵 Japanese</option>
+                                <option value="ko-KR">🇰🇷 Korean</option>
+                                <option value="ar-SA">🇸🇦 Arabic</option>
+                                <option value="el-GR">🇬🇷 Greek</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <!-- Education Preferences -->
+                <div class="setting-group">
+                    <label class="setting-label">Education Level <span class="status-indicator yellow"></span></label>
+                    <p class="setting-description">Controls how the AI assumes your background knowledge level for explanations.</p>
+                    
+                    <input type="range" id="educationLevel" min="1" max="5" value="3" class="setting-range">
+                    <div class="range-labels">
+                        <span class="range-label">Beginner</span>
+                        <span id="educationLevelValue" class="range-value">Balanced</span>
+                        <span class="range-label">Expert</span>
+                    </div>
+                    <p id="educationLevelDesc" class="range-description">
+                        General audience with some education
+                    </p>
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label">Detail Level</label>
+                    <p class="setting-description">Controls explanation length and depth in AI responses.</p>
+                    
+                    <input type="range" id="detailLevel" min="1" max="5" value="3" class="setting-range">
+                    <div class="range-labels">
+                        <span class="range-label">Brief</span>
+                        <span id="detailLevelValue" class="range-value">Moderate</span>
+                        <span class="range-label">Comprehensive</span>
+                    </div>
+                    <p id="detailLevelDesc" class="range-description">
+                        Moderate detail with context and examples
+                    </p>
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label">Example Complexity</label>
+                    <p class="setting-description">Controls the complexity of examples and analogies used in explanations.</p>
+                    
+                    <input type="range" id="exampleComplexity" min="1" max="5" value="3" class="setting-range">
+                    <div class="range-labels">
+                        <span class="range-label">Simple</span>
+                        <span id="exampleComplexityValue" class="range-value">Real-world</span>
+                        <span class="range-label">Academic</span>
+                    </div>
+                    <p id="exampleComplexityDesc" class="range-description">
+                        Practical examples from common experience
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Tab 2: Interview and Test Companion -->
+            <div id="tab-interview" class="tab-content">
+                <div class="setting-group">
+                    <label class="setting-label">CheatCard Mode</label>
+                    <p class="setting-description">Your strategic assistant for meetings, presentations, interviews, and exams. Creates smart cheat sheets to help you succeed.</p>
+                    
+                    <!-- Strategic Description - Always Visible -->
+                    <div style="margin: 16px 0 24px 0; padding: 16px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; font-size: 12px; line-height: 1.5;">
+                        <p style="margin: 0 0 8px 0; font-weight: 600; color: #60a5fa;">📚 Creates strategic flashcards with:</p>
+                        <ul style="margin: 0; padding-left: 16px; color: #e5e7eb;">
+                            <li><strong>Quick facts</strong> to showcase your knowledge</li>
+                            <li><strong>What to say</strong> vs. what NOT to say</li>
+                            <li><strong>Key talking points</strong> for any topic</li>
+                            <li><strong>Test-passing strategies</strong> and shortcuts</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 24px;">
+                        <label class="toggle-label">
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="interviewMode">
+                                <span class="toggle-slider"></span>
+                            </div>
+                            <span><strong>Activate CheatCard Mode</strong></span>
+                        </label>
+                        
+                        <div class="mode-description" style="font-size: 12px; opacity: 0.8; margin-left: 24px; display: none; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 12px; margin-top: 8px;" id="interviewModeDescription">
+                            <p style="margin: 0; font-weight: 500; color: #22c55e;">✓ CheatCard Mode activated</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Features Section -->
+                <div class="setting-group">
+                    <label class="setting-label">Features & Use Cases</label>
+                    <p class="setting-description">See how CheatCard Mode adapts to different scenarios.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;">
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Meetings</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Action items, follow-up strategies, decision points</p>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Presentations</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Audience engagement, handling Q&A, key messages</p>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Job Interviews</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Strategic answers, company knowledge, salary negotiation tips</p>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">School Exams</h4>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Quick formulas, key concepts, memory tricks</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Cards Preview -->
+                <div class="setting-group">
+                    <label class="setting-label">Example Cards Preview</label>
+                    <p class="setting-description">Browse example flashcards to see the Interview Test Companion in action.</p>
+                    
+                    <div id="exampleCardsContainer" style="margin: 16px 0;">
+                        <div class="example-cards-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <button id="prevExampleCard" class="nav-button" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 6px 12px; color: white; cursor: pointer;">‹</button>
+                            <span id="cardCounter" style="font-size: 12px; opacity: 0.7;">1 / 8</span>
+                            <button id="nextExampleCard" class="nav-button" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 6px 12px; color: white; cursor: pointer;">›</button>
+                        </div>
+                        
+                        <div id="exampleCardDisplay" class="example-card" style="
+                            background: rgba(255, 255, 255, 0.1); 
+                            border: 1px solid rgba(255, 255, 255, 0.2); 
+                            border-radius: 12px; 
+                            padding: 16px; 
+                            min-height: 120px;
+                            backdrop-filter: blur(10px);
+                        ">
+                            <div class="card-category" style="font-size: 10px; color: #f97316; font-weight: bold; margin-bottom: 8px;">INTERVIEW TIP</div>
+                            <div class="card-front" style="font-weight: bold; margin-bottom: 12px; font-size: 14px;">How to answer "Tell me about yourself"?</div>
+                            <div class="card-back" style="font-size: 12px; line-height: 1.4; opacity: 0.9;">
+                                ✅ Say: "I'm a [role] with [X years] experience in [field]. Recently accomplished [specific achievement]."<br>
+                                ❌ Avoid: Personal life details, rambling, or "I don't know where to start"<br>
+                                🎯 Key point: Keep it professional, structured, and relevant to the job
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- When Active Section -->
+                <div class="setting-group" id="interviewActiveFeatures" style="display: none;">
+                    <label class="setting-label" style="color: #f97316;">Mode Active - Enhanced Features</label>
+                    <p class="setting-description">Interview Test Companion is now active and will automatically optimize card generation for strategic insights.</p>
+                    
+                    <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; padding: 16px; margin: 12px 0;">
+                        <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Auto-Optimized Settings:</h4>
+                        <ul style="margin: 0; padding-left: 16px; font-size: 11px; line-height: 1.4;">
+                            <li>Education level: Beginner (for clear, practical advice)</li>
+                            <li>Detail level: Concise (for quick reference)</li>
+                            <li>Card categories: Interview-specific (Tips, Facts, What to Say, etc.)</li>
+                            <li>Response style: Strategic and actionable</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: AI & API -->
+            <div id="tab-ai" class="tab-content">
+                <!-- AI Model Selection -->
+                <div class="setting-group">
+                    <label class="setting-label">AI Model Selection</label>
+                    <p class="setting-description">Choose your preferred AI model. Fastest response wins automatically.</p>
+                    <div id="modelGrid" class="model-grid">
+                        <!-- Models loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- API Keys Container -->
+                <div class="setting-group">
+                    <label class="setting-label">API Keys</label>
+                    <p class="setting-description">Add your own API keys for unlimited usage, or use our fallback keys.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">OpenAI API Key</label>
+                        <input type="password" id="openaiKey" class="setting-input" placeholder="sk-... (optional)">
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">Anthropic API Key</label>
+                        <input type="password" id="anthropicKey" class="setting-input" placeholder="sk-ant-... (optional)">
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">DeepSeek API Key</label>
+                        <input type="password" id="deepseekKey" class="setting-input" placeholder="sk-... (optional)">
+                    </div>
+                    
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="useFallback" checked>
+                        <label for="useFallback">Use SenScript fallback keys when your keys aren't provided</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab 3: Statistics -->
+            <div id="tab-stats" class="tab-content">
+                <!-- Usage Statistics Container -->
+                <div class="usage-stats">
+                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">Usage Statistics</h4>
+                    <div class="usage-grid">
+                        <div class="usage-item">
+                            <div id="totalCalls" class="usage-value">0</div>
+                            <div class="usage-label">API Calls</div>
+                        </div>
+                        <div class="usage-item">
+                            <div id="totalTokens" class="usage-value">0</div>
+                            <div class="usage-label">Tokens Used</div>
+                        </div>
+                        <div class="usage-item">
+                            <div id="cardsGenerated" class="usage-value">0</div>
+                            <div class="usage-label">Cards Created</div>
+                        </div>
+                        <div class="usage-item">
+                            <div id="avgResponseTime" class="usage-value">0ms</div>
+                            <div class="usage-label">Avg Response</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Status - Simple Design -->
+                <div class="setting-group">
+                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">System Status</h4>
+                    <div class="simple-status-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="simple-status-item" style="display: flex; align-items: center; gap: 12px;">
+                            <span id="speechApiStatus" class="status-dot green"></span>
+                            <span class="status-text" style="flex: 1;">Speech Recognition</span>
+                            <span id="speechApiInfo" class="status-info-text" style="opacity: 0.7; font-size: 13px;">Chrome Web Speech API</span>
+                        </div>
+                        <div class="simple-status-item" style="display: flex; align-items: center; gap: 12px;">
+                            <span id="aiProcessingStatus" class="status-dot green"></span>
+                            <span class="status-text" style="flex: 1;">AI Service</span>
+                            <span id="aiServiceInfo" class="status-info-text" style="opacity: 0.7; font-size: 13px;">OpenAI GPT-3.5</span>
+                        </div>
+                        <div class="simple-status-item" style="display: flex; align-items: center; gap: 12px;">
+                            <span id="audioInputStatus" class="status-dot red"></span>
+                            <span class="status-text" style="flex: 1;">Audio Input</span>
+                            <span id="audioInputInfo" class="status-info-text" style="opacity: 0.7; font-size: 13px;">Not connected</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Metrics -->
+                <div class="setting-group">
+                    <label class="setting-label">Performance Metrics</label>
+                    <p class="setting-description">Real-time performance data for optimization.</p>
+                    
+                    <div class="performance-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 16px;">
+                        <div class="metric-card">
+                            <div class="metric-label">Memory Usage</div>
+                            <div class="metric-value" id="memoryUsage">~8MB</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Session Duration</div>
+                            <div class="metric-value" id="sessionDuration">0m 0s</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Recognition Accuracy</div>
+                            <div class="metric-value" id="recognitionAccuracy">95%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Cards per Minute</div>
+                            <div class="metric-value" id="cardsPerMinute">0.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab 4: About -->
+            <div id="tab-about" class="tab-content">
+                <!-- Company Information -->
+                <div class="setting-group">
+                    <div class="about-header" style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                        <img src="assets/images/logo-white.svg" alt="SenScript" class="about-logo">
+                        <div>
+                            <h3 style="margin: 0; font-size: 20px; font-weight: 400;">SenScript</h3>
+                            <p style="margin: 0; opacity: 0.7; font-size: 14px;">Real-time AI flashcard generation</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Company section using exact frontend card pattern -->
+                    <div class="company-card">
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Company</h4>
+                        <div style="display: grid; gap: 8px; font-size: 14px; line-height: 1.5;">
+                            <div style="font-weight: 600;">SEN.CO UG (haftungsbeschränkt)</div>
+                            <div>Paradiesgasse 53, 60594 Frankfurt am Main, Germany</div>
+                            <div>Managing Director: Denis Kreuzer</div>
+                            <div>HRB 129222 | VAT ID: DE358821685</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact & Services -->
+                    <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div class="service-card" style="background: rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 20px;">
+                            <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Contact</h4>
+                            <div style="font-size: 14px; line-height: 1.6;">
+                                <div style="margin-bottom: 8px;"><a href="mailto:sound@sen.studio" style="color: inherit; text-decoration: none;">sound@sen.studio</a></div>
+                                <div style="margin-bottom: 8px;"><a href="tel:+4915566179807" style="color: inherit; text-decoration: none;">+49 15566179807</a></div>
+                                <div><a href="https://sen.studio" target="_blank" style="color: inherit; text-decoration: none;">sen.studio</a></div>
+                            </div>
+                        </div>
+                        
+                        <div class="service-card" style="background: rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 20px;">
+                            <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Development Services</h4>
+                            <div style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
+                                MVP Development • Web & Mobile Apps<br>
+                                AI Integration • Technical Infrastructure
+                            </div>
+                            <div><a href="https://dev.sen.studio" target="_blank" style="color: inherit; text-decoration: none; font-weight: 500;">dev.sen.studio</a></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Developer Console Commands -->
+                    <div class="setting-group" style="margin-top: 20px; padding: 20px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.1); border-radius: 12px;">
+                        <label class="setting-label" style="color: #60a5fa;">🛠️ Developer Console Commands</label>
+                        <p class="setting-description" style="margin-bottom: 12px;">Open browser console (F12) and use these commands:</p>
+                        
+                        <div style="font-family: 'Monaco', 'Menlo', monospace; font-size: 12px; background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                            <div style="margin-bottom: 8px; color: #86efac;">
+                                <strong>testCards()</strong> - Run all test transcripts
+                            </div>
+                            <div style="margin-bottom: 8px; color: #fbbf24;">
+                                <strong>testCheat()</strong> - Test CheatCards (emoji format)
+                            </div>
+                            <div style="margin-bottom: 8px; color: #a78bfa;">
+                                <strong>resetAllCaches()</strong> - Clear all caches for fresh generation
+                            </div>
+                            <div style="margin-bottom: 8px; color: #f87171;">
+                                <strong>app.resetCardEngine()</strong> - Reset card engine only
+                            </div>
+                            <div style="color: #94a3b8;">
+                                <strong>app.cards</strong> - View all generated cards
+                            </div>
+                        </div>
+                        
+                        <p class="setting-description" style="font-size: 11px; opacity: 0.7; margin-top: 8px;">
+                            💡 Tip: Switch between CheatCards and FlashCards modes before testing to see different formats
+                        </p>
+                    </div>
+                    
+                    <!-- Legal Links -->
+                    <div class="legal-links" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; padding: 16px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; font-size: 14px; margin-top: 20px;">
+                        <a href="https://www.sen.studio/content/legal/imprint.html" target="_blank" style="color: inherit; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;">Imprint</a>
+                        <span style="opacity: 0.3;">•</span>
+                        <a href="https://www.sen.studio/content/legal/terms.html" target="_blank" style="color: inherit; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;">Terms</a>
+                        <span style="opacity: 0.3;">•</span>
+                        <a href="https://www.sen.studio/content/legal/privacy.html" target="_blank" style="color: inherit; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;">Privacy</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Save Button - Fixed at Bottom -->
+            <div style="padding: 20px 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.1);">
+                <button id="saveSettings" class="save-button glass-button">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Load authentication and app scripts -->
     <script src="simple-auth.js"></script>
     <script src="listening-meter.js"></script>
     <script src="settings-modal.js"></script>
+    <!-- Load dependencies for app.js -->
+    <script src="card-engine.js"></script>
+    <!-- Skip Node.js modules for now - app.js will handle them -->
     
     <script>
         // Initialize authentication and app
@@ -313,13 +4733,17 @@
             // Check authentication status
             const checkAuth = async () => {
                 if (auth.isAuthenticated) {
-                    // User is signed in
-                    document.getElementById('auth-container').style.display = 'none';
-                    document.getElementById('app-container').classList.add('authenticated');
+                    // User is signed in - show app, hide auth overlay
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    document.querySelector('.container').classList.remove('hidden');
                     document.getElementById('user-menu').style.display = 'flex';
                     
                     // Update user info - simple auth handles this automatically
-                    // The auth state listener will update user info automatically
+                    const user = auth.getUser();
+                    if (user) {
+                        document.getElementById('user-email').textContent = 
+                            user.primaryEmailAddress?.emailAddress || user.username || 'User';
+                    }
                     
                     // Mount Clerk UserButton
                     auth.mountUserButton('clerk-user-button');
@@ -339,9 +4763,9 @@
                     // Load the main app
                     loadMainApp();
                 } else {
-                    // User is not signed in
-                    document.getElementById('auth-container').style.display = 'flex';
-                    document.getElementById('app-container').classList.remove('authenticated');
+                    // User is not signed in - show auth overlay, hide app
+                    document.getElementById('auth-overlay').style.display = 'flex';
+                    document.querySelector('.container').classList.add('hidden');
                     document.getElementById('user-menu').style.display = 'none';
                 }
             };
@@ -357,7 +4781,7 @@
                 setTimeout(checkAuth, 1000);
             });
             
-            document.getElementById('settings-btn').addEventListener('click', () => {
+            document.getElementById('user-settings-btn').addEventListener('click', () => {
                 settingsModal.open();
             });
             
@@ -379,16 +4803,43 @@
             
             // Function to load main app content
             function loadMainApp() {
-                // Load existing app.js and initialize SenScript
+                // Check if SenScript is already loaded
+                if (window.SenScript) {
+                    console.log('[App] SenScript already exists, initializing...');
+                    initializeSenScript();
+                    return;
+                }
+                
+                // Load app.js only once
+                if (document.querySelector('script[src="app.js"]')) {
+                    console.log('[App] app.js already loading/loaded');
+                    return;
+                }
+                
                 const script = document.createElement('script');
                 script.src = 'app.js';
                 script.onload = () => {
-                    // Initialize SenScript with auth context
-                    if (window.SenScript) {
+                    console.log('[App] app.js loaded');
+                    initializeSenScript();
+                };
+                script.onerror = (e) => {
+                    console.error('[App] Failed to load app.js:', e);
+                };
+                document.head.appendChild(script);
+                
+                // Also load test-transcripts.js
+                const testScript = document.createElement('script');
+                testScript.src = 'test-transcripts.js';
+                document.head.appendChild(testScript);
+            }
+            
+            function initializeSenScript() {
+                if (window.SenScript) {
+                    try {
                         const app = new window.SenScript();
                         app.auth = auth;
                         app.listeningMeter = listeningMeter;
-                        app.init();
+                        console.log('[App] SenScript initialized successfully');
                         
                         // Start listening meter when recording starts
                         const originalStart = app.startListening.bind(app);
@@ -402,23 +4853,12 @@
                             listeningMeter.stop();
                             return originalStop();
                         };
+                    } catch (error) {
+                        console.error('[App] Failed to initialize SenScript:', error);
                     }
-                };
-                document.body.appendChild(script);
-                
-                // Load the rest of the HTML content
-                fetch('index.html')
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        
-                        // Extract body content (excluding scripts)
-                        const content = doc.querySelector('.container');
-                        if (content) {
-                            document.getElementById('app-container').innerHTML = content.outerHTML;
-                        }
-                    });
+                } else {
+                    console.error('[App] SenScript not found');
+                }
             }
         })();
     </script>

@@ -49,21 +49,33 @@ class LLMProvider {
             .map(([name, _]) => name);
     }
     
-    async generateFlashcard(transcript, language, languageFlag) {
+    async generateFlashcard(transcript, language, languageFlag, selectedModel = 'auto') {
         const enabledProviders = this.getEnabledProviders();
         
         if (enabledProviders.length === 0) {
             throw new Error('No LLM providers configured. Please set API keys in .env file.');
         }
         
-        // Race all enabled providers for fastest response
-        const promises = enabledProviders.map(provider => 
-            this.callProvider(provider, transcript, language, languageFlag)
-        );
+        const startTime = Date.now();
+        let result;
         
         try {
-            const startTime = Date.now();
-            const result = await Promise.race(promises);
+            if (selectedModel === 'auto') {
+                // Race all enabled providers for fastest response
+                console.log('[LLM] Auto mode: Racing all providers for fastest response');
+                const promises = enabledProviders.map(provider => 
+                    this.callProvider(provider, transcript, language, languageFlag)
+                );
+                result = await Promise.race(promises);
+            } else {
+                // Use specific provider
+                if (!enabledProviders.includes(selectedModel)) {
+                    throw new Error(`Selected model '${selectedModel}' is not available. Available: ${enabledProviders.join(', ')}`);
+                }
+                console.log(`[LLM] Using selected model: ${selectedModel}`);
+                result = await this.callProvider(selectedModel, transcript, language, languageFlag);
+            }
+            
             const responseTime = Date.now() - startTime;
             
             // Update metrics
@@ -73,11 +85,11 @@ class LLMProvider {
                 (this.metrics.averageResponseTime * (this.metrics.successfulCalls - 1) + responseTime) / 
                 this.metrics.successfulCalls;
             
-            console.log(`[LLM] Fastest response from ${result.provider} in ${responseTime}ms`);
+            console.log(`[LLM] Response from ${result.provider} in ${responseTime}ms`);
             return result;
             
         } catch (error) {
-            console.error('[LLM] All providers failed:', error);
+            console.error('[LLM] Provider failed:', error);
             throw error;
         }
     }

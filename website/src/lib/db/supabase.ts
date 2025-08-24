@@ -2,7 +2,6 @@
 // Replaces all mock database implementations
 
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types';
 
 // Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,7 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create Supabase client
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Database types for better type safety
 export interface User {
@@ -83,8 +82,8 @@ export interface RoadmapItem {
   category: 'feature' | 'improvement' | 'integration' | 'platform';
   status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
   priority: number;
-  vote_count: number;
-  estimated_completion?: string;
+  votes: number;
+  estimated_completion: string;
   created_at: string;
   updated_at: string;
 }
@@ -314,10 +313,15 @@ export class DatabaseService {
       throw new Error(`Failed to get roadmap items: ${error.message}`);
     }
 
-    return data;
+    // Map vote_count to votes to match API contract
+    return data.map(item => ({
+      ...item,
+      votes: item.vote_count,
+      estimated_completion: item.estimated_completion || 'TBD'
+    }));
   }
 
-  async voteOnRoadmapItem(userId: string, itemId: string): Promise<{ success: boolean; vote_count: number }> {
+  async voteOnRoadmapItem(userId: string, itemId: string): Promise<{ success: boolean; votes: number }> {
     // Check if user already voted
     const { data: existingVote } = await supabase
       .from('roadmap_votes')
@@ -356,7 +360,7 @@ export class DatabaseService {
       throw new Error(`Failed to update vote count: ${updateError.message}`);
     }
 
-    return { success: true, vote_count: updatedItem.vote_count };
+    return { success: true, votes: updatedItem.vote_count };
   }
 
   async getUserVotes(userId: string): Promise<string[]> {

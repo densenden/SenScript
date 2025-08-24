@@ -1,112 +1,45 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 
-const roadmapItems = [
+// Type definition for roadmap items
+interface RoadmapItem {
+  id: string;
+  title: string;
+  description: string;
+  status: 'completed' | 'in_progress' | 'planned';
+  priority: number;
+  votes: number;
+  category?: string;
+  estimated_completion?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Organize roadmap items by status groups
+const roadmapSections = [
   {
-    phase: "Launched Last Week",
-    status: "completed",
-    items: [
-      {
-        title: "SenScript v3.0 Launch (beta1)",
-        description: "Chrome Web App with universal audio capture",
-        completed: true
-      },
-      {
-        title: "Multi-Language Support",
-        description: "13 languages with perfect accent recognition",
-        completed: true
-      },
-      {
-        title: "CheatCard Technology",
-        description: "Strategic interview responses, not just facts",
-        completed: true
-      }
-    ]
+    title: "Recently Completed",
+    status: "completed" as const,
+    icon: "check_circle",
+    color: "text-green-400",
+    bgColor: "bg-green-500"
   },
   {
-    phase: "Performance Focus (Next 2-4 weeks)",
-    status: "in-progress",
-    items: [
-      {
-        title: "Sub-2s Card Generation",
-        description: "Optimize AI processing pipeline for faster card creation",
-        completed: false
-      },
-      {
-        title: "Enhanced Card Quality",
-        description: "Improve strategic content accuracy and relevance",
-        completed: false
-      },
-      {
-        title: "LLM Provider Expansion",
-        description: "Support for DeepSeek, Anthropic Claude, Gemini, and custom endpoints",
-        completed: false
-      }
-    ]
+    title: "In Development",
+    status: "in_progress" as const,
+    icon: "construction",
+    color: "text-orange-400",
+    bgColor: "bg-orange-500"
   },
   {
-    phase: "Native Apps (Next month)",
-    status: "planned",
-    items: [
-      {
-        title: "iOS Native App",
-        description: "React Native (Expo) with native STT and RevenueCat billing",
-        completed: false
-      },
-      {
-        title: "Android Native App",
-        description: "Full feature parity with iOS, Google Play Billing integration",
-        completed: false
-      },
-      {
-        title: "Desktop App (Frameless)",
-        description: "Electron/Tauri app with system audio capture and custom rounded UI",
-        completed: false
-      }
-    ]
-  },
-  {
-    phase: "Future Platforms (If userbase grows)",
-    status: "future",
-    items: [
-      {
-        title: "Smart Glasses Integration",
-        description: "Ray-Ban Meta, Apple Vision Pro support for hands-free CheatCards",
-        completed: false
-      },
-      {
-        title: "CarPlay App",
-        description: "Learn during commutes with voice-activated card review",
-        completed: false
-      },
-      {
-        title: "Augmented Reality Mode",
-        description: "Overlay CheatCards in real-world presentations and meetings",
-        completed: false
-      }
-    ]
-  },
-  {
-    phase: "Community Ideas (Backlog)",
-    status: "backlog",
-    items: [
-      {
-        title: "Team Collaboration",
-        description: "Shared card libraries for organizations",
-        completed: false
-      },
-      {
-        title: "Smart Clustering",
-        description: "Automatically group related cards into threads",
-        completed: false
-      },
-      {
-        title: "Advanced Export Options",
-        description: "Direct integration with Notion, Slack, and Jira",
-        completed: false
-      }
-    ]
+    title: "Planned Features",
+    status: "planned" as const,
+    icon: "upcoming",
+    color: "text-blue-400",
+    bgColor: "bg-blue-500"
   }
 ];
 
@@ -129,6 +62,73 @@ const features = [
 ];
 
 export default function Roadmap() {
+  const { user, isLoaded } = useUser();
+  const [roadmapItems, setRoadmapItems] = useState<RoadmapItem[]>([]);
+  const [userVotes, setUserVotes] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [votingItem, setVotingItem] = useState<string | null>(null);
+
+  // Load roadmap items and user votes
+  useEffect(() => {
+    loadRoadmapData();
+  }, [user]);
+
+  const loadRoadmapData = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch('/api/roadmap');
+      if (!response.ok) {
+        throw new Error('Failed to load roadmap data');
+      }
+      
+      const { items, userVotes: votes } = await response.json();
+      setRoadmapItems(items);
+      setUserVotes(votes || []);
+    } catch (error) {
+      console.error('Failed to load roadmap:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVote = async (itemId: string) => {
+    if (!user || userVotes.includes(itemId)) return;
+    
+    setVotingItem(itemId);
+    try {
+      const response = await fetch('/api/roadmap/vote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          itemId,
+          action: 'add'
+        }),
+      });
+
+      if (response.ok) {
+        setUserVotes([...userVotes, itemId]);
+        // Update the vote count in the local state
+        setRoadmapItems(items => 
+          items.map(item => 
+            item.id === itemId 
+              ? { ...item, votes: item.votes + 1 }
+              : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Failed to vote:', error);
+    } finally {
+      setVotingItem(null);
+    }
+  };
+
+  const getItemsByStatus = (status: string) => {
+    return roadmapItems.filter(item => item.status === status);
+  };
   return (
     <div className="container">
       {/* Hero Section */}
@@ -172,74 +172,135 @@ export default function Roadmap() {
           </p>
         </div>
         
-        <div className="max-w-4xl mx-auto">
-          {roadmapItems.map((quarter, quarterIndex) => (
-            <div key={quarterIndex} className="relative mb-12">
+        {loading ? (
+          <div className="text-center py-12">
+            <span className="material-symbols-outlined animate-spin text-4xl text-orange-500 mb-4 block">
+              refresh
+            </span>
+            <p className="text-lg opacity-90">Loading roadmap...</p>
+          </div>
+        ) : (
+          <div className="max-w-6xl mx-auto">
+            {roadmapSections.map((section, sectionIndex) => {
+              const sectionItems = getItemsByStatus(section.status);
+              if (sectionItems.length === 0) return null;
               
-              <div className="glass p-8">
-                {/* Quarter Header */}
-                <div className="flex items-center mb-6">
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-xs mr-6 ${
-                    quarter.status === 'completed' ? 'bg-green-500 text-white' :
-                    quarter.status === 'in-progress' ? 'bg-orange-500 text-white' :
-                    quarter.status === 'planned' ? 'bg-blue-500 text-white' :
-                    quarter.status === 'backlog' ? 'bg-purple-500 text-white' :
-                    'bg-gray-500 text-white'
-                  }`}>
-                    <span className={`material-symbols-outlined text-sm ${
-                      quarter.status === 'completed' ? '' :
-                      quarter.status === 'in-progress' ? '' :
-                      quarter.status === 'planned' ? '' :
-                      quarter.status === 'backlog' ? '' : ''
-                    }`} style={{fontVariationSettings: "'wght' 100"}}>
-                      {quarter.status === 'completed' ? 'check_circle' :
-                       quarter.status === 'in-progress' ? 'bolt' :
-                       quarter.status === 'planned' ? 'phone_android' :
-                       quarter.status === 'backlog' ? 'forum' : 'rocket_launch'}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold">{quarter.phase}</h3>
-                    <p className={`text-sm font-medium ${
-                      quarter.status === 'completed' ? 'text-green-400' :
-                      quarter.status === 'in-progress' ? 'text-orange-400' :
-                      quarter.status === 'planned' ? 'text-blue-400' :
-                      quarter.status === 'backlog' ? 'text-purple-400' :
-                      'text-gray-400'
-                    }`}>
-                      {quarter.status === 'completed' ? 'Shipped' :
-                       quarter.status === 'in-progress' ? 'Active Development' :
-                       quarter.status === 'planned' ? 'Next Sprint' :
-                       quarter.status === 'backlog' ? 'Community Driven' :
-                       'Vision'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Items */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {quarter.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className={`bg-white/5 border rounded-2xl p-6 ${
-                      item.completed ? 'border-green-500/30' : 'border-white/10'
-                    }`}>
-                      <div className="flex items-start justify-between mb-3">
-                        <h4 className="font-semibold text-lg">{item.title}</h4>
-                        {item.completed && (
-                          <span className="material-symbols-outlined text-green-400">
-                            check_circle
-                          </span>
-                        )}
+              return (
+                <div key={sectionIndex} className="mb-12">
+                  <div className="glass p-8">
+                    {/* Section Header */}
+                    <div className="flex items-center mb-6">
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-xs mr-6 ${section.bgColor} text-white`}>
+                        <span className="material-symbols-outlined text-lg" style={{fontVariationSettings: "'wght' 100"}}>
+                          {section.icon}
+                        </span>
                       </div>
-                      <p className="text-sm opacity-90 leading-relaxed">
-                        {item.description}
-                      </p>
+                      <div>
+                        <h3 className="text-2xl font-bold">{section.title}</h3>
+                        <p className={`text-sm font-medium ${section.color}`}>
+                          {sectionItems.length} item{sectionItems.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
                     </div>
-                  ))}
+
+                    {/* Items Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sectionItems.map((item) => (
+                        <div key={item.id} className={`bg-white/5 border rounded-2xl p-6 ${
+                          item.status === 'completed' ? 'border-green-500/30' : 
+                          item.status === 'in_progress' ? 'border-orange-500/30' :
+                          'border-white/10'
+                        }`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-lg mb-1">{item.title}</h4>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-2 ${
+                                item.category === 'feature' ? 'bg-blue-100 text-blue-800' :
+                                item.category === 'improvement' ? 'bg-green-100 text-green-800' :
+                                item.category === 'integration' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {item.category}
+                              </span>
+                            </div>
+                            {item.status === 'completed' && (
+                              <span className="material-symbols-outlined text-green-400 text-xl">
+                                check_circle
+                              </span>
+                            )}
+                          </div>
+                          
+                          <p className="text-sm opacity-90 leading-relaxed mb-4">
+                            {item.description}
+                          </p>
+                          
+                          {item.estimated_completion && (
+                            <p className="text-xs opacity-70 mb-3">
+                              <span className="material-symbols-outlined text-xs mr-1">schedule</span>
+                              {item.estimated_completion}
+                            </p>
+                          )}
+                          
+                          {/* Voting Section */}
+                          {item.status !== 'completed' && (
+                            <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-sm opacity-70">
+                                  thumb_up
+                                </span>
+                                <span className="text-sm font-medium">{item.votes}</span>
+                              </div>
+                              
+                              {isLoaded && user ? (
+                                <button
+                                  onClick={() => handleVote(item.id)}
+                                  disabled={userVotes.includes(item.id) || votingItem === item.id}
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    userVotes.includes(item.id) 
+                                      ? 'bg-green-500/20 text-green-400 cursor-default' 
+                                      : 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 cursor-pointer'
+                                  } disabled:opacity-50`}
+                                >
+                                  {votingItem === item.id ? (
+                                    <span className="material-symbols-outlined animate-spin text-xs">
+                                      refresh
+                                    </span>
+                                  ) : userVotes.includes(item.id) ? (
+                                    <>Voted</>
+                                  ) : (
+                                    <>Vote</>
+                                  )}
+                                </button>
+                              ) : (
+                                <Link 
+                                  href="/sign-in" 
+                                  className="px-3 py-1 rounded-lg text-xs font-medium bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 transition-all"
+                                >
+                                  Sign in to vote
+                                </Link>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+              );
+            })}
+            
+            {/* Empty state */}
+            {roadmapItems.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <span className="material-symbols-outlined text-4xl opacity-50 mb-4 block">
+                  construction
+                </span>
+                <p className="text-lg opacity-90">Roadmap items are being loaded...</p>
+                <p className="text-sm opacity-70 mt-2">Check back soon!</p>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Feedback Section */}
