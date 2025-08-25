@@ -55,17 +55,27 @@ class SenScript {
             educationLevel: document.getElementById('educationLevel'),
             detailLevel: document.getElementById('detailLevel'),
             exampleComplexity: document.getElementById('exampleComplexity'),
-            micLevelDots: document.querySelectorAll('#micLevelIndicator .level-dot'),
-            deviceLevelDots: document.querySelectorAll('#deviceLevelIndicator .level-dot')
+            micLevelDots: document.querySelectorAll('#micLevelDots .level-dot'),
+            deviceLevelDots: document.querySelectorAll('#deviceLevelDots .level-dot')
         };
     }
     
     initializeModules() {
-        // Initialize audio system
-        this.audioSystem = new AudioSystem(this);
+        // Initialize audio system (V3 - Perfect Audio Flow)
+        this.audioSystem = new AudioSystemV3(this);
         
         // Initialize speech recognition
         this.speechRecognition = new SpeechRecognitionManager(this);
+        
+        // Start background listening after speech recognition is ready
+        setTimeout(() => {
+            if (this.speechRecognition) {
+                this.speechRecognition.startBackgroundListening();
+            }
+        }, 1000);
+        
+        // Initialize card generator (restored from legacy)
+        this.cardGenerator = new CardGenerator(this);
         
         // Initialize card engine
         this.cardEngine = new CardEngine(this);
@@ -95,20 +105,39 @@ class SenScript {
     }
     
     toggleListening() {
-        if (this.isListening || this.shouldBeListening) {
+        // Check speech recognition state directly
+        if (this.speechRecognition && 
+            (this.speechRecognition.isListening || this.speechRecognition.shouldBeListening)) {
             this.stopListening();
         } else {
             this.startListening();
         }
     }
     
-    startListening() {
-        console.log('[Control] Starting listening...');
+    async startListening() {
+        console.log('🚀 [Control] === START BUTTON CLICKED ===');
+        
+        // V3: Ensure audio source is ready for transcription
+        const hasAudioSource = await this.audioSystem.ensureAudioSourceForTranscription();
+        if (!hasAudioSource) {
+            console.error('🚀 [Control] ❌ Audio source not ready for transcription');
+            return;
+        }
+        
+        // Start transcription mode
+        this.audioSystem.startTranscription();
+        
+        // Start speech recognition
         this.speechRecognition.startListening();
     }
     
     stopListening() {
-        console.log('[Control] Stopping listening...');
+        console.log('🛑 [Control] === STOP BUTTON CLICKED ===');
+        
+        // Stop transcription mode
+        this.audioSystem.stopTranscription();
+        
+        // Stop speech recognition
         this.speechRecognition.stopListening();
     }
     
@@ -120,6 +149,27 @@ class SenScript {
     exportTranscript() {
         // Implementation moved to UI module
         this.ui.exportTranscript();
+    }
+    
+    startMinuteCounting() {
+        // Start counting usage minutes
+        if (!this.minuteCounterInterval) {
+            this.startTime = Date.now();
+            this.minuteCounterInterval = setInterval(() => {
+                const minutes = Math.floor((Date.now() - this.startTime) / 60000);
+                console.log(`[Usage] ${minutes} minutes of listening`);
+            }, 60000);
+        }
+    }
+    
+    stopMinuteCounting() {
+        // Stop counting usage minutes
+        if (this.minuteCounterInterval) {
+            clearInterval(this.minuteCounterInterval);
+            this.minuteCounterInterval = null;
+            const totalMinutes = Math.floor((Date.now() - this.startTime) / 60000);
+            console.log(`[Usage] Total session: ${totalMinutes} minutes`);
+        }
     }
     
     exposeTestFunctions() {

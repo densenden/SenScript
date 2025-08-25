@@ -8,13 +8,101 @@ class CardEngine {
         this.app = app;
         this.recentTexts = new Set();
         this.duplicateTimeout = 10000; // 10 seconds
+        this.interviewMode = false; // Default to flashcard mode
         
         this.initialize();
     }
     
     initialize() {
         console.log('[CardEngine] Initializing card engine...');
-        // Card engine initialized
+        this.setupInterviewModeToggle();
+        this.setupCardsModeToggle();
+    }
+    
+    setupInterviewModeToggle() {
+        const interviewModeElement = document.getElementById('interviewMode');
+        if (!interviewModeElement) {
+            console.warn('[CardEngine] Interview mode toggle not found');
+            return;
+        }
+        
+        interviewModeElement.addEventListener('change', (e) => {
+            e.stopPropagation();
+            this.interviewMode = e.target.checked;
+            console.log('[CardEngine] Interview mode changed to:', this.interviewMode);
+            
+            // Update mode display
+            this.updateModeDisplay();
+            
+            // Show/hide description
+            const description = document.getElementById('interviewModeDescription');
+            if (description) {
+                description.style.display = this.interviewMode ? 'block' : 'none';
+            }
+        });
+    }
+    
+    setupCardsModeToggle() {
+        const cardsModeToggle = document.getElementById('cardsModeToggle');
+        if (!cardsModeToggle) {
+            console.warn('[CardEngine] Cards mode toggle not found');
+            return;
+        }
+        
+        cardsModeToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('[CardEngine] Cards mode toggle clicked');
+            
+            // Toggle interview mode
+            this.interviewMode = !this.interviewMode;
+            
+            // Update UI elements
+            const interviewModeCheckbox = document.getElementById('interviewMode');
+            if (interviewModeCheckbox) {
+                interviewModeCheckbox.checked = this.interviewMode;
+            }
+            
+            this.updateModeDisplay();
+            
+            // Show/hide description
+            const description = document.getElementById('interviewModeDescription');
+            if (description) {
+                description.style.display = this.interviewMode ? 'block' : 'none';
+            }
+            
+            console.log('[CardEngine] Mode toggled to:', this.interviewMode ? 'CheatCard' : 'FlashCard');
+        });
+    }
+    
+    updateModeDisplay() {
+        // Update the visual toggle state
+        const cardsModeToggle = document.getElementById('cardsModeToggle');
+        if (cardsModeToggle) {
+            cardsModeToggle.classList.toggle('flipped', this.interviewMode);
+        }
+        
+        // Update container class for styling
+        const cardsContainer = this.app.els.cardsContainer;
+        if (cardsContainer) {
+            if (this.interviewMode) {
+                cardsContainer.classList.add('cheat-card-mode');
+                cardsContainer.classList.remove('flash-card-mode');
+            } else {
+                cardsContainer.classList.add('flash-card-mode');
+                cardsContainer.classList.remove('cheat-card-mode');
+            }
+        }
+        
+        // Update body class for global styling
+        if (this.interviewMode) {
+            document.body.classList.add('cheat-card-mode');
+            document.body.classList.remove('flash-card-mode');
+        } else {
+            document.body.classList.add('flash-card-mode');
+            document.body.classList.remove('cheat-card-mode');
+        }
+        
+        console.log('[CardEngine] Mode display updated:', this.interviewMode ? 'CheatCard' : 'FlashCard');
     }
     
     processText(text) {
@@ -54,18 +142,25 @@ class CardEngine {
     
     async generateCard(text) {
         try {
-            console.log('[CardEngine] Generating card for:', text.substring(0, 50) + '...');
+            console.log(`🎯 [CardEngine] === GENERATING ${this.interviewMode ? 'CHEAT' : 'FLASH'} CARD ===`);
+            console.log(`🎯 [CardEngine] Text:`, text.substring(0, 50) + '...');
+            console.log(`🎯 [CardEngine] Interview mode:`, this.interviewMode);
             
-            // Mock card generation (replace with actual AI integration)
-            const card = {
-                id: Date.now() + Math.random(),
-                type: 'concept',
-                front: this.extractQuestion(text),
-                back: this.extractAnswer(text),
-                source: text,
-                timestamp: Date.now(),
-                confidence: 0.8
-            };
+            // Use the restored CardGenerator with proper mode flag
+            if (!this.app.cardGenerator) {
+                console.error('❌ [CardEngine] CardGenerator not initialized');
+                return;
+            }
+            
+            // Generate card using AI-powered generator
+            const card = await this.app.cardGenerator.generateFromText(text, this.interviewMode);
+            
+            if (!card) {
+                console.log('⏭️ [CardEngine] Card generation returned null (likely skipped by AI)');
+                return;
+            }
+            
+            console.log(`🃏 [CardEngine] ${card.cardType === 'cheat' ? 'CheatCard' : 'FlashCard'} created successfully:`, card);
             
             // Add to cards array
             this.app.cards.push(card);
@@ -73,10 +168,37 @@ class CardEngine {
             // Update UI
             this.updateCardsDisplay();
             
-            console.log('[CardEngine] Card generated successfully');
+            console.log(`✅ [CardEngine] Card added to collection (${this.app.cards.length} total)`);
             
         } catch (error) {
-            console.error('[CardEngine] Failed to generate card:', error);
+            console.error('💥 [CardEngine] Failed to generate card:', error);
+            console.error('🔍 [CardEngine] Error details:', {
+                message: error.message,
+                stack: error.stack?.split('\n').slice(0, 3),
+                text: text.substring(0, 50),
+                interviewMode: this.interviewMode
+            });
+        }
+    }
+    
+    extractCheatCategory(text) {
+        // Simple category detection for cheat cards
+        const lowerText = text.toLowerCase();
+        
+        if (lowerText.includes('meeting') || lowerText.includes('negotiate')) {
+            return 'MEETING TIP';
+        } else if (lowerText.includes('present') || lowerText.includes('speaking')) {
+            return 'PRESENTATION TIP';
+        } else if (lowerText.includes('interview') || lowerText.includes('job')) {
+            return 'INTERVIEW TIP';
+        } else if (lowerText.includes('quick') || lowerText.includes('tip')) {
+            return 'QUICK WIN';
+        } else if (lowerText.includes('avoid') || lowerText.includes('don\'t')) {
+            return 'AVOID THIS';
+        } else if (lowerText.includes('say') || lowerText.includes('phrase')) {
+            return 'WHAT TO SAY';
+        } else {
+            return 'KEY FACTS';
         }
     }
     
@@ -102,20 +224,48 @@ class CardEngine {
     updateCardsDisplay() {
         if (!this.app.els.cardsContainer) return;
         
-        // Update card count
-        if (this.app.els.cardCount) {
-            this.app.els.cardCount.textContent = this.app.cards.length;
-        }
+        // Update card count with proper categorization
+        this.updateCardCount();
         
-        // Render cards (simplified)
+        // Render cards with proper styling
         const cardsHtml = this.app.cards.map(card => `
-            <div class="card" data-id="${card.id}">
-                <div class="card-front">${card.front}</div>
-                <div class="card-back">${card.back}</div>
+            <div class="card" 
+                 data-id="${card.id}" 
+                 data-card-type="${card.cardType || 'flash'}"
+                 data-category="${card.category || 'CONCEPT'}"
+                 onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        ${card.category ? `<div class="card-category">${card.category}</div>` : ''}
+                        <div class="card-content">${card.front}</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-content">${card.back}</div>
+                        ${card.confidence ? `<div class="card-confidence">Confidence: ${Math.round(card.confidence * 100)}%</div>` : ''}
+                    </div>
+                </div>
             </div>
         `).join('');
         
         this.app.els.cardsContainer.innerHTML = cardsHtml;
+    }
+    
+    updateCardCount() {
+        if (!this.app.els.cardCount) return;
+        
+        const totalCards = this.app.cards.length;
+        const cheatCards = this.app.cards.filter(c => c.cardType === 'cheat').length;
+        const flashCards = this.app.cards.filter(c => c.cardType === 'flash').length;
+        
+        if (totalCards === 0) {
+            this.app.els.cardCount.textContent = '0 cards';
+        } else if (flashCards > 0 && cheatCards > 0) {
+            this.app.els.cardCount.textContent = `${totalCards} cards (${flashCards} flash + ${cheatCards} cheat)`;
+        } else if (cheatCards > 0) {
+            this.app.els.cardCount.textContent = `${totalCards} cheat cards`;
+        } else {
+            this.app.els.cardCount.textContent = `${totalCards} flash cards`;
+        }
     }
     
     // Test functions
@@ -141,8 +291,25 @@ class CardEngine {
     
     runCheatCardTests() {
         console.log('🎯 Running CheatCard tests...');
-        // Implement CheatCard specific tests
-        this.runCardGenerationTests(); // For now, use same tests
+        
+        // Switch to cheat card mode for testing
+        const wasInInterviewMode = this.interviewMode;
+        this.interviewMode = true;
+        this.updateModeDisplay();
+        
+        // Update checkbox to reflect mode change
+        const interviewModeCheckbox = document.getElementById('interviewMode');
+        if (interviewModeCheckbox) {
+            interviewModeCheckbox.checked = true;
+        }
+        
+        console.log('✅ Switched to CheatCard mode for testing');
+        
+        // Run tests with cheat card mode enabled
+        this.runCardGenerationTests();
+        
+        // Note: Don't switch back automatically - let user see the results
+        console.log('🎯 CheatCard tests completed - staying in CheatCard mode');
     }
     
     resetAllCaches() {

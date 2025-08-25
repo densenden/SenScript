@@ -12,6 +12,7 @@ class UIManager {
     initialize() {
         console.log('[UI] Initializing UI manager...');
         this.setupModalHandlers();
+        this.setupLanguageDropdown();
     }
     
     setupModalHandlers() {
@@ -30,6 +31,71 @@ class UIManager {
                 e.stopPropagation();
             });
         }
+    }
+    
+    setupLanguageDropdown() {
+        // Get elements
+        const languageIndicator = document.getElementById('languageIndicator');
+        const languageDropdown = document.getElementById('languageDropdown');
+        
+        if (!languageIndicator || !languageDropdown) {
+            console.warn('[UI] Language dropdown elements not found');
+            return;
+        }
+        
+        // Initially hide dropdown
+        languageDropdown.style.display = 'none';
+        
+        // Toggle dropdown on click
+        languageIndicator.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = languageDropdown.style.display === 'block';
+            languageDropdown.style.display = isVisible ? 'none' : 'block';
+            console.log('[UI] Language dropdown:', isVisible ? 'closed' : 'opened');
+        });
+        
+        // Handle language selection
+        const languageOptions = languageDropdown.querySelectorAll('.language-option');
+        languageOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const lang = option.dataset.lang;
+                const flag = option.querySelector('.flag').textContent;
+                const name = option.querySelector('.lang-name').textContent;
+                
+                // Update the app language
+                this.updateCardLanguage(lang, flag, name);
+                
+                // Hide dropdown
+                languageDropdown.style.display = 'none';
+            });
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            languageDropdown.style.display = 'none';
+        });
+    }
+    
+    updateCardLanguage(lang, flag, name) {
+        console.log(`[UI] Changing card language to: ${lang} ${flag} ${name}`);
+        
+        // Update indicator
+        const languageFlag = document.getElementById('languageFlag');
+        const languageText = document.getElementById('languageText');
+        
+        if (languageFlag) languageFlag.textContent = flag;
+        if (languageText) languageText.textContent = lang === 'auto' ? 'AUTO' : name.split(' ')[0];
+        
+        // Update app settings
+        if (this.app.settings) {
+            this.app.settings.cardOutputLanguage = lang;
+            this.app.settings.autoLanguage = (lang === 'auto');
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('cardOutputLanguage', lang);
+        localStorage.setItem('autoLanguage', lang === 'auto' ? 'true' : 'false');
     }
     
     showSettings() {

@@ -3868,6 +3868,11 @@
         .container.hidden {
             display: none;
         }
+
+        /* Flip card animation for cheat card toggle */
+        .flip-card-inner.flipped {
+            transform: rotateY(180deg);
+        }
     </style>
 </head>
 <body>
@@ -4821,9 +4826,16 @@
             }
             
             function initializeSenScript() {
+                // Prevent multiple initialization
+                if (window.senScriptApp) {
+                    console.log('[App] SenScript already initialized, skipping');
+                    return window.senScriptApp;
+                }
+                
                 if (window.SenScript) {
                     try {
                         const app = new window.SenScript();
+                        window.senScriptApp = app;
                         app.auth = auth;
                         app.listeningMeter = listeningMeter;
                         console.log('[App] SenScript initialized successfully');
@@ -4840,6 +4852,9 @@
                             listeningMeter.stop();
                             return originalStop();
                         };
+                        
+                        return app;
+                        
                     } catch (error) {
                         console.error('[App] Failed to initialize SenScript:', error);
                     }

@@ -11,6 +11,11 @@ class AudioSystem {
         this.audioContext = null;
         this.audioAnalyser = null;
         this.currentActiveDots = null;
+        this.isRequestingPermission = false;
+        this.permissionCache = {
+            microphone: false,
+            system: false
+        };
         
         this.initialize();
     }
@@ -24,10 +29,60 @@ class AudioSystem {
         // Setup level dots
         this.setupLevelDots();
         
-        // Request initial microphone permission
-        await this.requestInitialPermissions();
+        // Request microphone permission on load
+        this.requestMicrophoneOnLoad();
+        
+        // Start background listening with cache
+        this.startBackgroundListening();
         
         console.log('[Audio] Audio system initialized');
+    }
+    
+    async requestMicrophoneOnLoad() {
+        // Request microphone permission immediately on load
+        this.app.currentAudioSource = 'microphone';
+        this.updateToggleUI();
+        
+        // Check if already have permission
+        if (this.microphoneStream && this.microphoneStream.active) {
+            console.log('[Audio] Using existing microphone stream');
+            await this.connectAudioSource(this.microphoneStream);
+            this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            return;
+        }
+        
+        // Prevent duplicate requests
+        if (this.isRequestingPermission) {
+            console.log('[Audio] Already requesting permission');
+            return;
+        }
+        
+        this.isRequestingPermission = true;
+        this.updateTranscriptUI('Microphone Mode', 'Requesting microphone access...');
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false }
+            });
+            
+            this.microphoneStream = stream;
+            this.permissionCache.microphone = true;
+            await this.connectAudioSource(stream);
+            this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            console.log('[Audio] Microphone permission granted on load');
+            
+        } catch (error) {
+            console.error('[Audio] Microphone permission denied on load:', error);
+            this.permissionCache.microphone = false;
+            this.updateTranscriptUI('Microphone Access Denied', 'Please allow microphone access in browser settings');
+        } finally {
+            this.isRequestingPermission = false;
+        }
+    }
+    
+    startBackgroundListening() {
+        // This is handled by SpeechRecognitionManager now
+        console.log('[Audio] Background listening will be handled by speech recognition module');
     }
     
     setupAudioSourceToggle() {
@@ -47,37 +102,151 @@ class AudioSystem {
     }
     
     async switchAudioSource(newSource) {
-        if (newSource === this.app.currentAudioSource) return;
+        if (newSource === this.app.currentAudioSource) {
+            console.log(`[Audio] Already on ${newSource}, ignoring`);
+            return;
+        }
+        
+        // Prevent switching while requesting permission
+        if (this.isRequestingPermission) {
+            console.log('[Audio] Permission request in progress, ignoring switch');
+            return;
+        }
         
         console.log(`[Audio] Switching from ${this.app.currentAudioSource} to ${newSource}`);
-        
-        // Stop current listening
-        if (this.app.isListening) {
-            this.app.stopListening();
-        }
         
         // Update source
         this.app.currentAudioSource = newSource;
         this.updateToggleUI();
         
-        // Setup new source
+        // Switch to the new source
         if (newSource === 'microphone') {
-            await this.setupMicrophone();
+            await this.switchToMicrophone();
         } else if (newSource === 'system') {
-            await this.setupSystemAudio();
+            await this.switchToDeviceOutput();
         }
     }
     
-    async setupMicrophone() {
+    async switchToMicrophone() {
+        // Check cached stream first
+        if (this.microphoneStream && this.microphoneStream.active) {
+            console.log('[Audio] Switching to cached microphone stream');
+            await this.connectAudioSource(this.microphoneStream);
+            this.updateTranscriptUI('Microphone Active', 'Audio levels active - Ready to transcribe');
+            return;
+        }
+        
+        // Prevent duplicate permission requests
+        if (this.isRequestingPermission) {
+            console.log('[Audio] Already requesting permission, ignoring');
+            return;
+        }
+        
+        // Request permission
+        this.isRequestingPermission = true;
+        this.updateTranscriptUI('Microphone Mode', 'Requesting microphone access...');
+        
         try {
-            if (this.microphoneStream && this.microphoneStream.active) {
-                console.log('[Audio] Reusing existing microphone stream');
-                await this.connectAudioSource(this.microphoneStream);
-                this.updateTranscriptUI('🎤 Microphone Ready', 'Click "Start" to transcribe');
-                return;
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false }
+            });
+            
+            this.microphoneStream = stream;
+            this.permissionCache.microphone = true;
+            await this.connectAudioSource(stream);
+            this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            
+        } catch (error) {
+            console.error('[Audio] Microphone permission denied:', error);
+            this.permissionCache.microphone = false;
+            this.updateTranscriptUI('Microphone Access Denied', 'Please allow microphone access and try again');
+        } finally {
+            this.isRequestingPermission = false;
+        }
+    }
+    
+    async switchToDeviceOutput() {
+        // Check cached stream first
+        if (this.systemStream && this.systemStream.active) {
+            console.log('[Audio] Switching to cached system stream');
+            await this.connectAudioSource(this.systemStream);
+            this.updateTranscriptUI('Device Output Active', 'Tab audio levels active - Ready to transcribe');
+            return;
+        }
+        
+        // Prevent duplicate permission requests
+        if (this.isRequestingPermission) {
+            console.log('[Audio] Already requesting permission, ignoring');
+            return;
+        }
+        
+        // Request permission
+        this.isRequestingPermission = true;
+        this.updateTranscriptUI('Device Output Mode', 'Requesting tab audio share...');
+        
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+                video: { width: 1, height: 1 }
+            });
+            
+            this.systemStream = stream;
+            this.permissionCache.system = true;
+            
+            // Listen for stream end (user stops sharing or switches tabs)
+            const videoTrack = stream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.onended = () => {
+                    console.log('[Audio] Tab share ended - stream ended');
+                    this.systemStream = null;
+                    this.permissionCache.system = false;
+                    this.updateTranscriptUI('Tab Share Ended', 'Switched back to microphone mode');
+                    // Switch back to microphone
+                    this.app.currentAudioSource = 'microphone';
+                    this.updateToggleUI();
+                    this.switchToMicrophone();
+                };
+                
+                // Monitor track state periodically
+                this.tabSwitchMonitor = setInterval(() => {
+                    if (videoTrack.readyState === 'ended' || !this.systemStream || !this.systemStream.active) {
+                        console.log('[Audio] System stream became inactive - switching back');
+                        clearInterval(this.tabSwitchMonitor);
+                        this.systemStream = null;
+                        this.permissionCache.system = false;
+                        
+                        // Only switch back if we're still on system mode
+                        if (this.app.currentAudioSource === 'system') {
+                            this.updateTranscriptUI('System Audio Lost', 'Switching back to microphone');
+                            this.app.currentAudioSource = 'microphone';
+                            this.updateToggleUI();
+                            this.switchToMicrophone();
+                        }
+                    }
+                }, 2000); // Check every 2 seconds
             }
             
-            this.updateTranscriptUI('🎤 Setting up Microphone...', 'Requesting microphone access...');
+            await this.connectAudioSource(stream);
+            this.updateTranscriptUI('Device Output Ready', 'Tab audio active - Click Start to transcribe');
+            
+        } catch (error) {
+            console.log('[Audio] Tab audio share cancelled:', error);
+            this.permissionCache.system = false;
+            // Fall back to microphone
+            this.app.currentAudioSource = 'microphone';
+            this.updateToggleUI();
+            await this.switchToMicrophone();
+        } finally {
+            this.isRequestingPermission = false;
+        }
+    }
+    
+    
+    // Called ONLY when Start button is clicked - can request permissions
+    async requestMicrophonePermission() {
+        try {
+            console.log('[Audio]  Requesting microphone permission (Start button clicked)...');
+            this.updateTranscriptUI(' Setting up Microphone...', 'Requesting microphone access...');
             
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: { echoCancellation: false, noiseSuppression: false }
@@ -85,24 +254,23 @@ class AudioSystem {
             
             this.microphoneStream = stream;
             await this.connectAudioSource(stream);
-            this.updateTranscriptUI('🎤 Microphone Ready', 'Click "Start" to transcribe');
+            this.updateTranscriptUI(' Microphone Ready', 'Listening for speech...');
+            
+            console.log('[Audio] ✅ Microphone permission granted and cached');
+            return true;
             
         } catch (error) {
-            console.error('[Audio] Microphone setup failed:', error);
-            this.updateTranscriptUI('❌ Microphone Access Denied', 'Please allow microphone access');
+            console.error('[Audio] Microphone permission denied:', error);
+            this.updateTranscriptUI(' Microphone Access Denied', 'Please allow microphone access and try again');
+            return false;
         }
     }
     
-    async setupSystemAudio() {
+    // Called ONLY when Start button is clicked - can request permissions  
+    async requestSystemAudioPermission() {
         try {
-            if (this.systemStream && this.systemStream.active) {
-                console.log('[Audio] Reusing existing system stream');
-                await this.connectAudioSource(this.systemStream);
-                this.updateTranscriptUI('🔊 System Audio Ready', 'Click "Start" to transcribe');
-                return;
-            }
-            
-            this.updateTranscriptUI('🖥️ Setting up System Audio...', 'Requesting screen share permission...');
+            console.log('[Audio]  Requesting system audio permission (Start button clicked)...');
+            this.updateTranscriptUI(' Setting up System Audio...', 'Requesting screen share permission...');
             
             const stream = await navigator.mediaDevices.getDisplayMedia({
                 audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
@@ -111,7 +279,66 @@ class AudioSystem {
             
             this.systemStream = stream;
             await this.connectAudioSource(stream);
-            this.updateTranscriptUI('🔊 System Audio Ready', 'Click "Start" to transcribe');
+            this.updateTranscriptUI(' System Audio Ready', 'Listening to tab audio...');
+            
+            console.log('[Audio] ✅ System audio permission granted and cached');
+            return true;
+            
+        } catch (error) {
+            console.log('[Audio] System audio permission cancelled or failed:', error);
+            // Fallback to microphone mode
+            this.app.currentAudioSource = 'microphone';
+            this.updateToggleUI();
+            this.updateTranscriptUI(' Microphone Mode', 'Click "Start" to request microphone access');
+            return false;
+        }
+    }
+    
+    // Public method called by speechRecognition when Start is pressed
+    async ensureAudioSource() {
+        if (this.app.currentAudioSource === 'microphone') {
+            if (this.microphoneStream && this.microphoneStream.active) {
+                // Use cached stream
+                await this.connectAudioSource(this.microphoneStream);
+                this.updateTranscriptUI(' Microphone Ready', 'Listening for speech...');
+                return true;
+            } else {
+                // Request permission
+                return await this.requestMicrophonePermission();
+            }
+        } else if (this.app.currentAudioSource === 'system') {
+            if (this.systemStream && this.systemStream.active) {
+                // Use cached stream
+                await this.connectAudioSource(this.systemStream);
+                this.updateTranscriptUI(' System Audio Ready', 'Listening to tab audio...');
+                return true;
+            } else {
+                // Request permission
+                return await this.requestSystemAudioPermission();
+            }
+        }
+        return false;
+    }
+    
+    async setupSystemAudio() {
+        try {
+            if (this.systemStream && this.systemStream.active) {
+                console.log('[Audio] Reusing existing system stream');
+                await this.connectAudioSource(this.systemStream);
+                this.updateTranscriptUI(' System Audio Ready', 'Click "Start" to transcribe');
+                return;
+            }
+            
+            this.updateTranscriptUI(' Setting up System Audio...', 'Requesting screen share permission...');
+            
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+                video: { width: 1, height: 1 }
+            });
+            
+            this.systemStream = stream;
+            await this.connectAudioSource(stream);
+            this.updateTranscriptUI(' System Audio Ready', 'Click "Start" to transcribe');
             
         } catch (error) {
             console.log('[Audio] System audio setup cancelled or failed:', error);

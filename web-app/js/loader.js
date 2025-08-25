@@ -21,8 +21,8 @@ class ModuleLoader {
             'js/utils/language-detection.js',
             'js/utils/transcript-processing.js',
             
-            // Core systems
-            'js/audio/audio-system.js',
+            // Core systems  
+            'js/audio/audio-system-v3.js',
             'js/audio/speech-recognition.js',
             
             // Card system

@@ -8,6 +8,9 @@ class SettingsManager {
         this.app = app;
         this.settings = this.getDefaultSettings();
         this.loadSettings();
+        
+        // Initialize language UI after a short delay to ensure elements exist
+        setTimeout(() => this.initializeLanguageUI(), 500);
     }
     
     getDefaultSettings() {
@@ -18,7 +21,9 @@ class SettingsManager {
             exampleComplexity: 3,
             interviewMode: false,
             selectedModel: 'openai',
-            autoExport: false
+            autoExport: false,
+            cardOutputLanguage: 'auto',
+            autoLanguage: true
         };
     }
     
@@ -131,6 +136,40 @@ class SettingsManager {
         this.saveSettings();
         console.log('[Settings] Settings reset to defaults');
         this.app.ui.showNotification('Settings reset to defaults', 'info');
+    }
+    
+    initializeLanguageUI() {
+        // Load saved language settings or use defaults
+        const savedLang = localStorage.getItem('cardOutputLanguage') || 'auto';
+        const savedAuto = localStorage.getItem('autoLanguage') !== 'false';
+        
+        this.settings.cardOutputLanguage = savedLang;
+        this.settings.autoLanguage = savedAuto;
+        
+        this.updateLanguageUI();
+        console.log('[Settings] Language UI initialized:', savedLang, savedAuto);
+    }
+    
+    updateLanguageUI() {
+        const languageFlag = document.getElementById('languageFlag');
+        const languageText = document.getElementById('languageText');
+        
+        if (this.settings.autoLanguage || this.settings.cardOutputLanguage === 'auto') {
+            if (languageFlag) languageFlag.textContent = '🌐';
+            if (languageText) languageText.textContent = 'AUTO';
+        } else {
+            // Set specific language
+            const langMap = {
+                'de-DE': { flag: '🇩🇪', text: 'DE' },
+                'en-US': { flag: '🇺🇸', text: 'EN' },
+                'fr-FR': { flag: '🇫🇷', text: 'FR' },
+                'es-ES': { flag: '🇪🇸', text: 'ES' }
+            };
+            
+            const lang = langMap[this.settings.cardOutputLanguage] || langMap['en-US'];
+            if (languageFlag) languageFlag.textContent = lang.flag;
+            if (languageText) languageText.textContent = lang.text;
+        }
     }
 }
 

@@ -1,0 +1,394 @@
+/**
+ * Audio System V3 - Perfect Audio Flow Implementation
+ * Based exactly on /Users/densen/sen_dev/SenScript/monorepo/07-Perfect-Audio-Flow.md
+ */
+
+class AudioSystemV3 {
+    constructor(app) {
+        this.app = app;
+        
+        // Stream management
+        this.microphoneStream = null;
+        this.systemStream = null;
+        
+        // Audio visualization
+        this.audioContext = null;
+        this.audioAnalyser = null;
+        this.animationFrame = null;
+        
+        // State management
+        this.currentAudioSource = 'microphone'; // Default per spec
+        this.isTranscribing = false; // Separate from audio levels
+        this.permissionRequestInProgress = false;
+        
+        this.initialize();
+    }
+    
+    async initialize() {
+        console.log('🎤 [AudioV3] === INITIALIZING PERFECT AUDIO FLOW ===');
+        console.log('🎤 [AudioV3] Following spec: /monorepo/07-Perfect-Audio-Flow.md');
+        
+        this.setupUI();
+        this.setupToggleListeners();
+        
+        // Per spec: App loads → Microphone mode → NO permission requests initially
+        this.showInitialState();
+        
+        console.log('🎤 [AudioV3] ✅ Audio system initialized - waiting for user action');
+    }
+    
+    showInitialState() {
+        console.log('🎤 [AudioV3] Setting initial state: Microphone mode, requesting permission');
+        this.currentAudioSource = 'microphone';
+        this.updateToggleUI();
+        
+        // Per Perfect Audio Flow: Request microphone permission immediately on toggle
+        this.switchToMicrophone();
+    }
+    
+    setupToggleListeners() {
+        const toggle = this.app.els.audioSourceSwitch;
+        if (!toggle) {
+            console.error('🎤 [AudioV3] ❌ Audio source toggle not found!');
+            return;
+        }
+        
+        const options = toggle.querySelectorAll('.toggle-option');
+        console.log(`🎤 [AudioV3] Found ${options.length} toggle options`);
+        
+        options.forEach((option, index) => {
+            const source = option.dataset.value;
+            console.log(`🎤 [AudioV3] Setting up toggle listener ${index + 1}: ${source}`);
+            
+            option.addEventListener('click', async () => {
+                console.log(`🎤 [AudioV3] === TOGGLE CLICKED: ${source} ===`);
+                await this.switchAudioSource(source);
+            });
+        });
+    }
+    
+    async switchAudioSource(newSource) {
+        if (newSource === this.currentAudioSource) {
+            console.log(`🎤 [AudioV3] Already on ${newSource}, but ensuring stream is ready`);
+            // Don't ignore - ensure the stream is active for current source
+        }
+        
+        if (this.permissionRequestInProgress) {
+            console.log('🎤 [AudioV3] ⚠️ Permission request in progress, ignoring switch');
+            return;
+        }
+        
+        console.log(`🎤 [AudioV3] === SWITCHING: ${this.currentAudioSource} → ${newSource} ===`);
+        
+        // Update current source immediately (per spec: UI updates immediately)
+        this.currentAudioSource = newSource;
+        this.updateToggleUI();
+        
+        if (newSource === 'microphone') {
+            await this.switchToMicrophone();
+        } else if (newSource === 'system') {
+            await this.switchToDeviceOutput();
+        }
+    }
+    
+    async switchToMicrophone() {
+        console.log('🎤 [AudioV3] === SWITCHING TO MICROPHONE ===');
+        
+        // Check if we have cached microphone stream
+        if (this.microphoneStream && this.microphoneStream.active) {
+            console.log('🎤 [AudioV3] ✅ Using cached microphone stream');
+            this.connectAudioVisualization(this.microphoneStream);
+            this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            return;
+        }
+        
+        // No cached stream - request permission
+        console.log('🎤 [AudioV3] 🔐 No cached microphone - requesting permission');
+        this.permissionRequestInProgress = true;
+        this.updateTranscriptUI('Microphone Mode', 'Requesting microphone permission...');
+        
+        try {
+            console.log('🎤 [AudioV3] 📞 Calling getUserMedia...');
+            this.microphoneStream = await navigator.mediaDevices.getUserMedia({
+                audio: { 
+                    echoCancellation: false, 
+                    noiseSuppression: false,
+                    autoGainControl: false
+                }
+            });
+            
+            console.log('🎤 [AudioV3] ✅ Microphone permission granted!');
+            console.log('🎤 [AudioV3] 🎵 Connecting audio visualization...');
+            
+            this.connectAudioVisualization(this.microphoneStream);
+            this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            
+        } catch (error) {
+            console.error('🎤 [AudioV3] ❌ Microphone permission denied:', error);
+            this.updateTranscriptUI('Microphone Access Denied', 'Please allow microphone access and try again');
+        } finally {
+            this.permissionRequestInProgress = false;
+            console.log('🎤 [AudioV3] 🔓 Permission request completed');
+        }
+    }
+    
+    async switchToDeviceOutput() {
+        console.log('🖥️ [AudioV3] === SWITCHING TO DEVICE OUTPUT ===');
+        
+        // Check if we have cached system stream
+        if (this.systemStream && this.systemStream.active) {
+            console.log('🖥️ [AudioV3] ✅ Using cached system stream');
+            this.connectAudioVisualization(this.systemStream);
+            this.updateTranscriptUI('Device Output Ready', 'Audio levels active - Click Start to transcribe');
+            return;
+        }
+        
+        // No cached stream - request permission
+        console.log('🖥️ [AudioV3] 🔐 No cached system audio - requesting permission');
+        this.permissionRequestInProgress = true;
+        this.updateTranscriptUI('Device Output Mode', 'Requesting tab audio share...');
+        
+        try {
+            console.log('🖥️ [AudioV3] 📞 Calling getDisplayMedia...');
+            this.systemStream = await navigator.mediaDevices.getDisplayMedia({
+                audio: { 
+                    echoCancellation: false, 
+                    noiseSuppression: false, 
+                    autoGainControl: false 
+                },
+                video: { width: 1, height: 1 }
+            });
+            
+            console.log('🖥️ [AudioV3] ✅ System audio permission granted!');
+            console.log('🖥️ [AudioV3] System stream tracks:', this.systemStream.getTracks().length);
+            console.log('🖥️ [AudioV3] Audio tracks:', this.systemStream.getAudioTracks().length);
+            console.log('🖥️ [AudioV3] Video tracks:', this.systemStream.getVideoTracks().length);
+            console.log('🖥️ [AudioV3] 🎵 Connecting audio visualization...');
+            
+            // Monitor for stream end
+            const videoTrack = this.systemStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.onended = () => {
+                    console.log('🖥️ [AudioV3] ⚠️ System stream ended - switching back to microphone');
+                    this.systemStream = null;
+                    this.currentAudioSource = 'microphone';
+                    this.updateToggleUI();
+                    this.switchToMicrophone();
+                };
+            }
+            
+            this.connectAudioVisualization(this.systemStream);
+            this.updateTranscriptUI('Device Output Ready', 'Audio levels active - Click Start to transcribe');
+            
+        } catch (error) {
+            console.log('🖥️ [AudioV3] ⚠️ System audio permission cancelled/failed:', error);
+            console.log('🖥️ [AudioV3] 🔄 Auto-switching back to microphone');
+            
+            // Per spec: fallback to microphone
+            this.currentAudioSource = 'microphone';
+            this.updateToggleUI();
+            this.updateTranscriptUI('System Audio Cancelled', 'Switched back to microphone mode');
+            await this.switchToMicrophone();
+            
+        } finally {
+            this.permissionRequestInProgress = false;
+            console.log('🖥️ [AudioV3] 🔓 Permission request completed');
+        }
+    }
+    
+    connectAudioVisualization(stream) {
+        console.log('🎵 [AudioV3] === CONNECTING AUDIO VISUALIZATION ===');
+        console.log('🎵 [AudioV3] Current audio source:', this.currentAudioSource);
+        console.log('🎵 [AudioV3] Stream being connected:', stream === this.microphoneStream ? 'microphone' : stream === this.systemStream ? 'system' : 'unknown');
+        
+        try {
+            // Setup audio context if needed
+            if (!this.audioContext) {
+                console.log('🎵 [AudioV3] 🔧 Creating audio context...');
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.audioAnalyser = this.audioContext.createAnalyser();
+                this.audioAnalyser.fftSize = 256;
+                this.audioAnalyser.smoothingTimeConstant = 0.5;
+            }
+            
+            // Connect stream to analyser
+            console.log('🎵 [AudioV3] 🔌 Connecting stream to analyser...');
+            console.log('🎵 [AudioV3] Stream active:', stream.active);
+            console.log('🎵 [AudioV3] Stream tracks:', stream.getTracks().length);
+            const source = this.audioContext.createMediaStreamSource(stream);
+            source.connect(this.audioAnalyser);
+            console.log('🎵 [AudioV3] ✅ Source connected to analyser');
+            
+            // Start visual feedback (levels animation)
+            this.startLevelVisualization();
+            
+            console.log('🎵 [AudioV3] ✅ Audio visualization connected and running');
+            
+        } catch (error) {
+            console.error('🎵 [AudioV3] ❌ Failed to connect audio visualization:', error);
+        }
+    }
+    
+    startLevelVisualization() {
+        // Stop existing animation
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+        }
+        
+        const levelDots = this.currentAudioSource === 'microphone' 
+            ? this.app.els.micLevelDots 
+            : this.app.els.deviceLevelDots;
+        
+        console.log(`🎵 [AudioV3] Level dots for ${this.currentAudioSource}:`, levelDots ? levelDots.length : 'null');
+        console.log(`🎵 [AudioV3] Audio analyser:`, !!this.audioAnalyser);
+            
+        if (!levelDots || levelDots.length === 0 || !this.audioAnalyser) {
+            console.warn('🎵 [AudioV3] ⚠️ Level dots or analyser not available');
+            return;
+        }
+        
+        console.log(`🎵 [AudioV3] 📊 Starting level visualization for ${this.currentAudioSource}`);
+        
+        const bufferLength = this.audioAnalyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        const updateLevels = () => {
+            this.audioAnalyser.getByteFrequencyData(dataArray);
+            
+            // Calculate average audio level
+            const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+            const normalizedLevel = Math.min(average / 128, 1);
+            
+            // Update level dots
+            const activeDotsCount = Math.floor(normalizedLevel * levelDots.length);
+            
+            levelDots.forEach((dot, index) => {
+                if (index < activeDotsCount) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            this.animationFrame = requestAnimationFrame(updateLevels);
+        };
+        
+        updateLevels();
+    }
+    
+    // ============ PUBLIC API FOR START BUTTON ============
+    
+    async ensureAudioSourceForTranscription() {
+        console.log('🚀 [AudioV3] === START BUTTON PRESSED ===');
+        console.log(`🚀 [AudioV3] Current source: ${this.currentAudioSource}`);
+        console.log(`🚀 [AudioV3] Permission in progress: ${this.permissionRequestInProgress}`);
+        
+        // Wait if permission request is in progress
+        if (this.permissionRequestInProgress) {
+            console.log('🚀 [AudioV3] ⏳ Waiting for permission request to complete...');
+            await this.waitForPermissionComplete();
+        }
+        
+        if (this.currentAudioSource === 'microphone') {
+            if (this.microphoneStream && this.microphoneStream.active) {
+                console.log('🚀 [AudioV3] ✅ Microphone stream ready for transcription');
+                return true;
+            } else {
+                console.log('🚀 [AudioV3] ❌ No active microphone stream');
+                return false;
+            }
+        } else if (this.currentAudioSource === 'system') {
+            if (this.systemStream && this.systemStream.active) {
+                console.log('🚀 [AudioV3] ✅ System stream ready for transcription');
+                return true;
+            } else {
+                console.log('🚀 [AudioV3] ❌ No active system stream');
+                return false;
+            }
+        }
+        
+        return false;
+    }
+    
+    async waitForPermissionComplete() {
+        while (this.permissionRequestInProgress) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+    
+    startTranscription() {
+        console.log('🚀 [AudioV3] === STARTING TRANSCRIPTION ===');
+        this.isTranscribing = true;
+        
+        // Update UI to show transcription started
+        const sourceText = this.currentAudioSource === 'microphone' ? 'Microphone' : 'Device Output';
+        this.updateTranscriptUI(`${sourceText} Listening`, 'Transcription active - generating cards');
+    }
+    
+    stopTranscription() {
+        console.log('🚀 [AudioV3] === STOPPING TRANSCRIPTION ===');
+        this.isTranscribing = false;
+        
+        // Update UI to show transcription stopped
+        const sourceText = this.currentAudioSource === 'microphone' ? 'Microphone Ready' : 'Device Output Ready';
+        this.updateTranscriptUI(sourceText, 'Audio levels active - Click Start to transcribe');
+    }
+    
+    // ============ UI HELPERS ============
+    
+    updateToggleUI() {
+        const toggle = this.app.els.audioSourceSwitch;
+        if (!toggle) return;
+        
+        const options = toggle.querySelectorAll('.toggle-option');
+        options.forEach(option => {
+            if (option.dataset.value === this.currentAudioSource) {
+                option.classList.add('active');
+                console.log(`🎨 [AudioV3] Toggle UI: ${option.dataset.value} marked as active`);
+            } else {
+                option.classList.remove('active');
+            }
+        });
+    }
+    
+    updateTranscriptUI(current, previous) {
+        if (!this.app.els.transcript) return;
+        
+        const html = `
+            <div class="transcript-rows">
+                <div class="transcript-row current">${current}</div>
+                <div class="transcript-row previous">${previous}</div>
+            </div>
+        `;
+        
+        this.app.els.transcript.innerHTML = html;
+        console.log(`🎨 [AudioV3] UI Updated: "${current}" | "${previous}"`);
+    }
+    
+    setupUI() {
+        // Any additional UI setup can go here
+        console.log('🎨 [AudioV3] UI setup completed');
+    }
+    
+    // ============ GETTERS ============
+    
+    getCurrentAudioSource() {
+        return this.currentAudioSource;
+    }
+    
+    isCurrentlyTranscribing() {
+        return this.isTranscribing;
+    }
+    
+    getStreamStatus() {
+        return {
+            microphone: this.microphoneStream ? this.microphoneStream.active : false,
+            system: this.systemStream ? this.systemStream.active : false,
+            current: this.currentAudioSource,
+            transcribing: this.isTranscribing,
+            requestingPermission: this.permissionRequestInProgress
+        };
+    }
+}
+
+window.AudioSystemV3 = AudioSystemV3;
