@@ -173,6 +173,12 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies RouteHandlerConfig<"/api/stripe/webhook">
 }
 
+// Validate ../../src/app/api/usage/summary/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/usage/summary/route.js")
+  handler satisfies RouteHandlerConfig<"/api/usage/summary">
+}
+
 // Validate ../../src/app/api/usage/sync/route.ts
 {
   const handler = {} as typeof import("../../src/app/api/usage/sync/route.js")

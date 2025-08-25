@@ -247,16 +247,28 @@ class SenScript {
         this.showInitialGuidance();
         
         // Make test functions available globally for console access  
-        window.testCards = () => this.runCardGenerationTests();
-        window.testCheat = () => this.runCheatCardTests();
-        window.resetAllCaches = () => this.resetAllCaches();
-        window.app = this;
-        console.log('🧪 [DEBUG] Available console commands (v2025.08.21):');
-        console.log('  testCards() - Run all card generation tests');
-        console.log('  testCheat() - Test CheatCards specifically (UNIFIED SYSTEM)');
-        console.log('  resetAllCaches() - Clear all caches for fresh generation');
-        console.log('  app.resetCardEngine() - Reset card engine only');
-        console.log('🔄 Cache busted - test functions should now work!');
+        try {
+            window.testCards = () => this.runCardGenerationTests();
+            window.testCheat = () => this.runCheatCardTests();
+            window.resetAllCaches = () => this.resetAllCaches();
+            window.app = this;
+            
+            console.log('🧪 [DEBUG] Available console commands (v2025.08.24):');
+            console.log('  testCards() - Run all card generation tests');
+            console.log('  testCheat() - Test CheatCards specifically (UNIFIED SYSTEM)');
+            console.log('  resetAllCaches() - Clear all caches for fresh generation');
+            console.log('  app.resetCardEngine() - Reset card engine only');
+            console.log('✅ Test functions successfully exposed to window!');
+            
+            // Verify functions are accessible
+            if (typeof window.testCards === 'function' && typeof window.testCheat === 'function') {
+                console.log('✅ Test function verification passed!');
+            } else {
+                console.error('❌ Test function verification failed!');
+            }
+        } catch (error) {
+            console.error('❌ Error exposing test functions:', error);
+        }
     }
     
     setupAutoRestart() {
@@ -4528,9 +4540,19 @@ class SenScript {
     }
     
     setupAudioSourceToggle() {
+        if (!this.els.audioSourceSwitch) {
+            console.error('[Toggle] audioSourceSwitch element not found!');
+            return;
+        }
+        
         const toggleOptions = this.els.audioSourceSwitch.querySelectorAll('.toggle-option');
         
         console.log('[Toggle] Found', toggleOptions.length, 'toggle options');
+        if (toggleOptions.length === 0) {
+            console.error('[Toggle] No toggle options found! DOM structure might be incorrect.');
+            return;
+        }
+        
         toggleOptions.forEach((option, index) => {
             console.log(`[Toggle] Option ${index}: data-value="${option.dataset.value}", text="${option.textContent.trim()}"`);
         });
@@ -4741,14 +4763,23 @@ class SenScript {
     }
     
     async checkMicrophone() {
+        // Don't request permissions during initialization - wait for user interaction
+        // This prevents consuming the user gesture requirement needed for proper permissions
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(track => track.stop());
-            this.setStatus('mic', 'green');
-            console.log('[System] Microphone OK');
-        } catch {
+            // Check if microphone devices are available without requesting permission
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(device => device.kind === 'audioinput');
+            
+            if (audioInputs.length > 0) {
+                this.setStatus('mic', 'yellow'); // Available but not tested
+                console.log('[System] Microphone devices available:', audioInputs.length);
+            } else {
+                this.setStatus('mic', 'red');
+                console.log('[System] No microphone devices found');
+            }
+        } catch (error) {
             this.setStatus('mic', 'red');
-            console.log('[System] Microphone FAILED');
+            console.log('[System] Microphone check failed:', error);
         }
     }
     
