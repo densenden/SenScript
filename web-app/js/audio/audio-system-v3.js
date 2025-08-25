@@ -99,6 +99,9 @@ class AudioSystemV3 {
             console.log('🎤 [AudioV3] ✅ Using cached microphone stream');
             this.connectAudioVisualization(this.microphoneStream);
             this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            
+            // Set up microphone for speech recognition
+            this.setupMicrophoneProcessing();
             return;
         }
         
@@ -122,6 +125,9 @@ class AudioSystemV3 {
             
             this.connectAudioVisualization(this.microphoneStream);
             this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            
+            // Set up microphone for speech recognition
+            this.setupMicrophoneProcessing();
             
         } catch (error) {
             console.error('🎤 [AudioV3] ❌ Microphone permission denied:', error);
@@ -428,6 +434,45 @@ class AudioSystemV3 {
             
         } catch (error) {
             console.error('🔄 [AudioV3] ❌ Failed to setup system audio processing:', error);
+        }
+    }
+    
+    /**
+     * Setup microphone processing for speech recognition
+     * Microphone works directly with Web Speech API (standard behavior)
+     */
+    setupMicrophoneProcessing() {
+        console.log('🎤 [AudioV3] === SETTING UP MICROPHONE PROCESSING ===');
+        
+        try {
+            // Get audio tracks from the microphone stream
+            const audioTracks = this.microphoneStream.getAudioTracks();
+            console.log('🎤 [AudioV3] Audio tracks found:', audioTracks.length);
+            
+            if (audioTracks.length > 0) {
+                console.log('🎤 [AudioV3] 🎧 Microphone track:', audioTracks[0].label);
+                
+                // Ensure speech recognition is ready
+                if (!this.app.speechRecognition) {
+                    console.error('🎤 [AudioV3] ❌ Speech recognition not available');
+                    return;
+                }
+                
+                // Microphone is the standard input for Web Speech API
+                console.log('🎤 [AudioV3] ✅ Microphone ready for Web Speech API');
+                console.log('🎤 [AudioV3] 🎯 Standard microphone input mode');
+                
+                // Mark that microphone audio is ready for speech recognition
+                this.microphoneAudioReady = true;
+                
+                console.log('🎤 [AudioV3] ✅ Microphone processing setup complete');
+                
+            } else {
+                console.error('🎤 [AudioV3] ❌ No audio tracks in microphone stream');
+            }
+            
+        } catch (error) {
+            console.error('🎤 [AudioV3] ❌ Failed to setup microphone processing:', error);
         }
     }
     

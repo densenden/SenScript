@@ -4826,9 +4826,15 @@
             
             // Function to load main app content
             function loadMainApp() {
-                // Check if SenScript is already loaded
+                // Check if SenScript is already loaded and initialized
+                if (window.senScript || window.senScriptApp) {
+                    console.log('[App] SenScript already initialized by modular system, skipping HTML init');
+                    return;
+                }
+                
+                // Check if SenScript class exists but not initialized
                 if (window.SenScript) {
-                    console.log('[App] SenScript already exists, initializing...');
+                    console.log('[App] SenScript class exists, initializing...');
                     initializeSenScript();
                     return;
                 }
