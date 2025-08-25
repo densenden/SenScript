@@ -29,13 +29,30 @@ http://localhost:3002
 
 ```
 web-app/
-├── index.html          # Main responsive UI with 4 screens
-├── app.js              # Complete SenScript class with all functionality  
-├── server.js           # Simple HTTP server with CORS support
-├── assets/images/      # Logo files for theme switching
-│   ├── logo-white.svg  # Dark mode logo
-│   └── logo-black.svg  # Light mode logo
-└── README.md           # This file
+├── index.html              # Main responsive UI with 4 screens
+├── server.js               # Simple HTTP server with CORS support
+├── js/                     # Modular JavaScript architecture
+│   ├── core/
+│   │   └── main.js         # Main SenScript application class
+│   ├── audio/
+│   │   ├── audio-system.js # Audio source management & switching
+│   │   └── speech-recognition.js # Web Speech API integration
+│   ├── cards/
+│   │   ├── card-engine.js  # Card generation logic & testing
+│   │   └── card-generator.js # AI-powered card creation
+│   ├── ui/
+│   │   ├── ui-manager.js   # UI interactions & modal management
+│   │   └── settings-manager.js # Settings persistence & controls
+│   ├── utils/
+│   │   ├── language-detection.js # Multi-language detection
+│   │   └── transcript-processing.js # Text processing utilities
+│   └── loader.js           # Module loader with fallback support
+├── assets/images/          # Logo files for theme switching
+│   ├── logo-white.svg      # Dark mode logo
+│   └── logo-black.svg      # Light mode logo
+├── test-transcripts.js     # Hardcoded test data for card generation
+├── app.js                  # Legacy monolithic file (fallback)
+└── README.md               # This file
 ```
 
 ## Screens Layout
@@ -76,10 +93,26 @@ All functionality is contained in a single working version:
 - **Microphone permissions**: Required for speech recognition
 - **System audio**: Requires screen sharing permission via getDisplayMedia()
 
-## Architecture
+## Modular Architecture
 
-- **Frontend**: Vanilla JavaScript class-based architecture
+### 🏗️ **Clean Separation of Concerns**
+- **Core Module** (`main.js`): Application initialization & coordination
+- **Audio System** (`audio/`): Microphone/system audio management & Web Speech API
+- **Card Engine** (`cards/`): AI-powered flashcard generation & testing
+- **UI Management** (`ui/`): Interface interactions, settings, modals
+- **Utilities** (`utils/`): Language detection, text processing helpers
+- **Module Loader** (`loader.js`): Dynamic loading with fallback support
+
+### 🔧 **Technical Stack**
+- **Frontend**: Modular vanilla JavaScript with class-based architecture
 - **Speech API**: webkitSpeechRecognition with continuous mode
-- **Audio Capture**: MediaDevices API for system/microphone input
+- **Audio Capture**: MediaDevices API for system/microphone input  
 - **Styling**: CSS-only with glass morphism effects
 - **Server**: Simple Node.js HTTP server for local development
+- **Fallback**: Monolithic app.js as backup if modular system fails
+
+### 🧪 **Testing & Development**
+- **Console Functions**: `testCards()`, `testCheat()`, `window.app` for debugging
+- **Modular Loading**: Sequential module loading with error handling
+- **Performance**: Small, focused files instead of 5000+ line monolith
+- **Maintainability**: Easy to find and modify specific functionality

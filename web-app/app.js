@@ -247,7 +247,7 @@ class SenScript {
         
         // SenScript ready!
         
-        // Show initial guidance in transcript window
+        // Show initial guidance in transcript window (async, no await needed)
         this.showInitialGuidance();
         
         // Make test functions available globally for console access  
@@ -4596,8 +4596,8 @@ class SenScript {
     }
     
     setupAudioSourceToggle() {
-        console.log('[Toggle] 🔧 Setting up audio source toggle...');
-        console.log('[Toggle] this.els.audioSourceSwitch:', this.els.audioSourceSwitch);
+        // Use the clean external module to avoid syntax issues
+        this.audioToggle = new AudioSourceToggle(this);
         
         if (!this.els.audioSourceSwitch) {
             console.error('[Toggle] ❌ audioSourceSwitch element not found!');
@@ -4773,28 +4773,64 @@ class SenScript {
                                 `;
                             }
                         } else {
-                            // DON'T request microphone permission on toggle - wait for Start button
-                            console.log('[UI] Microphone selected - permission will be requested when Start is clicked');
+                            // REQUEST microphone permission immediately for better UX
+                            console.log('[UI] Microphone selected - requesting permission immediately');
                             
                             if (this.els.transcript) {
                                 this.els.transcript.innerHTML = `
                                     <div class="transcript-rows">
                                         <div class="transcript-row current">
-                                            🎤 Microphone Mode
+                                            🎤 Setting up Microphone...
                                         </div>
                                         <div class="transcript-row previous">
-                                            Click "Start" to request microphone access
+                                            Requesting microphone access...
                                         </div>
                                     </div>
                                 `;
                             }
+                            
+                            // Request microphone permission immediately
+                            try {
+                                const stream = await navigator.mediaDevices.getUserMedia({ 
+                                    audio: { 
+                                        echoCancellation: false, 
+                                        noiseSuppression: false 
+                                    } 
+                                });
+                                
+                                console.log('[UI] Microphone permission granted');
+                                this.microphoneStream = stream;
+                                await this.connectAudioSource(stream);
+                                
+                                if (this.els.transcript) {
+                                    this.els.transcript.innerHTML = `
+                                        <div class="transcript-rows">
+                                            <div class="transcript-row current">
+                                                🎤 Microphone Ready
+                                            </div>
+                                            <div class="transcript-row previous">
+                                                Audio levels active - Click "Start" to transcribe
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            } catch (error) {
+                                console.error('[UI] Microphone permission denied:', error);
+                                if (this.els.transcript) {
+                                    this.els.transcript.innerHTML = `
+                                        <div class="transcript-rows">
+                                            <div class="transcript-row current">
+                                                ❌ Microphone Access Denied
+                                            </div>
+                                            <div class="transcript-row previous">
+                                                Please allow microphone access in browser
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            }
                         }
-                    }
-                } catch (error) {
-                    console.error('[UI] Error in toggle handler:', error);
-                    // Make sure UI still updates even on error
-                    this.updateToggleUI();
-                }
+                    } // Close if (newSource !== this.currentAudioSource)
             });
         });
         
@@ -4901,7 +4937,7 @@ class SenScript {
         }
     }
     
-    showInitialGuidance() {
+    async showInitialGuidance() {
         // Show guidance based on selected audio source
         if (this.els.transcript) {
             if (this.currentAudioSource === 'system') {
@@ -4919,19 +4955,59 @@ class SenScript {
                     </div>
                 `;
             } else {
+                // For microphone mode, request permission immediately
                 this.els.transcript.innerHTML = `
                     <div class="transcript-rows">
                         <div class="transcript-row current">
-                            🎤 Welcome to SenScript
+                            🎤 Setting up microphone...
                         </div>
                         <div class="transcript-row previous">
-                            Click "Start" to begin listening
-                        </div>
-                        <div class="transcript-row old">
-                            Flashcards generate from your speech
+                            Requesting microphone access
                         </div>
                     </div>
                 `;
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: { 
+                            echoCancellation: false, 
+                            noiseSuppression: false 
+                        } 
+                    });
+                    
+                    console.log('[Init] Microphone permission granted on page load');
+                    this.microphoneStream = stream;
+                    await this.connectAudioSource(stream);
+                    
+                    this.els.transcript.innerHTML = `
+                        <div class="transcript-rows">
+                            <div class="transcript-row current">
+                                🎤 Microphone Ready
+                            </div>
+                            <div class="transcript-row previous">
+                                Start button ready - Click to transcribe
+                            </div>
+                            <div class="transcript-row old">
+                                Flashcards generate from your speech
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('[Init] Microphone permission denied on page load:', error);
+                    this.els.transcript.innerHTML = `
+                        <div class="transcript-rows">
+                            <div class="transcript-row current">
+                                ❌ Microphone Access Required
+                            </div>
+                            <div class="transcript-row previous">
+                                Please allow microphone access
+                            </div>
+                            <div class="transcript-row old">
+                                Reload page and grant permission
+                            </div>
+                        </div>
+                    `;
+                }
             }
         }
     }

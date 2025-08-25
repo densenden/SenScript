@@ -4798,27 +4798,26 @@
                     return;
                 }
                 
-                // Load app.js only once
-                if (document.querySelector('script[src="app.js"]')) {
-                    console.log('[App] app.js already loading/loaded');
+                // Load modular SenScript using the new loader
+                if (document.querySelector('script[src="js/loader.js"]')) {
+                    console.log('[App] Modular loader already loading/loaded');
                     return;
                 }
                 
                 const script = document.createElement('script');
-                script.src = 'app.js';
+                script.src = 'js/loader.js';
                 script.onload = () => {
-                    console.log('[App] app.js loaded');
-                    initializeSenScript();
+                    console.log('[App] Modular SenScript loaded successfully');
                 };
                 script.onerror = (e) => {
-                    console.error('[App] Failed to load app.js:', e);
+                    console.error('[App] Failed to load modular SenScript:', e);
+                    // Fallback to monolithic app.js if available
+                    console.log('[App] Falling back to app.js...');
+                    const fallbackScript = document.createElement('script');
+                    fallbackScript.src = 'app.js';
+                    document.head.appendChild(fallbackScript);
                 };
                 document.head.appendChild(script);
-                
-                // Also load test-transcripts.js
-                const testScript = document.createElement('script');
-                testScript.src = 'test-transcripts.js';
-                document.head.appendChild(testScript);
             }
             
             function initializeSenScript() {
