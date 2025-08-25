@@ -162,13 +162,10 @@ class CardEngine {
             
             console.log(`🃏 [CardEngine] ${card.cardType === 'cheat' ? 'CheatCard' : 'FlashCard'} created successfully:`, card);
             
-            // Add to cards array
-            this.app.cards.push(card);
+            // === SOPHISTICATED CARD BIRTH PROCESS (from legacy) ===
+            await this.createUnifiedCardWithBirthAnimation(card);
             
-            // Update UI
-            this.updateCardsDisplay();
-            
-            console.log(`✅ [CardEngine] Card added to collection (${this.app.cards.length} total)`);
+            console.log(`✅ [CardEngine] Card birth process completed (${this.app.cards.length} total)`);
             
         } catch (error) {
             console.error('💥 [CardEngine] Failed to generate card:', error);
@@ -179,6 +176,140 @@ class CardEngine {
                 interviewMode: this.interviewMode
             });
         }
+    }
+    
+    /**
+     * SOPHISTICATED CARD BIRTH PROCESS - Restored from legacy app.js
+     * 1. Create 12px container with ready content
+     * 2. Card pops to final height (only top card animates)
+     * 3. Text fades in when fully open
+     * 4. Scroll to top
+     */
+    async createUnifiedCardWithBirthAnimation(cardData) {
+        console.log(`🎯 [UNIFIED-BIRTH] Creating card for: ${cardData.category}`);
+        
+        try {
+            // 1. Create empty 12px container
+            const cardElement = this.createEmptyContainer(cardData.cardType);
+            
+            // 2. Add empty 12px container to DOM (prepend for newest on top)
+            this.app.els.cardsContainer.prepend(cardElement);
+            this.app.cards.unshift(cardData); // Add to beginning of array
+            
+            // 3. Auto-scroll to top to see the birth animation
+            this.app.els.cardsContainer.scrollTop = 0;
+            console.log('👶 [PIPELINE] Born as 12px empty container');
+            
+            // 4. Breeding animation (slight shake/preparation)
+            setTimeout(() => {
+                console.log('🥚 [PIPELINE] Breeding animation - preparing to grow');
+                cardElement.classList.add('card-breeding');
+                
+                // 5. Start height expansion after breeding
+                setTimeout(() => {
+                    console.log('🎬 [PIPELINE] Growing to full height');
+                    cardElement.classList.remove('card-birth', 'card-breeding');
+                    cardElement.classList.add('card-open');
+                    
+                    // 6. Add content and fade in after growth completes
+                    setTimeout(() => {
+                        console.log('📝 [PIPELINE] Adding content and fading in');
+                        cardElement.innerHTML = this.generateCardHTML(cardData);
+                        cardElement.classList.add('card-ready');
+                        this.setupCardClickHandler(cardElement, cardData);
+                    }, 400); // After height animation
+                    
+                }, 200); // Breeding duration
+                
+            }, 500); // Time to see empty 12px container
+            
+            // Update card count and enable export
+            this.updateCardCount();
+            if (this.app.els.exportBtn) {
+                this.app.els.exportBtn.disabled = false;
+            }
+            
+            console.log('✅ [UNIFIED-BIRTH] Card birth animation started:', cardData.category);
+            
+        } catch (error) {
+            console.error('❌ [UNIFIED-BIRTH] Failed:', error);
+        }
+    }
+    
+    /**
+     * Create empty card container for birth animation
+     */
+    createEmptyContainer(cardType) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card card-birth'; // Start in birth state (12px)
+        cardEl.setAttribute('data-card-type', cardType || 'flash');
+        
+        // Empty container - no content yet
+        cardEl.innerHTML = '';
+        
+        return cardEl;
+    }
+    
+    /**
+     * Generate HTML content for fully grown card (restored from legacy)
+     * Includes sophisticated header with category, source indicator, confidence, language flag, and timestamp
+     */
+    generateCardHTML(cardData) {
+        // Add confidence indicator, source, provider, and language flag
+        const sourceCircle = cardData.source === 'AI' ? 
+            '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
+            '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
+        
+        const confidenceText = (cardData.confidence && cardData.confidence !== 'undefined' && !isNaN(cardData.confidence)) ? 
+            ` ${Math.round(cardData.confidence)}%` : '';
+        
+        // Format timestamp for display
+        const timeDisplay = cardData.time || new Date().toLocaleTimeString();
+        
+        const headerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">
+                <div style="display: flex; align-items: center;">
+                    <span>${cardData.category || 'CONCEPT'}</span>
+                    ${sourceCircle}
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    ${confidenceText ? `<span>${confidenceText}</span>` : ''}
+                    <span>${cardData.flag || '🌐'}</span>
+                    <span style="opacity: 0.7;">${timeDisplay}</span>
+                </div>
+            </div>
+        `;
+        
+        const frontHTML = `
+            <div class="card-front">
+                ${headerHTML}
+                <div style="font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, 0.95); line-height: 1.4; margin-bottom: 12px;">${cardData.front}</div>
+            </div>
+        `;
+        
+        const backHTML = `
+            <div class="card-back">
+                ${headerHTML}
+                <div style="font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.85); margin-bottom: 16px;">
+                    ${cardData.back.replace(/\n/g, '<br>')}
+                </div>
+                <div style="font-size: 12px; opacity: 0.7; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 8px;">
+                    ${cardData.provider ? `Provider: ${cardData.provider} • ` : ''}Source: ${cardData.source || 'AI'}${cardData.originalText ? ` • "${cardData.originalText.substring(0, 30)}..."` : ''}
+                </div>
+            </div>
+        `;
+        
+        return `<div class="card-inner">${frontHTML}${backHTML}</div>`;
+    }
+    
+    /**
+     * Set up click handler for card flipping
+     */
+    setupCardClickHandler(cardElement, cardData) {
+        cardElement.addEventListener('click', () => {
+            cardElement.classList.toggle('flipped');
+            console.log(`🔄 Card ${cardData.id} flipped`);
+        });
     }
     
     extractCheatCategory(text) {
@@ -227,27 +358,8 @@ class CardEngine {
         // Update card count with proper categorization
         this.updateCardCount();
         
-        // Render cards with proper styling
-        const cardsHtml = this.app.cards.map(card => `
-            <div class="card" 
-                 data-id="${card.id}" 
-                 data-card-type="${card.cardType || 'flash'}"
-                 data-category="${card.category || 'CONCEPT'}"
-                 onclick="this.classList.toggle('flipped')">
-                <div class="card-inner">
-                    <div class="card-front">
-                        ${card.category ? `<div class="card-category">${card.category}</div>` : ''}
-                        <div class="card-content">${card.front}</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="card-content">${card.back}</div>
-                        ${card.confidence ? `<div class="card-confidence">Confidence: ${Math.round(card.confidence * 100)}%</div>` : ''}
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        
-        this.app.els.cardsContainer.innerHTML = cardsHtml;
+        // Simple display update without animation (birth animation is handled separately)
+        console.log(`🎨 [CardEngine] Updating display with ${this.app.cards.length} cards`);
     }
     
     updateCardCount() {

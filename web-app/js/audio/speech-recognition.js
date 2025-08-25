@@ -328,10 +328,19 @@ class SpeechRecognitionManager {
     }
     
     updateTranscriptDisplay() {
-        if (!this.app.els.transcript) return;
+        console.log('[Speech] === UPDATING TRANSCRIPT DISPLAY ===');
+        console.log('[Speech] Transcript element:', this.app.els.transcript);
+        console.log('[Speech] Final transcript:', `"${this.app.transcript}"`);
+        console.log('[Speech] Current interim:', `"${this.app.currentInterim}"`);
+        
+        if (!this.app.els.transcript) {
+            console.error('[Speech] ❌ Transcript element not found!');
+            return;
+        }
         
         // Combine final transcript with interim results
         const displayText = this.app.transcript + this.app.currentInterim;
+        console.log('[Speech] Combined display text:', `"${displayText}"`);
         
         if (displayText.trim()) {
             this.app.els.transcript.innerHTML = `
@@ -339,6 +348,9 @@ class SpeechRecognitionManager {
                     <div class="transcript-row current">${displayText}</div>
                 </div>
             `;
+            console.log('[Speech] ✅ Transcript display updated with content');
+        } else {
+            console.log('[Speech] ⚠️ No content to display - displayText is empty');
         }
     }
 }
