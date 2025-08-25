@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { createSubscription, updateUser, getUserById } from '@/lib/db/database';
-import { db } from '@/lib/db/supabase';
+import { supabase } from '@/lib/db/supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
@@ -49,8 +49,8 @@ export async function POST(req: NextRequest) {
               planName: planName,
               monthlyMinutes: monthlyMinutes,
               priceAmount: price.unit_amount || 0,
-              currentPeriodStart: new Date(subscription.current_period_start * 1000),
-              currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+              currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+              currentPeriodEnd: new Date((subscription as any).current_period_end * 1000)
             });
             
             console.log(`Subscription created for user: ${userId}`, {
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         
         try {
           // Find existing subscription by Stripe subscription ID
-          const { data: existingSubscription, error } = await db.supabase
+          const { data: existingSubscription, error } = await supabase
             .from('subscriptions')
             .select('*')
             .eq('stripe_subscription_id', subscription.id)
@@ -84,20 +84,27 @@ export async function POST(req: NextRequest) {
             const product = await stripe.products.retrieve(price.product as string);
             
             // Update subscription in database
-            await db.updateSubscription(existingSubscription.id, {
+            const { error: updateError } = await supabase
+              .from('subscriptions')
+              .update({
               status: subscription.status as any,
               price_id: price.id,
               plan_name: product.name || existingSubscription.plan_name,
               monthly_minutes: product.metadata?.monthly_minutes ? 
                 parseInt(product.metadata.monthly_minutes) : existingSubscription.monthly_minutes,
               price_amount: price.unit_amount || 0,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-              trial_end: subscription.trial_end ? 
-                new Date(subscription.trial_end * 1000).toISOString() : undefined,
-              canceled_at: subscription.canceled_at ? 
-                new Date(subscription.canceled_at * 1000).toISOString() : undefined
-            });
+              current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+              current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+              trial_end: (subscription as any).trial_end ? 
+                new Date((subscription as any).trial_end * 1000).toISOString() : undefined,
+              canceled_at: (subscription as any).canceled_at ? 
+                new Date((subscription as any).canceled_at * 1000).toISOString() : undefined
+              })
+              .eq('id', existingSubscription.id);
+            
+            if (updateError) {
+              throw new Error(`Failed to update subscription: ${updateError.message}`);
+            }
             
             console.log(`Subscription updated for customer: ${customerId}`, {
               subscriptionId: subscription.id,
@@ -120,7 +127,7 @@ export async function POST(req: NextRequest) {
         
         try {
           // Find existing subscription by Stripe subscription ID
-          const { data: existingSubscription, error } = await db.supabase
+          const { data: existingSubscription, error } = await supabase
             .from('subscriptions')
             .select('*')
             .eq('stripe_subscription_id', subscription.id)
@@ -128,7 +135,9 @@ export async function POST(req: NextRequest) {
             
           if (existingSubscription && !error) {
             // Update subscription status to canceled
-            await db.updateSubscription(existingSubscription.id, {
+            const { error: updateError } = await supabase
+              .from('subscriptions')
+              .update({
               status: 'canceled',
               canceled_at: new Date().toISOString()
             });

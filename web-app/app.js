@@ -38,6 +38,10 @@ class SenScript {
         this.audioContext = null;
         this.audioAnalyser = null;
         this.audioSource = null;
+        
+        // Cached audio streams to prevent repeated permission requests
+        this.microphoneStream = null;
+        this.systemStream = null;
         this.silenceTimer = null;
         this.audioLevel = 0;
         this.processingCard = false;
@@ -394,6 +398,7 @@ class SenScript {
         // ENHANCED: Add onspeechstart and onspeechend for debugging
         this.recognition.onspeechstart = () => {
             // Audio input detected
+            console.log(`[Speech] 🎤 Speech detected! (source: ${this.currentAudioSource})`);
             
             // Set a timer to check if we get results within 3 seconds
             setTimeout(() => {
@@ -403,14 +408,16 @@ class SenScript {
                     shouldBeListening: this.shouldBeListening,
                     recognitionLang: this.recognition?.lang,
                     pendingSentence: this.pendingSentence,
-                    transcript: this.transcript.length
+                    transcript: this.transcript.length,
+                    audioSource: this.currentAudioSource
                 };
+                
+                console.log('[Speech] State after 3s:', stateCheck);
                 
                 // If no results after 3 seconds, try switching language
                 if (this.pendingSentence === '' && this.transcript.length === 0) {
-                    // No results in German, trying English
+                    console.log('[Speech] No results yet, switching language from', this.recognition.lang, 'to en-US');
                     this.recognition.lang = 'en-US';
-                    // Switched to English for better recognition
                 }
             }, 3000);
         };
@@ -432,24 +439,32 @@ class SenScript {
         };
         
         this.recognition.onerror = (event) => {
-            console.error(`Speech recognition error: ${event.error}`);
+            console.warn(`[Speech] Recognition error: ${event.error}`);
             
             // Handle critical errors
             if (event.error === 'not-allowed') {
                 this.shouldBeListening = false;
                 this.setStatus('speech', 'red');
                 this.setStatus('mic', 'red');
-                console.error('Microphone permission denied');
+                console.error('[Speech] ❌ Microphone permission denied');
                 return;
             }
             
             if (event.error === 'no-speech') {
-                // No speech detected within timeout
+                // No speech detected - this is normal, just continue
+                console.log('[Speech] 🔇 No speech detected (normal during silence)');
+                return; // Don't recreate for no-speech
             }
             
-            // For other errors, let onend handle restart
-            if (event.error !== 'no-speech') {
-                // Error - will recreate recognition
+            if (event.error === 'aborted') {
+                // Aborted - usually from calling start() while already started
+                console.log('[Speech] ⚠️ Recognition aborted (likely duplicate start)');
+                return; // Don't recreate for abort
+            }
+            
+            // For network or audio-capture errors, recreate
+            if (event.error === 'network' || event.error === 'audio-capture') {
+                console.error(`[Speech] ❌ Critical error: ${event.error} - will recreate`);
                 this.needsRecreation = true;
             }
         };
@@ -457,18 +472,33 @@ class SenScript {
         this.recognition.onend = () => {
             this.isListening = false;
             this.updateListeningUI();
-            // Recognition stopped
+            console.log('[Speech] Recognition ended - audio source:', this.currentAudioSource);
             
             // Only restart if we should be listening
             if (this.shouldBeListening) {
                 setTimeout(() => {
                     if (this.shouldBeListening && !this.isListening) {
+                        // For system audio, be more conservative with restarts
+                        if (this.currentAudioSource === 'system' && this.restartAttempts > 2) {
+                            console.log('[Speech] System audio restart limit reached - stopping auto-restart');
+                            this.restartAttempts = 0;
+                            return;
+                        }
+                        
                         // Recreate recognition if needed (handles corruption)
-                        if (this.needsRecreation || this.restartAttempts > 5) {
-                            console.log('🔄 [RECREATE] Creating fresh recognition object...');
+                        if (this.needsRecreation || this.restartAttempts > 10) {
+                            console.log('[Speech] 🔄 Recreating recognition object...');
                             this.needsRecreation = false;
                             this.restartAttempts = 0;
                             this.setupSpeechRecognition();
+                            if (this.recognition && this.shouldBeListening) {
+                                try {
+                                    this.recognition.start();
+                                    console.log('[Speech] ✅ Restarted after recreation');
+                                } catch (e) {
+                                    console.error('[Speech] Failed to restart after recreation:', e);
+                                }
+                            }
                             return;
                         }
                         
@@ -476,7 +506,7 @@ class SenScript {
                         try {
                             this.recognition.start();
                             this.restartAttempts++;
-                            console.log(`🔄 [RESTART] Attempt ${this.restartAttempts}`);
+                            console.log(`[Speech] 🔄 Restart attempt ${this.restartAttempts} for ${this.currentAudioSource}`);
                         } catch (error) {
                             console.error(`❌ [RESTART-FAIL] ${error.name} - will recreate`);
                             this.needsRecreation = true;
@@ -535,6 +565,15 @@ class SenScript {
     handleSpeechResultOptimized(event) {
         // Processing speech results
         
+        // Debug for system audio
+        if (this.currentAudioSource === 'system') {
+            console.log('[Speech] Tab audio event:', {
+                results: event.results.length,
+                resultIndex: event.resultIndex,
+                audioSource: this.currentAudioSource
+            });
+        }
+        
         let final = '';
         let interim = '';
         
@@ -543,7 +582,10 @@ class SenScript {
             const result = event.results[i];
             const text = result[0].transcript;
             
-            // Result processing
+            // Debug tab audio transcription
+            if (this.currentAudioSource === 'system') {
+                console.log(`[Speech] Tab result [${i}]: "${text}" (final: ${result.isFinal})`);
+            }
             
             if (result.isFinal) {
                 final += text + ' ';
@@ -552,10 +594,9 @@ class SenScript {
             }
         }
         
-        // Processing final and interim results
-        
-        if (final.trim() || interim.trim()) {
-            // Processing text
+        // Show what we got
+        if ((final.trim() || interim.trim()) && this.currentAudioSource === 'system') {
+            console.log('[Speech] Tab audio transcript:', { final: final.trim(), interim: interim.trim() });
         }
         
         // LIVE LANGUAGE DETECTION: Detect language from speech results
@@ -2304,18 +2345,29 @@ class SenScript {
             if (audioTracks.length > 0) {
                 console.log('[Audio] 🎧 Tab audio track:', audioTracks[0].label);
                 
+                // Reset restart attempts for clean start
+                this.restartAttempts = 0;
+                
                 // Set up fresh recognition for tab audio
                 if (!this.recognition) {
                     this.setupSpeechRecognition();
                 }
                 
-                // Start Web Speech API - it might work with tab audio in Chrome
+                // Check if already listening to prevent duplicate starts
+                if (this.isListening) {
+                    console.log('[Audio] Recognition already active, not starting again');
+                    this.shouldBeListening = true;
+                    return;
+                }
+                
+                // Start Web Speech API - it DOES work with tab audio in Chrome!
                 if (this.recognition && !this.isListening) {
                     try {
                         this.recognition.start();
                         this.isListening = true;
                         this.shouldBeListening = true;
                         console.log('[Audio] ✅ Speech recognition started for tab audio');
+                        console.log('[Audio] 🎯 Tab audio CAN be transcribed by Web Speech API!');
                         
                         // Update transcript display
                         if (this.els.transcript) {
@@ -2324,14 +2376,18 @@ class SenScript {
                                     <div class="transcript-row current">
                                         🔊 Tab Audio Active - Listening...
                                     </div>
+                                    <div class="transcript-row previous">
+                                        Speak in the tab to see transcript
+                                    </div>
                                 </div>
                             `;
                         }
                     } catch (error) {
                         if (error.name === 'InvalidStateError') {
-                            // Recognition already started
+                            // Recognition already started - this is OK
                             this.isListening = true;
-                            console.log('[Audio] Recognition already running');
+                            this.shouldBeListening = true;
+                            console.log('[Audio] Recognition already running (OK)');
                         } else {
                             console.error('[Audio] Failed to start recognition:', error);
                         }
@@ -4011,15 +4067,10 @@ class SenScript {
     }
     
     async startMicrophone() {
-        console.log('[Audio] 🎤 Starting microphone...');
+        console.log('[Audio] 🎤 Starting microphone transcription...');
         
-        // Clear any system stream when switching to microphone
-        if (this.systemStream) {
-            try {
-                this.systemStream.getTracks().forEach(track => track.stop());
-            } catch (e) {}
-            this.systemStream = null;
-        }
+        // DON'T clear streams - keep them for reuse
+        // This prevents repeated permission requests
         
         // Show initialization state
         this.setStatus('mic', 'yellow');
@@ -4052,15 +4103,22 @@ class SenScript {
                 console.log('[Audio] Audio context resumed');
             }
             
-            // Request microphone permission FIRST - this ensures permissions are granted
-            console.log('[Audio] 🎤 Requesting microphone access...');
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { 
-                    echoCancellation: false, 
-                    noiseSuppression: false,
-                    autoGainControl: false 
-                } 
-            });
+            // Use cached stream or request new one
+            let stream = this.microphoneStream;
+            
+            if (!stream || !stream.active) {
+                console.log('[Audio] 🎤 Requesting microphone access...');
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { 
+                        echoCancellation: false, 
+                        noiseSuppression: false,
+                        autoGainControl: false 
+                    } 
+                });
+                this.microphoneStream = stream; // Cache for reuse
+            } else {
+                console.log('[Audio] 🎤 Reusing cached microphone stream');
+            }
             console.log('[Audio] ✅ Microphone permission granted');
             console.log('[Audio] 📊 Stream info:', {
                 active: stream.active,
@@ -4128,6 +4186,12 @@ class SenScript {
             }
             
             try {
+                // Check if already listening to avoid duplicate starts
+                if (this.isListening) {
+                    console.log('[Audio] ⚠️ Recognition already listening, skipping start()');
+                    return;
+                }
+                
                 console.log('[Audio] 🗣️ Starting fresh speech recognition...');
                 console.log('[Audio] 📊 About to call recognition.start() with state:', {
                     recognitionExists: !!this.recognition,
@@ -4142,16 +4206,8 @@ class SenScript {
                 // Set a timeout to check if it actually started
                 setTimeout(() => {
                     if (!this.isListening && this.shouldBeListening) {
-                        console.error('[Audio] ⚠️ Recognition failed to start after 2s, retrying...');
-                        this.setupSpeechRecognition();
-                        if (this.recognition) {
-                            try {
-                                this.recognition.start();
-                                console.log('[Audio] 🔄 Speech recognition restarted after timeout');
-                            } catch (e) {
-                                console.error('[Audio] Retry also failed:', e);
-                            }
-                        }
+                        console.log('[Audio] ⚠️ Recognition not listening after 2s, will restart via onend handler');
+                        // The onend handler will automatically restart if shouldBeListening is true
                     }
                 }, 2000);
                 
@@ -4215,7 +4271,7 @@ class SenScript {
                 console.log('[Audio] Audio context resumed');
             }
             
-            // Check if we already have a system stream from the toggle
+            // Use cached system stream if available
             let stream = this.systemStream;
             
             if (!stream || !stream.active) {
@@ -4230,10 +4286,10 @@ class SenScript {
                                 🖥️ Opening screen share dialog...
                             </div>
                             <div class="transcript-row previous">
-                                1️⃣ Select a browser tab
+                                1️⃣ Select a browser tab with audio
                             </div>
                             <div class="transcript-row old">
-                                2️⃣ Check "Share tab audio" ☑️
+                                2️⃣ ✅ Check "Share tab audio"
                             </div>
                         </div>
                     `;
@@ -4540,8 +4596,12 @@ class SenScript {
     }
     
     setupAudioSourceToggle() {
+        console.log('[Toggle] 🔧 Setting up audio source toggle...');
+        console.log('[Toggle] this.els.audioSourceSwitch:', this.els.audioSourceSwitch);
+        
         if (!this.els.audioSourceSwitch) {
-            console.error('[Toggle] audioSourceSwitch element not found!');
+            console.error('[Toggle] ❌ audioSourceSwitch element not found!');
+            console.log('[Toggle] Available elements:', Object.keys(this.els));
             return;
         }
         
@@ -4549,7 +4609,8 @@ class SenScript {
         
         console.log('[Toggle] Found', toggleOptions.length, 'toggle options');
         if (toggleOptions.length === 0) {
-            console.error('[Toggle] No toggle options found! DOM structure might be incorrect.');
+            console.error('[Toggle] ❌ No toggle options found! DOM structure might be incorrect.');
+            console.log('[Toggle] HTML content:', this.els.audioSourceSwitch.innerHTML);
             return;
         }
         
@@ -4557,53 +4618,77 @@ class SenScript {
             console.log(`[Toggle] Option ${index}: data-value="${option.dataset.value}", text="${option.textContent.trim()}"`);
         });
         
-        toggleOptions.forEach(option => {
-            option.onclick = async () => {
-                const newSource = option.dataset.value;
-                console.log('[UI] Audio source toggle clicked:', newSource);
-                
-                if (newSource !== this.currentAudioSource) {
-                    // Stop any current listening first
+        toggleOptions.forEach((option, index) => {
+            console.log(`[Toggle] 📌 Attaching event listener to option ${index}:`, option.dataset.value);
+            
+            // Add both onclick and click event listener for better compatibility
+            option.onclick = null; // Clear any existing onclick
+            
+            // Add a simple test click first
+            option.addEventListener('click', async (event) => {
+                console.log('[Toggle] 🎯 CLICK DETECTED!', option.dataset.value);
+                try {
+                    const newSource = option.dataset.value;
+                    console.log('[UI] ✅ Audio source toggle clicked:', newSource);
+                    console.log('[UI] Current source was:', this.currentAudioSource);
+                    
+                    // Add visual feedback immediately
+                    console.log('[UI] Processing toggle click...');
+                    
+                    if (newSource !== this.currentAudioSource) {
+                    // Only stop transcription, not monitoring
                     if (this.shouldBeListening || this.isListening) {
                         this.stopListening();
                     }
                     
-                    // Clean up streams when switching away
-                    if (this.currentAudioSource === 'system' && this.systemStream) {
-                        try {
-                            this.systemStream.getTracks().forEach(track => track.stop());
-                        } catch (e) {}
-                        this.systemStream = null;
-                    }
+                    // DON'T clean up streams - keep them for reuse
+                    // This prevents repeated permission requests
+                    console.log('[UI] Keeping existing streams for reuse');
                     
                     // Update UI immediately
                     this.currentAudioSource = newSource;
                     this.updateToggleUI();
                     this.showLevelDots();
                     
-                    // If switching to device output, immediately trigger permission
+                    // If switching to device output, check if we need permission
                     if (newSource === 'system') {
-                        // Show guidance in transcript window
-                        if (this.els.transcript) {
-                            this.els.transcript.innerHTML = `
-                                <div class="transcript-rows">
-                                    <div class="transcript-row current">
-                                        🖥️ Setting up Device Output...
+                        // Check if we already have a system stream
+                        if (this.systemStream && this.systemStream.active) {
+                            console.log('[UI] Reusing existing system audio stream');
+                            // Just connect to visualizer for audio levels
+                            await this.connectAudioSource(this.systemStream);
+                            
+                            if (this.els.transcript) {
+                                this.els.transcript.innerHTML = `
+                                    <div class="transcript-rows">
+                                        <div class="transcript-row current">
+                                            🔊 Device Output Ready
+                                        </div>
+                                        <div class="transcript-row previous">
+                                            Audio levels active - Click "Start" to transcribe
+                                        </div>
                                     </div>
-                                    <div class="transcript-row previous">
-                                        1️⃣ Click "Start" to open screen share
+                                `;
+                            }
+                        } else {
+                            // Need to request permission first time
+                            if (this.els.transcript) {
+                                this.els.transcript.innerHTML = `
+                                    <div class="transcript-rows">
+                                        <div class="transcript-row current">
+                                            🖥️ Setting up Device Output...
+                                        </div>
+                                        <div class="transcript-row previous">
+                                            Requesting screen share permission...
+                                        </div>
                                     </div>
-                                    <div class="transcript-row old">
-                                        2️⃣ Select a tab and check "Share tab audio"
-                                    </div>
-                                </div>
-                            `;
-                        }
-                        
-                        // Auto-start to trigger permission immediately
-                        console.log('[UI] Auto-triggering tab audio permission...');
-                        try {
-                            const stream = await navigator.mediaDevices.getDisplayMedia({
+                                `;
+                            }
+                            
+                            console.log('[UI] Requesting system audio permission...');
+                            try {
+                                console.log('[UI] About to call getDisplayMedia...');
+                                const stream = await navigator.mediaDevices.getDisplayMedia({
                                 audio: {
                                     echoCancellation: false,
                                     noiseSuppression: false,
@@ -4665,26 +4750,52 @@ class SenScript {
                                 `;
                             }
                         }
-                    } else {
-                        // Switching to microphone - show appropriate message
-                        if (this.els.transcript) {
-                            this.els.transcript.innerHTML = `
-                                <div class="transcript-rows">
-                                    <div class="transcript-row current">
-                                        🎤 Microphone Mode Active
+                    }
+                    
+                    if (newSource === 'microphone') {
+                        // Switching to microphone
+                        // Check if we already have a microphone stream
+                        if (this.microphoneStream && this.microphoneStream.active) {
+                            console.log('[UI] Reusing existing microphone stream');
+                            // Just connect to visualizer for audio levels
+                            await this.connectAudioSource(this.microphoneStream);
+                            
+                            if (this.els.transcript) {
+                                this.els.transcript.innerHTML = `
+                                    <div class="transcript-rows">
+                                        <div class="transcript-row current">
+                                            🎤 Microphone Ready
+                                        </div>
+                                        <div class="transcript-row previous">
+                                            Audio levels active - Click "Start" to transcribe
+                                        </div>
                                     </div>
-                                    <div class="transcript-row previous">
-                                        Click "Start" to begin listening
+                                `;
+                            }
+                        } else {
+                            // DON'T request microphone permission on toggle - wait for Start button
+                            console.log('[UI] Microphone selected - permission will be requested when Start is clicked');
+                            
+                            if (this.els.transcript) {
+                                this.els.transcript.innerHTML = `
+                                    <div class="transcript-rows">
+                                        <div class="transcript-row current">
+                                            🎤 Microphone Mode
+                                        </div>
+                                        <div class="transcript-row previous">
+                                            Click "Start" to request microphone access
+                                        </div>
                                     </div>
-                                    <div class="transcript-row old">
-                                        Speak clearly into your microphone
-                                    </div>
-                                </div>
-                            `;
+                                `;
+                            }
                         }
                     }
+                } catch (error) {
+                    console.error('[UI] Error in toggle handler:', error);
+                    // Make sure UI still updates even on error
+                    this.updateToggleUI();
                 }
-            };
+            });
         });
         
         console.log('[UI] Audio source toggle initialized');
