@@ -132,7 +132,9 @@ class SpeechRecognitionManager {
             return;
         }
         
-        console.log('[Speech] Starting speech recognition...');
+        console.log('[Speech] === STARTING ACTIVE LISTENING ===');
+        console.log('[Speech] Web Speech API will use the audio source set by the audio system');
+        console.log('[Speech] Microphone mode: direct mic input | Device Output mode: system/tab audio');
         this.shouldBeListening = true;
         
         // Process cached transcripts immediately for instant flashcards

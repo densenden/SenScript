@@ -198,11 +198,15 @@ class SenScript {
 // Export SenScript class to window
 window.SenScript = SenScript;
 
-// Initialize when DOM is ready
+// Initialize when DOM is ready (prevent multiple initialization)
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        window.senScript = new SenScript();
+        if (!window.senScript) {
+            window.senScript = new SenScript();
+        }
     });
 } else {
-    window.senScript = new SenScript();
+    if (!window.senScript) {
+        window.senScript = new SenScript();
+    }
 }
