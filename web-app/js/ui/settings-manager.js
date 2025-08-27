@@ -39,6 +39,14 @@ class SettingsManager {
                 deepseek: ''
             },
             
+            // Transcription settings
+            transcriptionMethod: 'whisper', // 'whisper' or 'webspeech'
+            whisperSettings: {
+                temperature: 0.0,
+                language: null, // Auto-detect
+                educationalFiltering: true
+            },
+            
             // Theme and UI
             theme: 'auto',
             
@@ -91,10 +99,20 @@ class SettingsManager {
     }
     
     applySettings() {
-        // Apply language setting
-        if (this.settings.language && this.app.speechRecognition) {
+        // Apply language setting to current system
+        if (this.settings.language) {
             this.app.currentLang = this.settings.language;
-            if (this.app.speechRecognition.recognition) {
+            
+            // Apply to Whisper client if available
+            if (this.app.whisperClient && this.settings.transcriptionMethod === 'whisper') {
+                this.app.whisperClient.setLanguage(
+                    this.settings.whisperSettings.language || 
+                    this.settings.language
+                );
+            }
+            
+            // Apply to Web Speech API if used as fallback
+            if (this.app.speechRecognition && this.app.speechRecognition.recognition) {
                 this.app.speechRecognition.recognition.lang = this.settings.language;
             }
         }

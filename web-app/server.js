@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const { z } = require('zod');
 const path = require('path');
+const fs = require('fs');
 
 // Load environment variables (works differently in serverless)
 try {
@@ -35,6 +37,14 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Configure multer for file uploads
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 25 * 1024 * 1024, // 25MB limit (Whisper API limit)
+    }
+});
 
 // Middleware
 app.use(cors());
@@ -263,6 +273,141 @@ app.post('/api/usage/daily', async (req, res) => {
     } catch (error) {
         console.error('Error saving daily usage:', error);
         res.status(500).json({ error: 'Failed to save daily usage' });
+    }
+});
+
+// === Whisper Transcription Endpoint ===
+
+// Transcribe audio using OpenAI Whisper API
+app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
+    try {
+        console.log('[API] Whisper transcription request received');
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'No audio file provided' });
+        }
+        
+        console.log('[API] Audio file size:', (req.file.size / 1024).toFixed(1), 'KB');
+        console.log('[API] Audio file type:', req.file.mimetype);
+        
+        // Extract parameters
+        const {
+            model = 'whisper-1',
+            response_format = 'verbose_json',
+            temperature = '0.0',
+            language = null,
+            prompt = '',
+            metadata = '{}'
+        } = req.body;
+        
+        let parsedMetadata = {};
+        try {
+            parsedMetadata = JSON.parse(metadata);
+        } catch (e) {
+            console.warn('[API] Failed to parse metadata:', e);
+        }
+        
+        console.log('[API] Whisper parameters:', {
+            model,
+            response_format,
+            temperature: parseFloat(temperature),
+            language: language || 'auto-detect',
+            hasPrompt: !!prompt,
+            duration: parsedMetadata.duration || 'unknown'
+        });
+        
+        // Check for OpenAI API key
+        if (!process.env.OPENAI_API_KEY) {
+            console.error('[API] OpenAI API key not configured');
+            return res.status(500).json({ 
+                error: 'Whisper API not configured. Please add OPENAI_API_KEY to environment variables.' 
+            });
+        }
+        
+        // Prepare form data for OpenAI Whisper API
+        const FormData = require('form-data');
+        const formData = new FormData();
+        
+        // Add audio file
+        formData.append('file', req.file.buffer, {
+            filename: 'audio.webm',
+            contentType: req.file.mimetype
+        });
+        
+        // Add Whisper parameters
+        formData.append('model', model);
+        formData.append('response_format', response_format);
+        formData.append('temperature', parseFloat(temperature));
+        
+        if (language && language !== 'null') {
+            formData.append('language', language);
+        }
+        
+        if (prompt) {
+            formData.append('prompt', prompt);
+        }
+        
+        console.log('[API] Sending request to OpenAI Whisper API...');
+        
+        // Make request to OpenAI Whisper API
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                ...formData.getHeaders()
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[API] OpenAI Whisper API error:', response.status, errorText);
+            
+            let errorMessage = 'Whisper API request failed';
+            if (response.status === 413) {
+                errorMessage = 'Audio file too large. Maximum size is 25MB.';
+            } else if (response.status === 429) {
+                errorMessage = 'Rate limit exceeded. Please wait and try again.';
+            } else if (response.status === 401) {
+                errorMessage = 'Invalid OpenAI API key.';
+            }
+            
+            return res.status(response.status).json({ error: errorMessage });
+        }
+        
+        const whisperResult = await response.json();
+        console.log('[API] Whisper transcription successful');
+        console.log('[API] Text length:', whisperResult.text?.length || 0, 'characters');
+        console.log('[API] Language detected:', whisperResult.language || 'unknown');
+        console.log('[API] Duration:', whisperResult.duration || 'unknown', 'seconds');
+        
+        // Calculate cost
+        const durationMinutes = (whisperResult.duration || parsedMetadata.duration || 10) / 60;
+        const estimatedCost = durationMinutes * 0.006;
+        
+        // Enhance response with metadata
+        const enhancedResult = {
+            ...whisperResult,
+            metadata: {
+                ...parsedMetadata,
+                processedAt: new Date().toISOString(),
+                estimatedCost: estimatedCost,
+                durationMinutes: durationMinutes,
+                source: parsedMetadata.source || 'unknown',
+                fileSize: req.file.size,
+                model: model
+            }
+        };
+        
+        console.log('[API] Estimated cost: $', estimatedCost.toFixed(4));
+        
+        res.json(enhancedResult);
+        
+    } catch (error) {
+        console.error('[API] Whisper transcription error:', error);
+        res.status(500).json({ 
+            error: 'Transcription failed: ' + error.message 
+        });
     }
 });
 

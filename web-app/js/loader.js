@@ -33,6 +33,10 @@ class ModuleLoader {
             'js/audio/audio-system-v3.js',
             'js/audio/speech-recognition.js',
             
+            // Whisper transcription system
+            'js/audio/media-recorder.js',
+            'js/transcription/whisper-client.js',
+            
             // Card system
             'js/cards/card-generator.js',
             'js/cards/card-engine.js',

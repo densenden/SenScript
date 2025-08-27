@@ -67,15 +67,15 @@ class SenScript {
         // Initialize audio system (V3 - Perfect Audio Flow)
         this.audioSystem = new AudioSystemV3(this);
         
-        // Initialize speech recognition
-        this.speechRecognition = new SpeechRecognitionManager(this);
+        // Initialize Whisper transcription system
+        this.whisperClient = new WhisperClient(this);
+        this.mediaRecorder = new MediaRecorderManager(this);
         
-        // Start background listening after speech recognition is ready
-        setTimeout(() => {
-            if (this.speechRecognition) {
-                this.speechRecognition.startBackgroundListening();
-            }
-        }, 1000);
+        // Load Whisper usage stats on startup
+        this.whisperClient.loadUsageStats();
+        
+        // Initialize speech recognition (fallback for Web Speech API)
+        this.speechRecognition = new SpeechRecognitionManager(this);
         
         // Initialize card generator (restored from legacy)
         this.cardGenerator = new CardGenerator(this);
@@ -164,14 +164,25 @@ class SenScript {
             return;
         }
         
-        // Start transcription mode
-        this.audioSystem.startTranscription();
-        
         // Start transcript session  
         this.transcriptSystem.startSession();
         
-        // Start speech recognition
-        this.speechRecognition.startListening();
+        // Primary: Start Whisper-based transcription with MediaRecorder
+        try {
+            await this.mediaRecorder.startRecording();
+            console.log('✅ [Control] Whisper transcription started');
+            
+            // Show cost tracking display
+            this.showCostTracking();
+            
+        } catch (error) {
+            console.error('❌ [Control] Whisper transcription failed:', error);
+            
+            // Fallback: Start Web Speech API as backup
+            console.log('🔄 [Control] Falling back to Web Speech API');
+            this.audioSystem.startTranscription();
+            this.speechRecognition.startListening();
+        }
         
         // Start database session tracking
         if (this.db) {
@@ -179,7 +190,7 @@ class SenScript {
         }
     }
     
-    stopListening() {
+    async stopListening() {
         console.log('🛑 [Control] === STOP BUTTON CLICKED ===');
         
         // Remove recording class for button animation
@@ -193,14 +204,21 @@ class SenScript {
             this.els.recordText.textContent = 'Start';
         }
         
-        // Stop transcription mode
+        // Stop Whisper transcription system
+        if (this.mediaRecorder && this.mediaRecorder.isRecording) {
+            await this.mediaRecorder.stopRecording();
+            console.log('✅ [Control] Whisper transcription stopped');
+            
+            // Hide cost tracking display
+            this.hideCostTracking();
+        }
+        
+        // Stop Web Speech API (if running as fallback)
         this.audioSystem.stopTranscription();
+        this.speechRecognition.stopListening();
         
         // Stop transcript session
         this.transcriptSystem.stopSession();
-        
-        // Stop speech recognition
-        this.speechRecognition.stopListening();
         
         // End database session tracking
         if (this.db) {
@@ -362,6 +380,43 @@ class SenScript {
                 sessionsCount: 0
             };
         }
+    }
+    
+    /**
+     * Show cost tracking display during recording
+     */
+    showCostTracking() {
+        const whisperUsage = document.getElementById('whisperUsage');
+        const transcriptionCost = document.getElementById('transcriptionCost');
+        
+        if (whisperUsage) {
+            whisperUsage.style.display = 'flex';
+            whisperUsage.style.gap = '4px';
+        }
+        
+        if (transcriptionCost) {
+            transcriptionCost.style.display = 'block';
+        }
+        
+        console.log('💰 [Control] Cost tracking display shown');
+    }
+    
+    /**
+     * Hide cost tracking display when recording stops
+     */
+    hideCostTracking() {
+        const whisperUsage = document.getElementById('whisperUsage');
+        const transcriptionCost = document.getElementById('transcriptionCost');
+        
+        if (whisperUsage) {
+            whisperUsage.style.display = 'none';
+        }
+        
+        if (transcriptionCost) {
+            transcriptionCost.style.display = 'none';
+        }
+        
+        console.log('💰 [Control] Cost tracking display hidden');
     }
 }
 

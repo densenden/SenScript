@@ -107,12 +107,12 @@ class TranscriptSystem {
     
     /**
      * MAIN PROCESSING ENTRY POINT
-     * Called by Speech Recognition with interim and final results
+     * Called by Speech Recognition with interim and final results (LEGACY)
      */
     processIncomingSpeech(speechResult) {
         const { isFinal, transcript, confidence } = speechResult;
         
-        console.log(`📝 [TranscriptSystem] ========== INCOMING SPEECH ==========`);
+        console.log(`📝 [TranscriptSystem] ========== INCOMING SPEECH (LEGACY) ==========`);
         console.log(`📝 [TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
         console.log(`📝 [TranscriptSystem] Session started: ${this.state.sessionStarted}`);
         
@@ -126,6 +126,117 @@ class TranscriptSystem {
         } else {
             this.handleInterimText(transcript);
         }
+    }
+    
+    /**
+     * NEW MAIN PROCESSING ENTRY POINT
+     * Called by Whisper Client with rich transcription data
+     */
+    async processWhisperTranscription(transcriptionData) {
+        console.log(`🎯 [TranscriptSystem] ========== INCOMING WHISPER DATA ==========`);
+        console.log(`🎯 [TranscriptSystem] Text length: ${transcriptionData.text?.length || 0}`);
+        console.log(`🎯 [TranscriptSystem] Language: ${transcriptionData.language}`);
+        console.log(`🎯 [TranscriptSystem] Words: ${transcriptionData.words?.length || 0}`);
+        console.log(`🎯 [TranscriptSystem] Segments: ${transcriptionData.segments?.length || 0}`);
+        console.log(`🎯 [TranscriptSystem] Educational: ${transcriptionData.metadata?.educational !== false}`);
+        
+        if (!this.state.sessionStarted) {
+            console.log(`🎯 [TranscriptSystem] ❌ Session not started, ignoring transcription`);
+            return;
+        }
+        
+        if (!transcriptionData.text || transcriptionData.text.trim().length === 0) {
+            console.log(`🎯 [TranscriptSystem] ❌ Empty transcription, ignoring`);
+            return;
+        }
+        
+        try {
+            // Process each segment for better granularity
+            if (transcriptionData.segments && transcriptionData.segments.length > 0) {
+                for (const segment of transcriptionData.segments) {
+                    await this.handleWhisperSegment(segment, transcriptionData);
+                }
+            } else {
+                // Fallback: treat entire text as one segment
+                await this.handleWhisperSegment({
+                    text: transcriptionData.text,
+                    start: 0,
+                    end: transcriptionData.duration || 10
+                }, transcriptionData);
+            }
+            
+        } catch (error) {
+            console.error(`❌ [TranscriptSystem] Failed to process Whisper transcription:`, error);
+        }
+    }
+    
+    /**
+     * Handle individual Whisper segment
+     */
+    async handleWhisperSegment(segment, transcriptionData) {
+        const segmentText = segment.text?.trim();
+        if (!segmentText || segmentText.length < 5) {
+            console.log(`🎯 [TranscriptSystem] Skipping short segment: "${segmentText}"`);
+            return;
+        }
+        
+        console.log(`📋 [TranscriptSystem] Processing segment: "${segmentText.substring(0, 50)}..."`);
+        
+        // Create enhanced sentence record
+        const sentence = {
+            text: segmentText,
+            timestamp: Date.now(),
+            language: transcriptionData.language,
+            whisperData: {
+                start: segment.start,
+                end: segment.end,
+                duration: segment.end - segment.start,
+                confidence: transcriptionData.metadata?.confidence || 0.8,
+                words: this.extractWordsFromSegment(segment, transcriptionData.words || []),
+                educational: transcriptionData.metadata?.educational !== false
+            },
+            source: 'whisper',
+            processed: false
+        };
+        
+        // Add to finalized sentences
+        this.state.finalizedSentences.push(sentence);
+        this.state.transcriptBuffer.push(sentence);
+        
+        // Update language indicator
+        this.languageManager.updateDetectedLanguage({
+            lang: transcriptionData.language,
+            confidence: (transcriptionData.metadata?.confidence || 0.8) * 100,
+            flag: this.languageManager.getLanguageInfo(transcriptionData.language).flag
+        });
+        
+        // Update UI with enhanced display
+        this.ui.addWhisperSentence(sentence);
+        this.animations.triggerWobble();
+        
+        // Check for card generation (only for educational content)
+        if (sentence.whisperData.educational && this.isWorthyOfCard(segmentText)) {
+            this.queueCardGeneration(sentence);
+        } else {
+            console.log(`⏭️ [TranscriptSystem] Skipping card generation - educational: ${sentence.whisperData.educational}, worthy: ${this.isWorthyOfCard(segmentText)}`);
+        }
+        
+        // Manage buffer size
+        if (this.state.transcriptBuffer.length > 50) {
+            this.state.transcriptBuffer = this.state.transcriptBuffer.slice(-50);
+        }
+    }
+    
+    /**
+     * Extract words for specific segment
+     */
+    extractWordsFromSegment(segment, allWords) {
+        if (!allWords || allWords.length === 0) return [];
+        
+        // Find words that fall within this segment's timeframe
+        return allWords.filter(word => 
+            word.start >= segment.start && word.end <= segment.end
+        );
     }
     
     /**
