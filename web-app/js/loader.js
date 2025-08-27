@@ -31,7 +31,7 @@ class ModuleLoader {
             
             // Core systems  
             'js/audio/audio-system-v3.js',
-            'js/audio/speech-recognition.js',
+            // 'js/audio/speech-recognition.js', // Disabled for Whisper-only mode
             
             // Whisper transcription system
             'js/audio/media-recorder.js',

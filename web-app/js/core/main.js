@@ -74,8 +74,8 @@ class SenScript {
         // Load Whisper usage stats on startup
         this.whisperClient.loadUsageStats();
         
-        // Initialize speech recognition (fallback for Web Speech API)
-        this.speechRecognition = new SpeechRecognitionManager(this);
+        // Initialize speech recognition (disabled for Whisper-only mode)
+        // this.speechRecognition = new SpeechRecognitionManager(this);
         
         // Initialize card generator (restored from legacy)
         this.cardGenerator = new CardGenerator(this);
@@ -167,21 +167,30 @@ class SenScript {
         // Start transcript session  
         this.transcriptSystem.startSession();
         
-        // Primary: Start Whisper-based transcription with MediaRecorder
+        // Whisper-only transcription mode
+        console.log('🎯 [Control] Starting Whisper transcription (Web Speech API disabled)');
+        
         try {
             await this.mediaRecorder.startRecording();
-            console.log('✅ [Control] Whisper transcription started');
+            console.log('✅ [Control] Whisper transcription started successfully');
             
             // Show cost tracking display
             this.showCostTracking();
             
         } catch (error) {
             console.error('❌ [Control] Whisper transcription failed:', error);
+            console.error('❌ [Control] Web Speech API fallback disabled - Whisper-only mode');
             
-            // Fallback: Start Web Speech API as backup
-            console.log('🔄 [Control] Falling back to Web Speech API');
-            this.audioSystem.startTranscription();
-            this.speechRecognition.startListening();
+            // Reset UI on failure
+            this.els.recordBtn.classList.remove('recording');
+            if (this.els.mobileRecordBtn) {
+                this.els.mobileRecordBtn.classList.remove('recording');
+            }
+            if (this.els.recordText) {
+                this.els.recordText.textContent = 'Start';
+            }
+            
+            throw error; // Re-throw to prevent further processing
         }
         
         // Start database session tracking
@@ -213,9 +222,7 @@ class SenScript {
             this.hideCostTracking();
         }
         
-        // Stop Web Speech API (if running as fallback)
-        this.audioSystem.stopTranscription();
-        this.speechRecognition.stopListening();
+        // Web Speech API disabled - Whisper-only mode
         
         // Stop transcript session
         this.transcriptSystem.stopSession();

@@ -120,6 +120,7 @@ class MediaRecorderManager {
         }
         
         console.log('🔍 [MediaRecorder] Current audio source:', audioSystem.currentAudioSource);
+        console.log('🔍 [MediaRecorder] Available streams - mic:', !!audioSystem.microphoneStream, 'system:', !!audioSystem.systemStream);
         
         if (audioSystem.currentAudioSource === 'microphone') {
             // Use microphone stream
