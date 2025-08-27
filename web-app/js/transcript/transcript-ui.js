@@ -1,0 +1,249 @@
+/**
+ * Transcript UI Management
+ * Handles visual display of transcript with sophisticated animations and effects
+ */
+
+class TranscriptUI {
+    constructor(app) {
+        this.app = app;
+        this.transcriptElement = null;
+        this.interimElement = null;
+        this.languageIndicator = null;
+        this.maxVisibleSentences = 5;
+    }
+    
+    initialize() {
+        console.log('🎨 [TranscriptUI] Initializing transcript UI');
+        
+        this.transcriptElement = document.getElementById('transcript');
+        if (!this.transcriptElement) {
+            console.error('❌ [TranscriptUI] Transcript element not found');
+            return;
+        }
+        
+        this.languageIndicator = document.getElementById('transcriptLanguageIndicator');
+        
+        // Setup initial HTML structure
+        this.setupTranscriptStructure();
+        
+        console.log('✅ [TranscriptUI] Transcript UI ready');
+    }
+    
+    setupTranscriptStructure() {
+        this.transcriptElement.innerHTML = `
+            <div class="transcript-container">
+                <div class="transcript-sentences" id="transcriptSentences">
+                    <div class="transcript-placeholder">
+                        Click Start to begin transcription
+                    </div>
+                </div>
+                <div class="transcript-interim" id="transcriptInterim"></div>
+            </div>
+        `;
+        
+        this.sentencesContainer = document.getElementById('transcriptSentences');
+        this.interimElement = document.getElementById('transcriptInterim');
+    }
+    
+    /**
+     * Add a finalized sentence to the transcript display
+     */
+    addFinalSentence(sentence) {
+        console.log(`📝 [TranscriptUI] Adding final sentence: "${sentence.text.substring(0, 30)}..."`);
+        
+        // Remove placeholder if present
+        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        // Create sentence element
+        const sentenceEl = this.createSentenceElement(sentence);
+        
+        // Add to container (newest at bottom for natural reading flow)
+        this.sentencesContainer.appendChild(sentenceEl);
+        
+        // Update font sizes and opacity (newest = largest/brightest)
+        this.updateSentenceHierarchy();
+        
+        // Auto-scroll to show latest content
+        this.scrollToBottom();
+        
+        // Manage sentence count (keep last N sentences)
+        this.manageSentenceCount();
+    }
+    
+    /**
+     * Create DOM element for sentence
+     */
+    createSentenceElement(sentence) {
+        const sentenceEl = document.createElement('div');
+        sentenceEl.className = 'transcript-sentence';
+        sentenceEl.dataset.timestamp = sentence.timestamp;
+        
+        // Add language indicator
+        const languageFlag = sentence.language ? sentence.language.flag || '🌐' : '🌐';
+        
+        sentenceEl.innerHTML = `
+            <div class="sentence-content">
+                <span class="sentence-flag">${languageFlag}</span>
+                <span class="sentence-text">${sentence.text}</span>
+            </div>
+        `;
+        
+        return sentenceEl;
+    }
+    
+    /**
+     * Update visual hierarchy of sentences (3 font sizes, opacity levels)
+     */
+    updateSentenceHierarchy() {
+        const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence');
+        const sentenceCount = sentences.length;
+        
+        sentences.forEach((sentence, index) => {
+            // Calculate position from end (0 = newest, 1 = second newest, etc.)
+            const positionFromEnd = sentenceCount - 1 - index;
+            
+            // Remove existing hierarchy classes
+            sentence.classList.remove('sentence-current', 'sentence-recent', 'sentence-old');
+            
+            if (positionFromEnd === 0) {
+                // Current (newest) sentence - largest font, full opacity
+                sentence.classList.add('sentence-current');
+            } else if (positionFromEnd === 1) {
+                // Recent sentence - medium font, high opacity
+                sentence.classList.add('sentence-recent');
+            } else {
+                // Old sentences - small font, low opacity
+                sentence.classList.add('sentence-old');
+            }
+        });
+    }
+    
+    /**
+     * Update interim text (changing/unfinished text)
+     */
+    updateInterimText(text) {
+        if (!this.interimElement) return;
+        
+        console.log(`🔄 [TranscriptUI] Updating interim: "${text.substring(0, 30)}..."`);
+        
+        if (text && text.trim()) {
+            this.interimElement.innerHTML = `
+                <div class="interim-content">
+                    <span class="interim-text">${text}</span>
+                    <span class="interim-cursor">▌</span>
+                </div>
+            `;
+            this.interimElement.classList.add('active');
+        } else {
+            this.clearInterimText();
+        }
+        
+        // Auto-scroll when interim updates
+        this.scrollToBottom();
+    }
+    
+    /**
+     * Clear interim text
+     */
+    clearInterimText() {
+        if (this.interimElement) {
+            this.interimElement.innerHTML = '';
+            this.interimElement.classList.remove('active');
+        }
+    }
+    
+    /**
+     * Show listening state
+     */
+    showListeningState() {
+        // Remove placeholder and show listening indicator
+        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder');
+        if (placeholder) {
+            placeholder.innerHTML = `
+                <div class="listening-indicator">
+                    <span class="listening-dot"></span>
+                    <span class="listening-text">Listening for speech...</span>
+                </div>
+            `;
+            placeholder.classList.add('listening');
+        }
+    }
+    
+    /**
+     * Show stopped state
+     */
+    showStoppedState() {
+        // Clear interim text
+        this.clearInterimText();
+        
+        // If no sentences, show default placeholder
+        if (this.sentencesContainer.children.length === 0) {
+            this.sentencesContainer.innerHTML = `
+                <div class="transcript-placeholder">
+                    Click Start to begin transcription
+                </div>
+            `;
+        }
+    }
+    
+    /**
+     * Auto-scroll to show latest content
+     */
+    scrollToBottom() {
+        if (this.transcriptElement) {
+            this.transcriptElement.scrollTop = this.transcriptElement.scrollHeight;
+        }
+    }
+    
+    /**
+     * Manage sentence count to avoid memory issues
+     */
+    manageSentenceCount() {
+        const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence');
+        
+        if (sentences.length > this.maxVisibleSentences) {
+            // Remove oldest sentences
+            const excessCount = sentences.length - this.maxVisibleSentences;
+            for (let i = 0; i < excessCount; i++) {
+                sentences[i].remove();
+            }
+        }
+    }
+    
+    /**
+     * Clear all transcript content
+     */
+    clearAll() {
+        this.sentencesContainer.innerHTML = `
+            <div class="transcript-placeholder">
+                Click Start to begin transcription
+            </div>
+        `;
+        this.clearInterimText();
+    }
+    
+    /**
+     * Update language indicator
+     */
+    updateLanguageIndicator(flag, code, mode) {
+        if (this.languageIndicator) {
+            if (mode === 'auto') {
+                this.languageIndicator.innerHTML = `
+                    <span class="language-flag">🌐</span>
+                    <span class="language-code">AUTO</span>
+                `;
+            } else {
+                this.languageIndicator.innerHTML = `
+                    <span class="language-flag">${flag}</span>
+                    <span class="language-code">${code}</span>
+                `;
+            }
+        }
+    }
+}
+
+// Export to window
+window.TranscriptUI = TranscriptUI;

@@ -1,0 +1,375 @@
+/**
+ * SenScript Transcript System - Unified Implementation
+ * Based on /monorepo/07-Transcript-System-Requirements.md
+ * 
+ * Features:
+ * - Language detection and switching (auto/manual modes)
+ * - Sophisticated transcript display with animations
+ * - Three-tier font sizing and opacity effects
+ * - Horizontal flip animations for interim text
+ * - Wobble effects for final sentences
+ * - Optimized card generation integration
+ */
+
+class TranscriptSystem {
+    constructor(app) {
+        this.app = app;
+        
+        // Core state
+        this.state = {
+            currentMode: 'auto', // 'auto' | 'manual'
+            selectedLanguage: 'en-US',
+            transcriptBuffer: [], // Final sentences with metadata
+            interimText: '',
+            finalizedSentences: [],
+            lastLanguageDetection: null,
+            pendingSentence: '',
+            sessionStarted: false
+        };
+        
+        // UI components
+        this.ui = new TranscriptUI(this.app);
+        this.animations = new TranscriptAnimations();
+        this.languageManager = new LanguageManager(this.app);
+        
+        // Performance optimization
+        this.cardGenerationQueue = [];
+        this.lastCardGeneration = 0;
+        this.cardGenerationDebounce = 500; // ms
+        
+        this.initialize();
+    }
+    
+    initialize() {
+        console.log('📝 [TranscriptSystem] Initializing unified transcript system');
+        
+        // Setup UI components
+        this.ui.initialize();
+        this.animations.initialize();
+        this.languageManager.initialize();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Initialize with default language
+        this.languageManager.setMode('auto');
+        
+        console.log('✅ [TranscriptSystem] Transcript system ready');
+    }
+    
+    setupEventListeners() {
+        // Language indicator click handler
+        const languageIndicator = document.getElementById('transcriptLanguageIndicator');
+        if (languageIndicator) {
+            languageIndicator.addEventListener('click', () => {
+                this.languageManager.toggleDropdown();
+            });
+        }
+    }
+    
+    /**
+     * MAIN PROCESSING ENTRY POINT
+     * Called by Speech Recognition with interim and final results
+     */
+    processIncomingSpeech(speechResult) {
+        const { isFinal, transcript, confidence } = speechResult;
+        
+        console.log(`📝 [TranscriptSystem] Processing speech: final=${isFinal}, text="${transcript.substring(0, 30)}..."`);
+        
+        if (isFinal) {
+            this.handleFinalText(transcript);
+        } else {
+            this.handleInterimText(transcript);
+        }
+    }
+    
+    /**
+     * Handle finalized speech text
+     */
+    handleFinalText(text) {
+        if (!text || text.trim().length === 0) return;
+        
+        const trimmedText = text.trim();
+        console.log(`✅ [TranscriptSystem] Final text: "${trimmedText.substring(0, 50)}..."`);
+        
+        // Detect language for this text
+        const languageDetection = this.detectLanguage(trimmedText);
+        
+        // Create sentence record
+        const sentence = {
+            text: trimmedText,
+            timestamp: Date.now(),
+            language: languageDetection,
+            processed: false
+        };
+        
+        // Add to finalized sentences
+        this.state.finalizedSentences.push(sentence);
+        this.state.transcriptBuffer.push(sentence);
+        
+        // Update language indicator if in auto mode
+        if (this.state.currentMode === 'auto' && languageDetection.confidence > 70) {
+            this.languageManager.updateDetectedLanguage(languageDetection);
+        }
+        
+        // Update UI with wobble animation
+        this.ui.addFinalSentence(sentence);
+        this.animations.triggerWobble();
+        
+        // Check for card generation (with debouncing)
+        this.queueCardGeneration(sentence);
+        
+        // Clear interim text
+        this.state.interimText = '';
+        this.ui.clearInterimText();
+        
+        // Manage buffer size (keep last 50 sentences)
+        if (this.state.transcriptBuffer.length > 50) {
+            this.state.transcriptBuffer = this.state.transcriptBuffer.slice(-50);
+        }
+    }
+    
+    /**
+     * Handle interim speech text (still being recognized)
+     */
+    handleInterimText(text) {
+        if (text === this.state.interimText) return; // No change
+        
+        console.log(`🔄 [TranscriptSystem] Interim: "${text.substring(0, 30)}..."`);
+        
+        this.state.interimText = text;
+        
+        // Update UI with flip animation
+        this.ui.updateInterimText(text);
+        this.animations.triggerFlip();
+    }
+    
+    /**
+     * Queue text for card generation with intelligent debouncing
+     */
+    queueCardGeneration(sentence) {
+        // Check worthiness
+        if (!this.isTextWorthyOfCard(sentence.text)) {
+            console.log(`⏭️ [TranscriptSystem] Text not worthy: "${sentence.text.substring(0, 30)}..."`);
+            return;
+        }
+        
+        console.log(`🎯 [TranscriptSystem] Queuing for card generation: "${sentence.text.substring(0, 30)}..."`);
+        
+        // Add to queue
+        this.cardGenerationQueue.push(sentence);
+        
+        // Debounced processing
+        clearTimeout(this.cardGenerationTimeout);
+        this.cardGenerationTimeout = setTimeout(() => {
+            this.processCardGenerationQueue();
+        }, this.cardGenerationDebounce);
+    }
+    
+    /**
+     * Process queued card generation requests
+     */
+    async processCardGenerationQueue() {
+        if (this.cardGenerationQueue.length === 0) return;
+        
+        console.log(`🔥 [TranscriptSystem] Processing ${this.cardGenerationQueue.length} queued card generations`);
+        
+        // Process each queued sentence
+        for (const sentence of this.cardGenerationQueue) {
+            try {
+                await this.generateCardFromSentence(sentence);
+                sentence.processed = true;
+            } catch (error) {
+                console.error(`❌ [TranscriptSystem] Card generation failed:`, error);
+            }
+        }
+        
+        // Clear queue
+        this.cardGenerationQueue = [];
+        this.lastCardGeneration = Date.now();
+    }
+    
+    /**
+     * Generate card from processed sentence
+     */
+    async generateCardFromSentence(sentence) {
+        if (this.app.cardEngine) {
+            console.log(`🎴 [TranscriptSystem] Generating card for: "${sentence.text.substring(0, 40)}..."`);
+            await this.app.cardEngine.processText(sentence.text, sentence.language);
+        } else {
+            console.error('❌ [TranscriptSystem] CardEngine not available');
+        }
+    }
+    
+    /**
+     * ENHANCED TEXT WORTHINESS CHECK
+     * Based on requirements specification
+     */
+    isTextWorthyOfCard(text) {
+        const trimmed = text.trim().toLowerCase();
+        
+        // Minimum length check
+        if (trimmed.length < 20) return false;
+        
+        // Minimum word count
+        const wordCount = trimmed.split(/\s+/).length;
+        if (wordCount < 5) return false;
+        
+        // Skip filler phrases
+        const fillerPatterns = [
+            /^(ja|nein|ok|okay|hmm|äh|eh|um|uh|yes|no|right|sure|well)$/i,
+            /^(danke|bitte|thanks|please|sorry|excuse me)$/i,
+            /^(hallo|hello|hi|hey|good morning|good afternoon)$/i,
+            /^(test|testing|check|mic check)$/i
+        ];
+        
+        for (const pattern of fillerPatterns) {
+            if (pattern.test(trimmed)) return false;
+        }
+        
+        // Look for educational/informational content signals
+        const educationalSignals = [
+            // Question words
+            'what', 'how', 'why', 'when', 'where', 'who',
+            'was', 'wie', 'warum', 'wann', 'wo', 'wer',
+            // Definition indicators  
+            'ist', 'sind', 'bedeutet', 'is', 'are', 'means', 'called', 'defined as',
+            // Explanation words
+            'because', 'since', 'due to', 'weil', 'da', 'durch',
+            // Examples and lists
+            'example', 'such as', 'including', 'like', 'beispiel', 'wie zum beispiel',
+            // Numbers and facts
+            'percent', 'prozent', 'million', 'thousand', 'tausend',
+            // Process words
+            'first', 'second', 'then', 'next', 'finally', 'erstens', 'zweitens', 'dann',
+            // Learning indicators
+            'learn', 'understand', 'explain', 'define', 'lernen', 'verstehen', 'erklären'
+        ];
+        
+        const hasEducationalContent = educationalSignals.some(signal => 
+            trimmed.includes(signal.toLowerCase())
+        );
+        
+        if (hasEducationalContent) {
+            console.log(`✅ [TranscriptSystem] Educational content detected`);
+            return true;
+        }
+        
+        // Check for complex sentence structure
+        const complexityIndicators = [
+            ' and ', ' but ', ' however ', ' therefore ', ' although ',
+            ' und ', ' aber ', ' jedoch ', ' deshalb ', ' obwohl '
+        ];
+        
+        const hasComplexStructure = complexityIndicators.some(indicator => 
+            trimmed.includes(indicator)
+        );
+        
+        if (hasComplexStructure && wordCount > 8) {
+            console.log(`✅ [TranscriptSystem] Complex structure detected`);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Detect language for given text
+     */
+    detectLanguage(text) {
+        if (window.LanguageDetection) {
+            return window.LanguageDetection.detectLanguage(text);
+        }
+        
+        // Fallback detection
+        return this.fallbackLanguageDetection(text);
+    }
+    
+    /**
+     * Fallback language detection
+     */
+    fallbackLanguageDetection(text) {
+        const lowerText = text.toLowerCase();
+        
+        // German indicators
+        const germanWords = (lowerText.match(/\b(der|die|das|und|ist|sind|ich|wir|ein|eine|zu|von|mit|auf|nicht|auch|kann|aber|wie|was)\b/g) || []).length;
+        
+        // English indicators
+        const englishWords = (lowerText.match(/\b(the|and|is|are|of|to|in|that|have|for|not|with|you|this|but|his|from|they|we|been|how|what)\b/g) || []).length;
+        
+        if (germanWords > englishWords) {
+            return { 
+                lang: 'de-DE', 
+                confidence: Math.min(95, germanWords * 10), 
+                flag: '🇩🇪' 
+            };
+        } else {
+            return { 
+                lang: 'en-US', 
+                confidence: Math.min(95, englishWords * 10), 
+                flag: '🇺🇸' 
+            };
+        }
+    }
+    
+    /**
+     * Start transcript session
+     */
+    startSession() {
+        console.log('🚀 [TranscriptSystem] Starting transcript session');
+        
+        this.state.sessionStarted = true;
+        this.state.transcriptBuffer = [];
+        this.state.finalizedSentences = [];
+        this.state.interimText = '';
+        
+        // Trigger fade-in animation
+        this.animations.fadeInTranscript();
+        
+        // Show initial state
+        this.ui.showListeningState();
+    }
+    
+    /**
+     * Stop transcript session
+     */
+    stopSession() {
+        console.log('🛑 [TranscriptSystem] Stopping transcript session');
+        
+        this.state.sessionStarted = false;
+        
+        // Process any remaining queued cards
+        if (this.cardGenerationQueue.length > 0) {
+            this.processCardGenerationQueue();
+        }
+        
+        // Clear interim text
+        this.state.interimText = '';
+        this.ui.clearInterimText();
+        
+        // Show stopped state
+        this.ui.showStoppedState();
+    }
+    
+    /**
+     * Get session statistics
+     */
+    getSessionStats() {
+        const totalWords = this.state.finalizedSentences.reduce((count, sentence) => {
+            return count + sentence.text.split(/\s+/).length;
+        }, 0);
+        
+        const processedSentences = this.state.finalizedSentences.filter(s => s.processed).length;
+        
+        return {
+            totalSentences: this.state.finalizedSentences.length,
+            totalWords: totalWords,
+            processedSentences: processedSentences,
+            pendingGeneration: this.cardGenerationQueue.length,
+            sessionActive: this.state.sessionStarted
+        };
+    }
+}
+
+// Export to window
+window.TranscriptSystem = TranscriptSystem;

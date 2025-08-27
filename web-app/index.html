@@ -517,18 +517,28 @@
         }
         
         .record-button {
-            width: 100%;
-            padding: 20px;
-            font-size: 20px;
+            width: 120px; /* 1.5x bigger than mobile (80px) */
+            height: 120px;
+            padding: 0;
+            font-size: 18px;
             font-weight: 600;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
             cursor: pointer;
             color: white;
-            border-radius: 20px;
-            margin-bottom: 20px;
+            border-radius: 50%; /* Perfect circle like mobile */
+            margin: 20px auto;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        /* Recording state: round to square animation like mobile */
+        .record-button.recording {
+            border-radius: 30px; /* Rounded square when recording (1.5x mobile's 20px) */
+            animation: recordingPulse 2s ease-in-out infinite;
         }
         
         .light .record-button {
@@ -536,11 +546,18 @@
         }
         
         .record-dot {
-            width: 16px;
-            height: 16px;
+            width: 24px; /* 1.5x bigger than mobile base (16px) */
+            height: 24px;
             background: #ef4444; /* Red instead of grey */
             border-radius: 50%;
             transition: all 0.3s ease;
+        }
+        
+        /* Desktop record button: red dot becomes square when recording */
+        .record-button.recording .record-dot {
+            border-radius: 6px; /* Square red dot when recording (1.5x mobile's 4px) */
+            width: 30px; /* Bigger dot when recording (1.5x mobile's 20px) */
+            height: 30px;
         }
         
         .light .record-dot {
@@ -1246,8 +1263,9 @@
         .language-bubble {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 4px 10px;
-            border-radius: 12px;
+            padding: 6px 14px;
+            border-radius: 18px; /* height = 2x radius: 36px height, 18px radius */
+            height: 36px;
             font-size: 11px;
             font-weight: 500;
             display: flex;
@@ -1304,6 +1322,35 @@
             accent-color: #007AFF;
         }
         
+        /* Input Language Dropdown Styling */
+        #inputLanguageDropdown {
+            background: rgba(31, 41, 55, 0.95) !important;
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        .light #inputLanguageDropdown {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .input-language-dropdown-option {
+            transition: all 0.2s ease;
+            color: white;
+        }
+        
+        .input-language-dropdown-option:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .light .input-language-dropdown-option {
+            color: #1f2937;
+        }
+        
+        .light .input-language-dropdown-option:hover {
+            background: rgba(0, 0, 0, 0.05) !important;
+        }
+        
         /* New card entry animation */
         @keyframes cardEnter {
             0% {
@@ -1356,12 +1403,32 @@
         }
 
         .cards-container {
-            padding: 0 20px 0px; /* Standard 20px padding */
+            padding: 0 20px 20px; /* Better bottom padding for last card */
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
             scroll-behavior: smooth;
             background: transparent;
+            /* Better scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        
+        .cards-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .cards-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .cards-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+        
+        .light .cards-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
         }
         
         .card {
@@ -1370,11 +1437,24 @@
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 12px;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 24px;
+            margin-bottom: 16px;
+            min-height: 120px; /* Ensure enough height for content */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             transform: translateY(0);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: visible; /* Allow content to be visible */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Enhanced hover state for better interaction */
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16), 0 6px 16px rgba(0, 0, 0, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
         }
         
         /* UNIFIED CARD BIRTH STATES */
@@ -1499,41 +1579,107 @@
             margin: 8px 0 !important;
         }
         
-        /* Card flip animations */
-        .card {
-            perspective: 1000px;
-            cursor: pointer;
+        /* Simplified card content structure - no flipping */
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
         }
         
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: left;
-            transition: transform 0.8s;
-            transform-style: preserve-3d;
+        .card-type {
+            background: rgba(249, 115, 22, 0.2);
+            color: #f97316;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        .card.flipped .card-inner {
-            transform: rotateY(180deg);
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.95);
         }
         
-        .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+        .light .card-title {
+            color: #1f2937;
         }
         
-        .card-back {
-            transform: rotateY(180deg);
+        .card-content {
+            font-size: 16px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 12px;
+            font-weight: 400;
+            padding: 8px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 12px;
         }
         
-        /* Card hover effects */
-        .card:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .light .card-content {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.02);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-source {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: auto; /* Push to bottom */
+        }
+        
+        .light .card-source {
+            color: rgba(0, 0, 0, 0.6);
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Enhanced card content typography */
+        .card .card-front {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 16px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+        
+        .light .card .card-front {
+            color: #1f2937;
+        }
+        
+        .card .card-back {
+            font-size: 14px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 8px;
+        }
+        
+        .light .card .card-back {
+            color: #374151;
+        }
+        
+        .card .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .light .card .card-header {
+            border-bottom-color: rgba(0, 0, 0, 0.1);
         }
         
         .card[data-card-type="cheat"]:hover {
@@ -2016,7 +2162,7 @@
             justify-content: center;
             gap: 3px;
             margin-top: 6px;
-            opacity: 0; /* Hidden by default */
+            opacity: 0.4; /* More visible by default */
             transition: opacity 0.3s ease;
         }
         
@@ -2025,23 +2171,26 @@
         }
         
         .level-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px; /* Slightly larger */
+            height: 7px;
             border-radius: 50%;
-            background-color: rgba(156, 163, 175, 0.3); /* Grey by default */
-            transition: background-color 0.1s ease, transform 0.1s ease;
+            background-color: rgba(156, 163, 175, 0.5); /* More visible grey */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+            transition: all 0.15s ease;
         }
         
-        /* Active dots show theme color */
+        /* Active dots show theme color with better visibility */
         .level-dot.active {
             background-color: #10b981; /* Theme green */
-            transform: scale(1.1);
-            box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+            transform: scale(1.3); /* Bigger scale */
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); /* Brighter glow */
+            border-color: rgba(16, 185, 129, 0.4);
         }
         
         .light .level-dot.active {
             background-color: #059669;
-            box-shadow: 0 0 4px rgba(5, 150, 105, 0.4);
+            box-shadow: 0 0 8px rgba(5, 150, 105, 0.6);
+            border-color: rgba(5, 150, 105, 0.4);
         }
         
         /* Make audio source toggle match Start button height */
@@ -2106,11 +2255,15 @@
         .settings-content {
             padding: 0;
             width: 100%;
-            max-width: 600px;
-            max-height: 90vh;
+            max-width: 800px; /* Wider for better horizontal layout */
+            height: 80vh; /* Fixed height to eliminate scrolling */
+            max-height: 600px; /* Maximum constraint */
+            min-height: 500px; /* Minimum constraint */
             overflow: hidden;
             font-family: 'Inter', system-ui, sans-serif;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
         }
         
         .light .settings-content {
@@ -2157,6 +2310,126 @@
         
         .light .modal-tabs .tab-button.active {
             color: #f97316 !important;
+        }
+        
+        /* Framer-motion inspired micro-animations */
+        .settings-modal {
+            animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes modalSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .tab-content {
+            animation: tabSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            animation-fill-mode: backwards;
+        }
+        
+        @keyframes tabSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .setting-group {
+            animation: settingGroupAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation-fill-mode: backwards;
+        }
+        
+        .setting-group:nth-child(1) { animation-delay: 0.05s; }
+        .setting-group:nth-child(2) { animation-delay: 0.1s; }
+        .setting-group:nth-child(3) { animation-delay: 0.15s; }
+        .setting-group:nth-child(4) { animation-delay: 0.2s; }
+        
+        @keyframes settingGroupAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .tab-button {
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #f97316;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateX(-50%);
+        }
+        
+        .tab-button.active::before,
+        .tab-button:hover::before {
+            width: 80%;
+        }
+        
+        .tab-button:hover {
+            transform: translateY(-1px);
+        }
+        
+        .tab-button.active {
+            transform: translateY(0);
+        }
+        
+        /* Setting elements hover animations */
+        .setting-item {
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .setting-item:hover {
+            transform: translateX(2px);
+        }
+        
+        .setting-input {
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .setting-input:focus {
+            transform: scale(1.02);
+        }
+        
+        /* Toggle switch micro-animations */
+        .toggle-slider {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        
+        .toggle-slider:before {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            animation: toggleBounce 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes toggleBounce {
+            0% { transform: translateX(20px) scale(1); }
+            50% { transform: translateX(22px) scale(1.1); }
+            100% { transform: translateX(20px) scale(1); }
         }
         
         /* Form elements in light mode */
@@ -2389,12 +2662,70 @@
             background: #1f2937;
         }
         
+        /* Responsive tab design */
+        @media (max-width: 768px) {
+            .tab-button {
+                padding: 8px 6px;
+                font-size: 11px;
+                gap: 4px;
+                min-height: 50px;
+            }
+            
+            .tab-icon {
+                font-size: 16px;
+            }
+            
+            .tab-button span {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .tab-button span {
+                display: none;
+            }
+            
+            .tab-button {
+                padding: 10px 6px;
+                min-height: 40px;
+            }
+            
+            .tab-icon {
+                font-size: 20px;
+            }
+        }
+        
         /* Tab Content */
         .tab-content {
             display: none;
-            padding: 24px;
-            max-height: calc(90vh - 140px);
+            padding: 16px 24px; /* Reduced top/bottom padding */
+            flex: 1;
             overflow-y: auto;
+            height: 0; /* Allow flex to control height */
+        }
+        
+        /* Compact layout for better space utilization */
+        .tab-content .setting-group {
+            margin-bottom: 20px; /* Reduced from default */
+        }
+        
+        .tab-content .setting-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .tab-content .setting-label {
+            font-size: 14px; /* Slightly smaller */
+            margin-bottom: 8px;
+        }
+        
+        .tab-content .setting-description {
+            font-size: 12px; /* Smaller description */
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .tab-content .setting-item {
+            margin-bottom: 12px; /* Reduced spacing */
         }
         
         .tab-content.active {
@@ -3238,17 +3569,26 @@
             }
             
             .screen-3 .card {
-                padding: 10px !important;
-                margin-bottom: 8px !important;
+                padding: 16px !important; /* Better mobile padding */
+                margin-bottom: 12px !important; /* Consistent spacing */
                 font-size: 13px !important;
+                border-radius: 16px !important; /* Slightly smaller radius for mobile */
             }
             
             .screen-3 .card-front {
-                font-size: 13px !important;
+                font-size: 15px !important; /* Better mobile readability */
+                font-weight: 600 !important;
+                margin-bottom: 12px !important;
             }
             
             .screen-3 .card-back {
-                font-size: 12px !important;
+                font-size: 13px !important; /* Consistent mobile text size */
+                line-height: 1.5 !important;
+            }
+            
+            .screen-3 .card-header {
+                margin-bottom: 8px !important;
+                padding-bottom: 6px !important;
             }
             
             /* Landscape: Same ROUND navbar design with more space */
@@ -4062,9 +4402,79 @@
             <div class="transcript-container">
                 <div class="transcript-header">
                     <h2 class="transcript-title">Live Transcript</h2>
-                    <div id="transcriptLanguageIndicator" class="language-bubble" title="Detected input language">
-                        <span id="transcriptLanguageFlag">🌐</span>
-                        <span id="langCodeTranscript">AUTO</span>
+                    <div style="position: relative;">
+                        <div id="transcriptLanguageIndicator" class="language-bubble" title="Input language (click to change)" style="cursor: pointer;">
+                            <span id="transcriptLanguageFlag">🌐</span>
+                            <span id="langCodeTranscript">AUTO</span>
+                            <span style="margin-left: 4px; font-size: 8px;">▼</span>
+                        </div>
+                        
+                        <!-- Input Language Dropdown -->
+                        <div id="inputLanguageDropdown" style="
+                            position: absolute;
+                            top: 100%;
+                            right: 0;
+                            background: rgba(31, 41, 55, 0.95);
+                            backdrop-filter: blur(20px) saturate(180%);
+                            -webkit-backdrop-filter: blur(20px) saturate(180%);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            border-radius: 12px;
+                            padding: 8px;
+                            margin-top: 4px;
+                            min-width: 160px;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                            z-index: 1000;
+                            display: none;
+                        ">
+                            <div class="input-language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🌐</span>
+                                <span>Auto-detect</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇺🇸</span>
+                                <span>English</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇩🇪</span>
+                                <span>German</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇫🇷</span>
+                                <span>French</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="es-ES" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇪🇸</span>
+                                <span>Spanish</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="it-IT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇮🇹</span>
+                                <span>Italian</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="pt-PT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇵🇹</span>
+                                <span>Portuguese</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="nl-NL" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇳🇱</span>
+                                <span>Dutch</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="ru-RU" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇷🇺</span>
+                                <span>Russian</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="zh-CN" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇨🇳</span>
+                                <span>Chinese</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="ja-JP" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇯🇵</span>
+                                <span>Japanese</span>
+                            </div>
+                            <div class="input-language-dropdown-option" data-lang="ko-KR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span>🇰🇷</span>
+                                <span>Korean</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- Transcript Content -->
@@ -4268,27 +4678,36 @@
                 <button id="settingsClose" class="settings-close glass-button">×</button>
             </div>
             
-            <!-- Tab Navigation -->
+            <!-- Tab Navigation - Redesigned -->
             <div class="modal-tabs">
-                <button class="tab-button active" data-tab="app">
-                    App Controls
+                <button class="tab-button active" data-tab="appearance" title="Theme, UI preferences">
+                    <div class="tab-icon">🎨</div>
+                    <span>Appearance</span>
                 </button>
-                <button class="tab-button" data-tab="interview">
-                    CheatCards
+                <button class="tab-button" data-tab="audio" title="Microphone, system audio settings">
+                    <div class="tab-icon">🎤</div>
+                    <span>Audio</span>
                 </button>
-                <button class="tab-button" data-tab="ai">
-                    AI & API
+                <button class="tab-button" data-tab="languages" title="Input and output language settings">
+                    <div class="tab-icon">🌐</div>
+                    <span>Languages</span>
                 </button>
-                <button class="tab-button" data-tab="stats">
-                    Statistics
+                <button class="tab-button" data-tab="ai" title="AI models and API configuration">
+                    <div class="tab-icon">🤖</div>
+                    <span>AI</span>
                 </button>
-                <button class="tab-button" data-tab="about">
-                    About
+                <button class="tab-button" data-tab="cards" title="Card generation and CheatCard mode">
+                    <div class="tab-icon">🃏</div>
+                    <span>Cards</span>
+                </button>
+                <button class="tab-button" data-tab="account" title="Usage stats, data, account">
+                    <div class="tab-icon">👤</div>
+                    <span>Account</span>
                 </button>
             </div>
             
-            <!-- Tab 1: App Controls -->
-            <div id="tab-app" class="tab-content active">
+            <!-- Tab 1: Appearance -->
+            <div id="tab-appearance" class="tab-content active">
                 <!-- Theme Settings -->
                 <div class="setting-group">
                     <label class="setting-label">Theme Settings</label>
@@ -4306,41 +4725,6 @@
                         <div class="theme-option" data-theme="light">
                             <div class="theme-preview light-preview"></div>
                             <span>Light</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Card Output Language -->
-                <div class="setting-group">
-                    <label class="setting-label">Card Language</label>
-                    <p class="setting-description">Choose the language for AI-generated flashcards.</p>
-                    
-                    <div style="margin-bottom: 16px;">
-                        <label class="toggle-label">
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="autoLanguage" checked>
-                                <span class="toggle-slider"></span>
-                            </div>
-                            <span><strong>AUTO - Match input language</strong></span>
-                        </label>
-                        
-                        <div id="languageSelectContainer" style="display: none;">
-                            <label class="api-label">Fixed Output Language</label>
-                            <select id="outputLanguage" class="setting-input">
-                                <option value="de-DE">🇩🇪 German</option>
-                                <option value="en-US">🇺🇸 English</option>
-                                <option value="fr-FR">🇫🇷 French</option>
-                                <option value="es-ES">🇪🇸 Spanish</option>
-                                <option value="it-IT">🇮🇹 Italian</option>
-                                <option value="pt-PT">🇵🇹 Portuguese</option>
-                                <option value="nl-NL">🇳🇱 Dutch</option>
-                                <option value="ru-RU">🇷🇺 Russian</option>
-                                <option value="zh-CN">🇨🇳 Chinese</option>
-                                <option value="ja-JP">🇯🇵 Japanese</option>
-                                <option value="ko-KR">🇰🇷 Korean</option>
-                                <option value="ar-SA">🇸🇦 Arabic</option>
-                                <option value="el-GR">🇬🇷 Greek</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -4393,8 +4777,188 @@
                 </div>
             </div>
             
-            <!-- Tab 2: Interview and Test Companion -->
-            <div id="tab-interview" class="tab-content">
+            <!-- Tab 2: Audio -->
+            <div id="tab-audio" class="tab-content">
+                <!-- Audio Input Settings -->
+                <div class="setting-group">
+                    <label class="setting-label">Audio Input</label>
+                    <p class="setting-description">Configure microphone and system audio capture.</p>
+                    
+                    <div class="setting-item">
+                        <label for="audioSource" class="setting-label">Audio Source</label>
+                        <select id="audioSource" class="setting-input">
+                            <option value="microphone">🎤 Microphone Only</option>
+                            <option value="system">🔊 System Audio Only</option>
+                            <option value="both">🎧 Both Microphone + System</option>
+                        </select>
+                        <p class="setting-description">Choose which audio sources to capture for transcription</p>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label class="setting-checkbox">
+                            <input type="checkbox" id="noiseReduction" checked>
+                            <div class="checkbox-slider"></div>
+                            <span class="checkbox-label">Noise reduction</span>
+                        </label>
+                        <p class="setting-description">Reduce background noise and improve speech clarity</p>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label class="setting-checkbox">
+                            <input type="checkbox" id="autoGain" checked>
+                            <div class="checkbox-slider"></div>
+                            <span class="checkbox-label">Automatic gain control</span>
+                        </label>
+                        <p class="setting-description">Automatically adjust microphone volume levels</p>
+                    </div>
+                </div>
+                
+                <!-- Audio Level Monitoring -->
+                <div class="setting-group">
+                    <label class="setting-label">Audio Levels</label>
+                    <p class="setting-description">Monitor input audio levels in real-time.</p>
+                    
+                    <div class="level-meters">
+                        <div class="level-meter">
+                            <label>Microphone</label>
+                            <div class="level-dots" id="micLevelDots">
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                            </div>
+                        </div>
+                        <div class="level-meter">
+                            <label>System Audio</label>
+                            <div class="level-dots" id="deviceLevelDots">
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                                <div class="level-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab 3: Languages -->
+            <div id="tab-languages" class="tab-content">
+                <!-- Input Language -->
+                <div class="setting-group">
+                    <label class="setting-label">Input Language</label>
+                    <p class="setting-description">Language for speech recognition and transcript processing.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="toggle-label">
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="autoInputLanguage" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                            <span><strong>AUTO - Detect from speech</strong></span>
+                        </label>
+                        
+                        <div id="inputLanguageContainer" style="display: none; margin-top: 12px;">
+                            <label class="api-label">Fixed Input Language</label>
+                            <select id="inputLanguage" class="setting-input">
+                                <option value="en-US">🇺🇸 English</option>
+                                <option value="de-DE">🇩🇪 German</option>
+                                <option value="fr-FR">🇫🇷 French</option>
+                                <option value="es-ES">🇪🇸 Spanish</option>
+                                <option value="it-IT">🇮🇹 Italian</option>
+                                <option value="pt-PT">🇵🇹 Portuguese</option>
+                                <option value="nl-NL">🇳🇱 Dutch</option>
+                                <option value="ru-RU">🇷🇺 Russian</option>
+                                <option value="zh-CN">🇨🇳 Chinese</option>
+                                <option value="ja-JP">🇯🇵 Japanese</option>
+                                <option value="ko-KR">🇰🇷 Korean</option>
+                                <option value="ar-SA">🇸🇦 Arabic</option>
+                                <option value="el-GR">🇬🇷 Greek</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Output Language -->
+                <div class="setting-group">
+                    <label class="setting-label">Card Language</label>
+                    <p class="setting-description">Choose the language for AI-generated flashcards.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="toggle-label">
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="autoLanguage" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                            <span><strong>AUTO - Match input language</strong></span>
+                        </label>
+                        
+                        <div id="languageSelectContainer" style="display: none;">
+                            <label class="api-label">Fixed Output Language</label>
+                            <select id="outputLanguage" class="setting-input">
+                                <option value="de-DE">🇩🇪 German</option>
+                                <option value="en-US">🇺🇸 English</option>
+                                <option value="fr-FR">🇫🇷 French</option>
+                                <option value="es-ES">🇪🇸 Spanish</option>
+                                <option value="it-IT">🇮🇹 Italian</option>
+                                <option value="pt-PT">🇵🇹 Portuguese</option>
+                                <option value="nl-NL">🇳🇱 Dutch</option>
+                                <option value="ru-RU">🇷🇺 Russian</option>
+                                <option value="zh-CN">🇨🇳 Chinese</option>
+                                <option value="ja-JP">🇯🇵 Japanese</option>
+                                <option value="ko-KR">🇰🇷 Korean</option>
+                                <option value="ar-SA">🇸🇦 Arabic</option>
+                                <option value="el-GR">🇬🇷 Greek</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Tab 3: AI & API -->
+            <!-- Tab 4: AI -->
+            <div id="tab-ai" class="tab-content">
+                <!-- AI Model Selection -->
+                <div class="setting-group">
+                    <label class="setting-label">AI Model Selection</label>
+                    <p class="setting-description">Choose your preferred AI model. Fastest response wins automatically.</p>
+                    <div id="modelGrid" class="model-grid">
+                        <!-- Models loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- API Keys Container -->
+                <div class="setting-group">
+                    <label class="setting-label">API Keys</label>
+                    <p class="setting-description">Add your own API keys for unlimited usage, or use our fallback keys.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">OpenAI API Key</label>
+                        <input type="password" id="openaiKey" class="setting-input" placeholder="sk-... (optional)">
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">Anthropic API Key</label>
+                        <input type="password" id="anthropicKey" class="setting-input" placeholder="sk-ant-... (optional)">
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">DeepSeek API Key</label>
+                        <input type="password" id="deepseekKey" class="setting-input" placeholder="sk-... (optional)">
+                    </div>
+                    
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="useFallback" checked>
+                        <label for="useFallback">Use SenScript fallback keys when your keys aren't provided</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab 4: CheatCards -->
+            <!-- Tab 5: Cards -->
+            <div id="tab-cards" class="tab-content">
                 <div class="setting-group">
                     <label class="setting-label">CheatCard Mode</label>
                     <p class="setting-description">Your strategic assistant for meetings, presentations, interviews, and exams. Creates smart cheat sheets to help you succeed.</p>
@@ -4453,7 +5017,7 @@
                 <!-- Example Cards Preview -->
                 <div class="setting-group">
                     <label class="setting-label">Example Cards Preview</label>
-                    <p class="setting-description">Browse example flashcards to see the Interview Test Companion in action.</p>
+                    <p class="setting-description">Browse example flashcards to see the CheatCard Mode in action.</p>
                     
                     <div id="exampleCardsContainer" style="margin: 16px 0;">
                         <div class="example-cards-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -4484,7 +5048,7 @@
                 <!-- When Active Section -->
                 <div class="setting-group" id="interviewActiveFeatures" style="display: none;">
                     <label class="setting-label" style="color: #f97316;">Mode Active - Enhanced Features</label>
-                    <p class="setting-description">Interview Test Companion is now active and will automatically optimize card generation for strategic insights.</p>
+                    <p class="setting-description">CheatCard Mode is now active and will automatically optimize card generation for strategic insights.</p>
                     
                     <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; padding: 16px; margin: 12px 0;">
                         <h4 style="margin: 0 0 8px 0; color: #f97316; font-size: 13px;">Auto-Optimized Settings:</h4>
@@ -4497,47 +5061,10 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Tab 3: AI & API -->
-            <div id="tab-ai" class="tab-content">
-                <!-- AI Model Selection -->
-                <div class="setting-group">
-                    <label class="setting-label">AI Model Selection</label>
-                    <p class="setting-description">Choose your preferred AI model. Fastest response wins automatically.</p>
-                    <div id="modelGrid" class="model-grid">
-                        <!-- Models loaded dynamically -->
-                    </div>
-                </div>
-                
-                <!-- API Keys Container -->
-                <div class="setting-group">
-                    <label class="setting-label">API Keys</label>
-                    <p class="setting-description">Add your own API keys for unlimited usage, or use our fallback keys.</p>
-                    
-                    <div style="margin-bottom: 16px;">
-                        <label class="api-label">OpenAI API Key</label>
-                        <input type="password" id="openaiKey" class="setting-input" placeholder="sk-... (optional)">
-                    </div>
-                    
-                    <div style="margin-bottom: 16px;">
-                        <label class="api-label">Anthropic API Key</label>
-                        <input type="password" id="anthropicKey" class="setting-input" placeholder="sk-ant-... (optional)">
-                    </div>
-                    
-                    <div style="margin-bottom: 16px;">
-                        <label class="api-label">DeepSeek API Key</label>
-                        <input type="password" id="deepseekKey" class="setting-input" placeholder="sk-... (optional)">
-                    </div>
-                    
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="useFallback" checked>
-                        <label for="useFallback">Use SenScript fallback keys when your keys aren't provided</label>
-                    </div>
-                </div>
-            </div>
             
-            <!-- Tab 3: Statistics -->
-            <div id="tab-stats" class="tab-content">
+            <!-- Tab 5: Statistics -->
+            <!-- Tab 6: Account -->
+            <div id="tab-account" class="tab-content">
                 <!-- Daily Stats Overview -->
                 <div class="setting-group">
                     <label class="setting-label">Today's Usage</label>

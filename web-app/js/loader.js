@@ -17,21 +17,30 @@ class ModuleLoader {
             // Test data first
             'test-transcripts.js',
             
+            // Database layer (before other modules)
+            'js/database/db-manager.js',
+            
             // Utility modules
             'js/utils/language-detection.js',
-            'js/utils/transcript-processing.js',
+            
+            // Transcript system (unified)
+            'js/transcript/transcript-animations.js',
+            'js/transcript/transcript-ui.js',
+            'js/transcript/language-manager.js',
+            'js/transcript/transcript-system.js',
             
             // Core systems  
             'js/audio/audio-system-v3.js',
             'js/audio/speech-recognition.js',
             
             // Card system
-            'js/cards/card-engine.js',
             'js/cards/card-generator.js',
+            'js/cards/card-engine.js',
             
             // UI components
             'js/ui/ui-manager.js',
             'js/ui/settings-manager.js',
+            'js/ui/input-language-handler.js',
             
             // Main application (last)
             'js/core/main.js'

@@ -17,7 +17,7 @@ class SenScript {
         this.pendingSentence = '';
         this.cards = [];
         this.currentAudioSource = 'microphone';
-        this.currentLang = 'de-DE';
+        this.currentLang = 'en-US'; // Default to English for better recognition
         
         // Initialize modules
         this.initializeElements();
@@ -61,6 +61,9 @@ class SenScript {
     }
     
     initializeModules() {
+        // Initialize database manager first
+        this.db = new DatabaseManager();
+        
         // Initialize audio system (V3 - Perfect Audio Flow)
         this.audioSystem = new AudioSystemV3(this);
         
@@ -80,11 +83,29 @@ class SenScript {
         // Initialize card engine
         this.cardEngine = new CardEngine(this);
         
+        // Initialize transcript system (unified)
+        this.transcriptSystem = new TranscriptSystem(this);
+        
         // Initialize UI components
         this.ui = new UIManager(this);
         
+        // Initialize input language handler (legacy - will be replaced by transcript system)
+        this.inputLanguageHandler = new InputLanguageHandler(this);
+        
         // Initialize settings
         this.settings = new SettingsManager(this);
+        
+        // Initialize all settings UI after a delay
+        setTimeout(() => {
+            if (this.settings && this.settings.initializeAllSettingsUI) {
+                this.settings.initializeAllSettingsUI();
+            }
+            
+            // Initialize input language handler after settings are ready
+            if (this.inputLanguageHandler && this.inputLanguageHandler.initialize) {
+                this.inputLanguageHandler.initialize();
+            }
+        }, 1500);
     }
     
     setupEventListeners() {
@@ -117,28 +138,75 @@ class SenScript {
     async startListening() {
         console.log('🚀 [Control] === START BUTTON CLICKED ===');
         
+        // Add recording class for button animation
+        this.els.recordBtn.classList.add('recording');
+        if (this.els.mobileRecordBtn) {
+            this.els.mobileRecordBtn.classList.add('recording');
+        }
+        
+        // Update button text
+        if (this.els.recordText) {
+            this.els.recordText.textContent = 'Stop';
+        }
+        
         // V3: Ensure audio source is ready for transcription
         const hasAudioSource = await this.audioSystem.ensureAudioSourceForTranscription();
         if (!hasAudioSource) {
             console.error('🚀 [Control] ❌ Audio source not ready for transcription');
+            // Remove recording class if failed
+            this.els.recordBtn.classList.remove('recording');
+            if (this.els.mobileRecordBtn) {
+                this.els.mobileRecordBtn.classList.remove('recording');
+            }
+            if (this.els.recordText) {
+                this.els.recordText.textContent = 'Start';
+            }
             return;
         }
         
         // Start transcription mode
         this.audioSystem.startTranscription();
         
+        // Start transcript session  
+        this.transcriptSystem.startSession();
+        
         // Start speech recognition
         this.speechRecognition.startListening();
+        
+        // Start database session tracking
+        if (this.db) {
+            this.currentSession = await this.db.startListeningSession();
+        }
     }
     
     stopListening() {
         console.log('🛑 [Control] === STOP BUTTON CLICKED ===');
         
+        // Remove recording class for button animation
+        this.els.recordBtn.classList.remove('recording');
+        if (this.els.mobileRecordBtn) {
+            this.els.mobileRecordBtn.classList.remove('recording');
+        }
+        
+        // Update button text
+        if (this.els.recordText) {
+            this.els.recordText.textContent = 'Start';
+        }
+        
         // Stop transcription mode
         this.audioSystem.stopTranscription();
         
+        // Stop transcript session
+        this.transcriptSystem.stopSession();
+        
         // Stop speech recognition
         this.speechRecognition.stopListening();
+        
+        // End database session tracking
+        if (this.db) {
+            this.db.endListeningSession();
+            this.currentSession = null;
+        }
     }
     
     exportCards() {
@@ -191,6 +259,108 @@ class SenScript {
             }
         } catch (error) {
             console.error('❌ Error exposing test functions:', error);
+        }
+    }
+    
+    /**
+     * Process incoming transcript text using the new transcript processor
+     */
+    processTranscript(text) {
+        if (this.transcriptProcessor) {
+            this.transcriptProcessor.processTranscriptUpdate(text);
+        } else {
+            console.warn('[Main] TranscriptProcessor not available, falling back to direct card generation');
+            if (this.cardEngine) {
+                this.cardEngine.processText(text);
+            }
+        }
+    }
+    
+    /**
+     * Update usage minutes in database
+     */
+    updateUsageMinutes(minutes) {
+        try {
+            // Save to localStorage for now (database integration coming)
+            const usageData = JSON.parse(localStorage.getItem('senscript_usage') || '{}');
+            const today = new Date().toDateString();
+            
+            if (!usageData[today]) {
+                usageData[today] = { minutes: 0, cards: 0, sessions: 0 };
+            }
+            
+            usageData[today].minutes = minutes;
+            usageData[today].cards = this.cards.length;
+            
+            localStorage.setItem('senscript_usage', JSON.stringify(usageData));
+            
+            // Check for low minutes warning
+            this.checkLowMinutesWarning(minutes);
+            
+        } catch (error) {
+            console.error('[Usage] Failed to update usage minutes:', error);
+        }
+    }
+    
+    /**
+     * Check and show warning when user has 5 or fewer minutes remaining
+     */
+    checkLowMinutesWarning(usedMinutes) {
+        const monthlyLimit = 60; // Example limit
+        const remaining = monthlyLimit - usedMinutes;
+        
+        if (remaining <= 5 && remaining > 0) {
+            console.warn(`⚠️ [Usage] Only ${remaining} minutes remaining this month!`);
+            
+            // Show warning in UI if available
+            if (this.ui && this.ui.showNotification) {
+                this.ui.showNotification(
+                    `Warning: Only ${remaining} minutes remaining this month`,
+                    'warning'
+                );
+            }
+        } else if (remaining <= 0) {
+            console.error('❌ [Usage] Monthly usage limit exceeded!');
+            
+            // Show critical warning
+            if (this.ui && this.ui.showNotification) {
+                this.ui.showNotification(
+                    'Usage limit exceeded. Please upgrade your plan.',
+                    'error'
+                );
+            }
+        }
+    }
+    
+    /**
+     * Get usage statistics for display
+     */
+    getUsageStats() {
+        try {
+            const usageData = JSON.parse(localStorage.getItem('senscript_usage') || '{}');
+            const today = new Date().toDateString();
+            const currentSession = usageData[today] || { minutes: 0, cards: 0, sessions: 0 };
+            
+            // Calculate total usage across all days
+            const totalMinutes = Object.values(usageData).reduce((sum, day) => sum + (day.minutes || 0), 0);
+            const totalCards = Object.values(usageData).reduce((sum, day) => sum + (day.cards || 0), 0);
+            
+            return {
+                todayMinutes: currentSession.minutes,
+                todayCards: currentSession.cards,
+                totalMinutes,
+                totalCards,
+                sessionsCount: Object.keys(usageData).length
+            };
+        } catch (error) {
+            console.error('[Usage] Failed to get usage stats:', error);
+            return {
+                todayMinutes: 0,
+                todayCards: 0,
+                totalMinutes: 0,
+                totalCards: 0,
+                sessionsCount: 0
+            };
         }
     }
 }

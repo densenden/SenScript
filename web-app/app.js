@@ -187,6 +187,9 @@ class SenScript {
         this.currentAudioSource = 'microphone';
         this.setupAudioSourceToggle();
         
+        // Setup desktop integration event listeners
+        this.setupDesktopIntegration();
+        
         this.els.settingsBtn.onclick = () => {
             this.showSettings();
         };
@@ -474,29 +477,51 @@ class SenScript {
             this.updateListeningUI();
             console.log('[Speech] Recognition ended - audio source:', this.currentAudioSource);
             
-            // Only restart if we should be listening
+            // Check if this is running in Electron
+            const isElectron = window.desktop ? true : false;
+            
+            // Only restart if we should be listening AND we haven't exceeded limits
             if (this.shouldBeListening) {
+                // In Electron, be much more conservative to prevent loops
+                const maxRestarts = isElectron ? 3 : 10;
+                const restartDelay = isElectron ? 2000 : 500;
+                
+                // Check if we've exceeded restart attempts
+                if (this.restartAttempts >= maxRestarts) {
+                    console.log(`[Speech] Max restart attempts (${maxRestarts}) reached - stopping auto-restart`);
+                    this.shouldBeListening = false;
+                    this.updateListeningUI();
+                    this.restartAttempts = 0;
+                    return;
+                }
+                
                 setTimeout(() => {
+                    // Double-check we should still be listening and aren't already
                     if (this.shouldBeListening && !this.isListening) {
-                        // For system audio, be more conservative with restarts
-                        if (this.currentAudioSource === 'system' && this.restartAttempts > 2) {
+                        // For system audio, be even more conservative
+                        if (this.currentAudioSource === 'system' && this.restartAttempts > 1) {
                             console.log('[Speech] System audio restart limit reached - stopping auto-restart');
+                            this.shouldBeListening = false;
+                            this.updateListeningUI();
                             this.restartAttempts = 0;
                             return;
                         }
                         
                         // Recreate recognition if needed (handles corruption)
-                        if (this.needsRecreation || this.restartAttempts > 10) {
+                        if (this.needsRecreation || this.restartAttempts > 5) {
                             console.log('[Speech] 🔄 Recreating recognition object...');
                             this.needsRecreation = false;
-                            this.restartAttempts = 0;
+                            const oldAttempts = this.restartAttempts;
                             this.setupSpeechRecognition();
+                            this.restartAttempts = oldAttempts; // Keep attempt count
                             if (this.recognition && this.shouldBeListening) {
                                 try {
                                     this.recognition.start();
                                     console.log('[Speech] ✅ Restarted after recreation');
                                 } catch (e) {
                                     console.error('[Speech] Failed to restart after recreation:', e);
+                                    this.shouldBeListening = false;
+                                    this.updateListeningUI();
                                 }
                             }
                             return;
@@ -506,13 +531,17 @@ class SenScript {
                         try {
                             this.recognition.start();
                             this.restartAttempts++;
-                            console.log(`[Speech] 🔄 Restart attempt ${this.restartAttempts} for ${this.currentAudioSource}`);
+                            console.log(`[Speech] 🔄 Restart attempt ${this.restartAttempts}/${maxRestarts} for ${this.currentAudioSource}`);
                         } catch (error) {
-                            console.error(`❌ [RESTART-FAIL] ${error.name} - will recreate`);
-                            this.needsRecreation = true;
+                            console.error(`❌ [RESTART-FAIL] ${error.name} - attempt ${this.restartAttempts}`);
+                            if (this.restartAttempts >= maxRestarts - 1) {
+                                console.log('[Speech] Too many restart failures - stopping');
+                                this.shouldBeListening = false;
+                                this.updateListeningUI();
+                            }
                         }
                     }
-                }, 300); // Short delay for stability
+                }, restartDelay);
             } else {
                 this.restartAttempts = 0;
             }
@@ -4030,6 +4059,13 @@ class SenScript {
     
     startListening() {
         console.log('[Control] 🚀 START LISTENING CLICKED!');
+        
+        // Prevent duplicate starts
+        if (this.isListening || this.shouldBeListening) {
+            console.log('[Control] ⚠️ Already listening or starting - ignoring duplicate start');
+            return;
+        }
+        
         console.log('[Control] 🎯 Current audio source:', this.currentAudioSource);
         console.log('[Control] 🔍 Audio source type check:', typeof this.currentAudioSource);
         console.log('[Control] 📍 Will call:', this.currentAudioSource === 'system' ? 'startSystemAudio()' : 'startMicrophone()');
@@ -4108,14 +4144,30 @@ class SenScript {
             
             if (!stream || !stream.active) {
                 console.log('[Audio] 🎤 Requesting microphone access...');
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { 
-                        echoCancellation: false, 
-                        noiseSuppression: false,
-                        autoGainControl: false 
-                    } 
-                });
-                this.microphoneStream = stream; // Cache for reuse
+                
+                // Check if running in Electron and handle differently if needed
+                const isElectron = window.desktop ? true : false;
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: { 
+                            echoCancellation: false, 
+                            noiseSuppression: false,
+                            autoGainControl: false 
+                        } 
+                    });
+                    this.microphoneStream = stream; // Cache for reuse
+                } catch (error) {
+                    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                        console.error('[Audio] Microphone permission denied:', error);
+                        if (isElectron) {
+                            // In Electron, permissions should be auto-granted, so this is unexpected
+                            console.error('[Audio] Unexpected permission denial in Electron');
+                        }
+                        throw error;
+                    }
+                    throw error;
+                }
             } else {
                 console.log('[Audio] 🎤 Reusing cached microphone stream');
             }
@@ -4401,16 +4453,20 @@ class SenScript {
     
     stopListening() {
         const timestamp = new Date().toLocaleTimeString();
-        // Stopping listening process
+        console.log('[Control] 🛑 STOP LISTENING CLICKED!');
         
+        // Clear state immediately to prevent restart loops
         this.shouldBeListening = false;
-        // shouldBeListening set to FALSE
+        this.isListening = false;
+        this.restartAttempts = 0;
+        this.needsRecreation = false;
+        
+        console.log('[Control] ✅ Cleared listening state');
         
         if (this.recognition) {
-            // Stopping speech recognition
             try {
                 this.recognition.abort(); // Use abort for immediate stop
-                // Speech recognition aborted
+                console.log('[Control] ✅ Speech recognition aborted');
             } catch (e) {
                 console.warn(`🎤 [${timestamp}] [STOP] Error stopping recognition:`, e);
             }
@@ -4688,15 +4744,22 @@ class SenScript {
                             console.log('[UI] Requesting system audio permission...');
                             try {
                                 console.log('[UI] About to call getDisplayMedia...');
+                                
+                                // Check if running in Electron
+                                const isElectron = window.desktop ? true : false;
+                                console.log('[UI] Running in Electron:', isElectron);
+                                
                                 const stream = await navigator.mediaDevices.getDisplayMedia({
                                 audio: {
                                     echoCancellation: false,
                                     noiseSuppression: false,
-                                    autoGainControl: false
+                                    autoGainControl: false,
+                                    suppressLocalAudioPlayback: false
                                 },
                                 video: {
                                     width: 1,
-                                    height: 1
+                                    height: 1,
+                                    frameRate: 1
                                 }
                             });
                             
@@ -4854,6 +4917,62 @@ class SenScript {
     handleSourceChange() {
         // Legacy function - now handled by toggle switch
         this.updateToggleUI();
+    }
+    
+    setupDesktopIntegration() {
+        // Check if we're running in Electron
+        if (!window.desktop) {
+            console.log('[Desktop] Not running in Electron - skipping desktop integration');
+            return;
+        }
+        
+        console.log('[Desktop] Setting up desktop integration event listeners');
+        
+        // Desktop menu -> Settings
+        window.addEventListener('desktop-open-settings', () => {
+            console.log('[Desktop] Settings requested from menu');
+            this.showSettings();
+        });
+        
+        // Desktop menu -> Start/Stop listening
+        window.addEventListener('desktop-start-listening', () => {
+            console.log('[Desktop] Start listening requested from menu');
+            this.startListening();
+        });
+        
+        window.addEventListener('desktop-stop-listening', () => {
+            console.log('[Desktop] Stop listening requested from menu');
+            this.stopListening();
+        });
+        
+        // Desktop menu -> Microphone settings
+        window.addEventListener('desktop-open-microphone-settings', () => {
+            console.log('[Desktop] Microphone settings requested from menu');
+            this.showSettings();
+        });
+        
+        // Desktop menu -> Output settings
+        window.addEventListener('desktop-open-output-settings', () => {
+            console.log('[Desktop] Output settings requested from menu');
+            this.showSettings();
+        });
+        
+        // Expose app methods to desktop integration
+        window.appActions = {
+            openSettings: () => this.showSettings(),
+            startListening: () => this.startListening(),
+            stopListening: () => this.stopListening(),
+            toggleListening: () => this.toggleListening(),
+        };
+        
+        // Expose audio system to desktop integration
+        window.audioSystem = {
+            start: () => this.startListening(),
+            stop: () => this.stopListening(),
+            toggle: () => this.toggleListening(),
+        };
+        
+        console.log('[Desktop] Desktop integration complete');
     }
     
     toggleTheme() {

@@ -1,0 +1,266 @@
+/* Desktop-specific styles for SenScript Electron app */
+
+/* Force 52px corner radius on everything */
+* {
+  box-sizing: border-box !important;
+}
+
+html, body {
+  -webkit-app-region: drag !important;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border-radius: 52px !important;
+  -webkit-border-radius: 52px !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+/* Apply backdrop only, no clipping */
+body > div:first-child:not(.toggle-option):not(.toggle-switch):not(.audio-source-toggle),
+#root,
+[data-reactroot] {
+  border-radius: 52px !important;
+  -webkit-border-radius: 52px !important;
+  overflow: visible !important;
+  background: rgba(18, 18, 18, 0.15) !important;
+  backdrop-filter: blur(20px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.2) !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+}
+
+/* Ensure all content containers allow overflow */
+.app,
+.app-container,
+.container,
+.wrapper,
+.main-content,
+div, section, main {
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+/* Force transparency on common backgrounds - but exclude card toggles */
+.bg-white:not(.flip-card-front):not(.flip-card-back),
+.bg-gray-50,
+.bg-gray-100,
+.bg-neutral-50,
+.bg-stone-50,
+[class*="bg-"]:not(.flip-card-front):not(.flip-card-back) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+.bg-black,
+.bg-gray-900,
+.bg-neutral-900,
+.bg-stone-900 {
+  background: rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* Preserve card toggle original styles */
+.flip-card,
+.flip-card-inner,
+.flip-card-front,
+.flip-card-back {
+  /* Don't override these styles */
+  background: inherit !important;
+  border-radius: inherit !important;
+}
+
+/* Preserve level dots visibility */
+.audio-level-dots,
+.level-dot {
+  /* Don't override opacity or display */
+  opacity: inherit !important;
+  display: flex !important;
+}
+
+/* Preserve toggle switch functionality and appearance */
+.toggle-switch,
+.toggle-option,
+.audio-source-toggle {
+  /* Don't override these styles */
+  background: inherit !important;
+  border: inherit !important;
+  backdrop-filter: inherit !important;
+  -webkit-backdrop-filter: inherit !important;
+}
+
+/* Ensure toggle options remain clickable and styled */
+.toggle-option[data-value] {
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Make interactive elements non-draggable */
+button,
+input,
+textarea,
+select,
+a,
+[role="button"],
+[data-testid],
+.clickable,
+.interactive,
+[onclick],
+.cursor-pointer,
+.toggle-option,
+.toggle-switch,
+.audio-source-toggle,
+[data-value],
+.glass-button {
+  -webkit-app-region: no-drag !important;
+}
+
+/* Custom window controls */
+.desktop-window-controls {
+  -webkit-app-region: no-drag !important;
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  padding: 8px !important;
+  gap: 8px !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.desktop-window-control-btn {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.desktop-window-control-btn:hover {
+  opacity: 0.8 !important;
+  transform: scale(1.1) !important;
+}
+
+.desktop-close { 
+  background: #ff5f57 !important; 
+}
+.desktop-minimize { 
+  background: #ffbd2e !important; 
+}
+.desktop-maximize { 
+  background: #28ca42 !important; 
+}
+
+/* Enhanced modals and popups */
+.modal,
+.overlay,
+.popup,
+[role="dialog"] {
+  border-radius: 36px !important;
+  -webkit-border-radius: 36px !important;
+  backdrop-filter: blur(40px) !important;
+  -webkit-backdrop-filter: blur(40px) !important;
+  background: rgba(18, 18, 18, 0.25) !important;
+}
+
+/* Specific styling for the three visible elements */
+#screen1,
+.screen1,
+[id*="screen1"] {
+  border-radius: 36px !important;
+  -webkit-border-radius: 36px !important;
+  overflow: visible !important;
+}
+
+#screen2,
+.screen2,
+[id*="screen2"] {
+  border-radius: 36px !important;
+  -webkit-border-radius: 36px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  overflow: visible !important;
+}
+
+/* Make text in screen2 more visible with frosted glass */
+#screen2 *,
+.screen2 *,
+[id*="screen2"] * {
+  color: rgba(255, 255, 255, 0.95) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Special styling for transcript content in screen2 */
+#screen2 .transcript-content,
+#screen2 .transcript-header,
+#screen2 .transcript-title {
+  color: rgba(255, 255, 255, 0.98) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ensure buttons remain visible in screen2 */
+#screen2 button,
+#screen2 .glass-button {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+#screen2 button:hover,
+#screen2 .glass-button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.transcript,
+#transcript,
+[class*="transcript"],
+[id*="transcript"] {
+  border-radius: 36px !important;
+  -webkit-border-radius: 36px !important;
+  overflow: visible !important;
+}
+
+#screen3,
+.screen3,
+[id*="screen3"] {
+  border-radius: 36px !important;
+  -webkit-border-radius: 36px !important;
+  overflow: visible !important;
+}
+
+
+/* Smooth transitions */
+* {
+  transition: backdrop-filter 0.3s ease, background 0.3s ease !important;
+}
+
+/* Override any conflicting styles */
+div, section, main, article, aside, header, footer, nav {
+  border-radius: inherit !important;
+}
+
+/* Ensure the entire viewport has rounded corners */
+:root {
+  border-radius: 52px !important;
+  overflow: hidden !important;
+}
+
+/* Force rounded corners on viewport */
+html {
+  clip-path: inset(0 round 52px) !important;
+}

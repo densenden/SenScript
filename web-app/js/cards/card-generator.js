@@ -13,12 +13,12 @@ class CardGenerator {
         return 'session_' + Math.random().toString(36).substr(2, 9);
     }
     
-    async generateFromText(text, isCheatMode = false) {
+    async generateFromText(text, isCheatMode = false, detection = null) {
         console.log(`🎯 [CardGenerator] Generating ${isCheatMode ? 'CheatCard' : 'FlashCard'} from:`, text.substring(0, 50) + '...');
         
-        // Detect language for proper card generation
-        const detectedLanguage = this.detectLanguage(text);
-        console.log('🌐 [CardGenerator] Detected language:', detectedLanguage);
+        // Use provided detection or detect language for proper card generation
+        const detectedLanguage = detection || this.detectLanguage(text);
+        console.log('🌐 [CardGenerator] Language info:', detectedLanguage);
         
         // Get output language settings
         const { outputLanguage, outputFlag } = this.getOutputLanguage(detectedLanguage);
@@ -72,7 +72,7 @@ class CardGenerator {
                 return null;
             }
             
-            // Extract card data
+            // Extract card data from API response
             let cardData = result.card || result;
             
             if (!cardData || (!cardData.front && !cardData.question)) {
@@ -80,21 +80,24 @@ class CardGenerator {
                 throw new Error('Invalid card data received from API');
             }
             
-            // Create card object with proper categorization for CheatCard vs FlashCard
+            // Get provider from the card data itself (should be included by LLM conversation)
+            const actualProvider = cardData.provider || result.provider || 'unknown';
+            
+            // Create card object with proper legacy format
             const card = {
-                id: Date.now() + Math.random(),
-                cardType: isCheatMode ? 'cheat' : 'flash',
-                category: this.determineCategory(cardData, isCheatMode),
-                type: cardData.type || (isCheatMode ? 'tip' : 'concept'),
+                id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                category: cardData.category || this.determineCategory(cardData, isCheatMode),
                 front: cardData.front || cardData.question || 'No question',
                 back: cardData.back || cardData.answer || 'No answer',
                 confidence: parseInt(cardData.confidence) || 75,
-                source: 'AI',
-                provider: result.provider || 'unknown',
+                skip: false,
+                provider: actualProvider,
+                cardType: isCheatMode ? 'cheat' : 'flash',
+                source: 'card-engine',
                 language: outputLanguage,
                 flag: outputFlag,
-                timestamp: Date.now(),
-                originalText: text.substring(0, 100),
+                timestamp: new Date().toLocaleTimeString(),
+                originalText: text.substring(0, 150),
                 time: new Date().toLocaleTimeString()
             };
             

@@ -28,10 +28,16 @@ class SpeechRecognitionManager {
         const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
         this.recognition = new SpeechRecognitionAPI();
         
-        // Configure recognition
+        // Configure recognition for maximum stability
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
+        this.recognition.maxAlternatives = 1;
         this.recognition.lang = this.app.currentLang;
+        
+        // Add audio context for better stability
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            this.setupAudioContext();
+        }
         
         // Event handlers
         this.recognition.onstart = () => {
@@ -91,6 +97,47 @@ class SpeechRecognitionManager {
         };
         
         console.log('[Speech] Speech recognition initialized');
+    }
+    
+    setupAudioContext() {
+        try {
+            // Create audio context for better audio processing
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('[Speech] Audio context created for enhanced stability');
+            
+            // Request microphone permissions and setup audio processing
+            navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    sampleRate: 16000
+                } 
+            })
+            .then(stream => {
+                console.log('[Speech] Microphone stream acquired with enhanced settings');
+                this.mediaStream = stream;
+                
+                // Create audio processing nodes for better signal quality
+                this.source = this.audioContext.createMediaStreamSource(stream);
+                this.analyser = this.audioContext.createAnalyser();
+                this.analyser.fftSize = 2048;
+                this.analyser.smoothingTimeConstant = 0.8;
+                
+                // Connect nodes for audio processing
+                this.source.connect(this.analyser);
+                
+                console.log('[Speech] Audio processing pipeline established');
+            })
+            .catch(error => {
+                console.warn('[Speech] Microphone permission denied or unavailable:', error);
+                // Fallback to basic speech recognition without audio context
+            });
+            
+        } catch (error) {
+            console.warn('[Speech] Audio context creation failed:', error);
+            // Continue without audio context - basic recognition will still work
+        }
     }
     
     setupTabFocusHandlers() {
@@ -207,21 +254,61 @@ class SpeechRecognitionManager {
         }
         
         this.updateUI();
+        
+        // Clean up audio resources when stopping
+        this.cleanupAudioResources();
+    }
+    
+    cleanupAudioResources() {
+        try {
+            if (this.mediaStream) {
+                this.mediaStream.getTracks().forEach(track => {
+                    track.stop();
+                    console.log('[Speech] Audio track stopped');
+                });
+                this.mediaStream = null;
+            }
+            
+            if (this.source) {
+                this.source.disconnect();
+                this.source = null;
+            }
+            
+            if (this.analyser) {
+                this.analyser.disconnect();
+                this.analyser = null;
+            }
+            
+            if (this.audioContext && this.audioContext.state !== 'closed') {
+                this.audioContext.close();
+                this.audioContext = null;
+                console.log('[Speech] Audio context closed');
+            }
+        } catch (error) {
+            console.warn('[Speech] Error cleaning up audio resources:', error);
+        }
     }
     
     handleSpeechResult(event) {
         let final = '';
         let interim = '';
         
-        // Process speech results
+        console.log('[Speech] Processing speech result - resultIndex:', event.resultIndex, 'results.length:', event.results.length);
+        
+        // Process speech results with enhanced logging
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
-            const text = result[0].transcript;
+            const text = result[0].transcript.trim();
+            const confidence = result[0].confidence || 0.5;
             
-            if (result.isFinal) {
+            console.log(`[Speech] Result ${i}: "${text}" (final: ${result.isFinal}, confidence: ${confidence.toFixed(2)})`);
+            
+            if (result.isFinal && text.length > 0) {
                 final += text + ' ';
-            } else {
+                console.log('[Speech] Added to final transcript:', text);
+            } else if (!result.isFinal && text.length > 0) {
                 interim = text;
+                console.log('[Speech] Updated interim result:', text);
             }
         }
         
@@ -251,33 +338,63 @@ class SpeechRecognitionManager {
         
         // Only process and display if actively listening (not just background)
         if (this.shouldBeListening) {
-            // Handle final text
-            if (final.trim()) {
-                this.app.pendingSentence += final;
-                this.app.transcript += final;
-                this.processCompleteSentence(final.trim());
+            // Use new unified transcript system if available
+            if (this.app.transcriptSystem) {
+                // Handle final text
+                if (final.trim()) {
+                    this.app.transcriptSystem.processIncomingSpeech({
+                        isFinal: true,
+                        transcript: final.trim(),
+                        confidence: 0.85 // Default confidence
+                    });
+                }
+                
+                // Handle interim text
+                if (interim) {
+                    this.app.transcriptSystem.processIncomingSpeech({
+                        isFinal: false,
+                        transcript: interim,
+                        confidence: 0.5 // Lower confidence for interim
+                    });
+                }
+            } else {
+                // Fallback to old system
+                if (final.trim()) {
+                    this.app.pendingSentence += final;
+                    this.app.transcript += final;
+                    this.processCompleteSentence(final.trim());
+                }
+                
+                // Update UI with interim results
+                this.app.currentInterim = interim;
+                this.updateTranscriptDisplay();
             }
-            
-            // Update UI with interim results
-            this.app.currentInterim = interim;
-            this.updateTranscriptDisplay();
         }
     }
     
     processCompleteSentence(sentence) {
         console.log('[Speech] Processing sentence:', sentence);
         
-        // Detect language and update UI if AUTO mode is enabled
-        if (this.app.settings && this.app.settings.autoLanguage && window.LanguageDetection) {
-            const detection = window.LanguageDetection.detectLanguage(sentence);
-            if (detection.confidence > 2) { // Minimum confidence threshold
-                this.updateLanguageIndicator(detection.lang, detection.flag);
+        // Use the new transcript processor if available (much more sophisticated)
+        if (this.app.transcriptProcessor) {
+            console.log('[Speech] Using new TranscriptProcessor for sentence processing');
+            this.app.transcriptProcessor.processTranscriptUpdate(sentence);
+        } else {
+            // Fallback to old system
+            console.log('[Speech] Using fallback processing - TranscriptProcessor not available');
+            
+            // Detect language and update UI if AUTO mode is enabled
+            if (this.app.settings && this.app.settings.autoLanguage && window.LanguageDetection) {
+                const detection = window.LanguageDetection.detectLanguage(sentence);
+                if (detection.confidence > 2) { // Minimum confidence threshold
+                    this.updateLanguageIndicator(detection.lang, detection.flag);
+                }
             }
-        }
-        
-        // Pass to card engine for potential card generation
-        if (this.app.cardEngine) {
-            this.app.cardEngine.processText(sentence);
+            
+            // Pass to card engine for potential card generation
+            if (this.app.cardEngine) {
+                this.app.cardEngine.processText(sentence);
+            }
         }
     }
     
@@ -332,7 +449,8 @@ class SpeechRecognitionManager {
     updateTranscriptDisplay() {
         console.log('[Speech] === UPDATING TRANSCRIPT DISPLAY ===');
         console.log('[Speech] Transcript element:', this.app.els.transcript);
-        console.log('[Speech] Final transcript:', `"${this.app.transcript}"`);
+        console.log('[Speech] Final transcript length:', this.app.transcript.length);
+        console.log('[Speech] Final transcript:', `"${this.app.transcript.substring(0, 100)}..."`);
         console.log('[Speech] Current interim:', `"${this.app.currentInterim}"`);
         
         if (!this.app.els.transcript) {
@@ -342,17 +460,41 @@ class SpeechRecognitionManager {
         
         // Combine final transcript with interim results
         const displayText = this.app.transcript + this.app.currentInterim;
-        console.log('[Speech] Combined display text:', `"${displayText}"`);
+        const wordCount = displayText.trim().split(/\s+/).filter(word => word.length > 0).length;
+        
+        console.log('[Speech] Combined display text length:', displayText.length);
+        console.log('[Speech] Word count:', wordCount);
         
         if (displayText.trim()) {
+            // Enhanced display with word highlighting for interim results
+            const finalPart = this.app.transcript;
+            const interimPart = this.app.currentInterim;
+            
             this.app.els.transcript.innerHTML = `
                 <div class="transcript-rows">
-                    <div class="transcript-row current">${displayText}</div>
+                    <div class="transcript-row current">
+                        <span class="final-text" style="color: rgba(255, 255, 255, 0.9);">${finalPart}</span>
+                        <span class="interim-text" style="color: rgba(255, 255, 255, 0.6); font-style: italic;">${interimPart}</span>
+                    </div>
+                    <div class="transcript-stats" style="font-size: 10px; opacity: 0.5; margin-top: 8px;">
+                        Words: ${wordCount} | Listening: ${this.isListening ? '✅' : '❌'}
+                    </div>
                 </div>
             `;
-            console.log('[Speech] ✅ Transcript display updated with content');
+            console.log('[Speech] ✅ Enhanced transcript display updated - Words:', wordCount);
+            
+            // Auto-scroll to bottom to show latest content
+            this.app.els.transcript.scrollTop = this.app.els.transcript.scrollHeight;
         } else {
-            console.log('[Speech] ⚠️ No content to display - displayText is empty');
+            // Show helpful status when no content
+            this.app.els.transcript.innerHTML = `
+                <div class="transcript-rows">
+                    <div class="transcript-row placeholder" style="color: rgba(255, 255, 255, 0.4); font-style: italic;">
+                        ${this.isListening ? 'Listening for speech...' : 'Click Start to begin transcription'}
+                    </div>
+                </div>
+            `;
+            console.log('[Speech] ⚠️ No content to display - showing placeholder');
         }
     }
 }

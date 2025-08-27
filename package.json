@@ -1,74 +1,24 @@
 {
   "name": "senscript",
   "version": "1.0.0",
-  "description": "Minimalist flashcard app for macOS",
-  "main": "dist/main.js",
+  "description": "Real-time AI flashcard generation from speech - Chrome Web App",
+  "main": "web-app/server.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
-    "dev:main": "webpack --config webpack.main.config.js --mode development --watch",
-    "dev:renderer": "webpack serve --config webpack.renderer.config.js --mode development",
-    "dev:web": "node web-app/server.js",
-    "build": "npm run build:main && npm run build:renderer",
-    "build:main": "webpack --config webpack.main.config.js --mode production",
-    "build:renderer": "webpack --config webpack.renderer.config.js --mode production",
-    "start": "node web-app/server.js",
-    "start:web": "npm run dev:web",
-    "dist": "npm run build && electron-builder",
+    "dev": "cd web-app && node server.js",
+    "start": "cd web-app && node server.js",
+    "dev:web": "cd web-app && node server.js",
+    "start:web": "cd web-app && node server.js",
+    "dev:website": "cd website && npm run dev",
+    "build:website": "cd website && npm run build",
     "vercel-build": "echo 'No build needed for web app'"
   },
   "keywords": [
+    "speech-recognition",
+    "ai",
     "flashcards",
-    "education",
-    "macos"
+    "chrome-extension",
+    "web-app"
   ],
-  "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "assert": "^2.0.0",
-    "browserify-zlib": "^0.2.0",
-    "buffer": "^6.0.3",
-    "concurrently": "^8.2.0",
-    "crypto-browserify": "^3.12.0",
-    "css-loader": "^6.8.0",
-    "dotenv-webpack": "^8.1.1",
-    "electron": "^27.0.0",
-    "electron-builder": "^24.0.0",
-    "html-webpack-plugin": "^5.5.0",
-    "https-browserify": "^1.0.0",
-    "os-browserify": "^0.3.0",
-    "path-browserify": "^1.0.1",
-    "process": "^0.11.10",
-    "stream-browserify": "^3.0.0",
-    "stream-http": "^3.2.0",
-    "style-loader": "^3.3.0",
-    "ts-loader": "^9.5.0",
-    "typescript": "^5.3.0",
-    "url": "^0.11.0",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.0",
-    "webpack-dev-server": "^4.15.0"
-  },
-  "dependencies": {
-    "@stripe/stripe-js": "^7.8.0",
-    "dotenv": "^16.0.0",
-    "framer-motion": "^10.18.0",
-    "lucide-react": "^0.540.0",
-    "openai": "^4.20.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "stripe": "^18.4.0"
-  },
-  "build": {
-    "appId": "com.senscript.app",
-    "productName": "SenScript",
-    "directories": {
-      "output": "dist-app"
-    },
-    "mac": {
-      "category": "public.app-category.education"
-    }
-  }
+  "author": "SenScript",
+  "license": "MIT"
 }

@@ -105,24 +105,41 @@ class CardEngine {
         console.log('[CardEngine] Mode display updated:', this.interviewMode ? 'CheatCard' : 'FlashCard');
     }
     
-    processText(text) {
-        // Check if text is worthy of card generation
-        if (!this.isTextWorthyOfCard(text)) {
+    async processText(text, detection = null) {
+        // Check if text is worthy of card generation (delegate to transcript processor if available)
+        if (this.app.transcriptProcessor && !this.app.transcriptProcessor.isTextWorthyOfCard(text)) {
+            console.log('[CardEngine] Text not worthy according to transcript processor');
+            return;
+        } else if (!this.app.transcriptProcessor && !this.isTextWorthyOfCard(text)) {
+            console.log('[CardEngine] Text not worthy according to card engine');
             return;
         }
         
-        // Prevent duplicates
-        if (this.recentTexts.has(text)) {
-            console.log('[CardEngine] Skipping duplicate text');
+        // Prevent duplicates with improved hashing
+        const textHash = this.createTextHash(text);
+        if (this.recentTexts.has(textHash)) {
+            console.log('[CardEngine] Skipping duplicate text (hash match)');
             return;
         }
         
         // Add to recent texts and remove after timeout
-        this.recentTexts.add(text);
-        setTimeout(() => this.recentTexts.delete(text), this.duplicateTimeout);
+        this.recentTexts.add(textHash);
+        setTimeout(() => this.recentTexts.delete(textHash), this.duplicateTimeout);
         
-        // Generate card
-        this.generateCard(text);
+        // Generate card with language detection
+        await this.generateCard(text, detection);
+    }
+    
+    /**
+     * Create a hash for text to better detect duplicates
+     */
+    createTextHash(text) {
+        // Simple hash based on normalized text content
+        return text.toLowerCase()
+            .replace(/[^\w\s]/g, '') // Remove punctuation
+            .replace(/\s+/g, ' ')    // Normalize spaces
+            .trim()
+            .substring(0, 100);      // Use first 100 chars for hash
     }
     
     isTextWorthyOfCard(text) {
@@ -140,20 +157,21 @@ class CardEngine {
         return educationalKeywords.some(keyword => lowerText.includes(keyword));
     }
     
-    async generateCard(text) {
+    async generateCard(text, detection = null) {
         try {
             console.log(`🎯 [CardEngine] === GENERATING ${this.interviewMode ? 'CHEAT' : 'FLASH'} CARD ===`);
             console.log(`🎯 [CardEngine] Text:`, text.substring(0, 50) + '...');
             console.log(`🎯 [CardEngine] Interview mode:`, this.interviewMode);
+            console.log(`🎯 [CardEngine] Language detection:`, detection);
             
-            // Use the restored CardGenerator with proper mode flag
+            // Use the restored CardGenerator with proper mode flag and detection
             if (!this.app.cardGenerator) {
                 console.error('❌ [CardEngine] CardGenerator not initialized');
                 return;
             }
             
-            // Generate card using AI-powered generator
-            const card = await this.app.cardGenerator.generateFromText(text, this.interviewMode);
+            // Generate card using AI-powered generator with language detection
+            const card = await this.app.cardGenerator.generateFromText(text, this.interviewMode, detection);
             
             if (!card) {
                 console.log('⏭️ [CardEngine] Card generation returned null (likely skipped by AI)');
@@ -173,7 +191,8 @@ class CardEngine {
                 message: error.message,
                 stack: error.stack?.split('\n').slice(0, 3),
                 text: text.substring(0, 50),
-                interviewMode: this.interviewMode
+                interviewMode: this.interviewMode,
+                detection: detection
             });
         }
     }
@@ -255,61 +274,44 @@ class CardEngine {
      * Includes sophisticated header with category, source indicator, confidence, language flag, and timestamp
      */
     generateCardHTML(cardData) {
-        // Add confidence indicator, source, provider, and language flag
-        const sourceCircle = cardData.source === 'AI' ? 
-            '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-left: 6px;"></span>' : 
-            '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%; margin-left: 6px;"></span>';
-        
-        const confidenceText = (cardData.confidence && cardData.confidence !== 'undefined' && !isNaN(cardData.confidence)) ? 
-            ` ${Math.round(cardData.confidence)}%` : '';
-        
         // Format timestamp for display
         const timeDisplay = cardData.time || new Date().toLocaleTimeString();
         
-        const headerHTML = `
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">
-                <div style="display: flex; align-items: center;">
-                    <span>${cardData.category || 'CONCEPT'}</span>
+        // Source indicator (no percentage)
+        const sourceCircle = cardData.source === 'AI' ? 
+            '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>' : 
+            '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%;"></span>';
+        
+        return `
+            <div class="card-header">
+                <div class="card-type">${cardData.category || 'CONCEPT'}</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; opacity: 0.7;">
                     ${sourceCircle}
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    ${confidenceText ? `<span>${confidenceText}</span>` : ''}
                     <span>${cardData.flag || '🌐'}</span>
-                    <span style="opacity: 0.7;">${timeDisplay}</span>
+                    <span>${timeDisplay}</span>
                 </div>
             </div>
-        `;
-        
-        const frontHTML = `
-            <div class="card-front">
-                ${headerHTML}
-                <div style="font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, 0.95); line-height: 1.4; margin-bottom: 12px;">${cardData.front}</div>
+            
+            <div class="card-title" style="margin-bottom: 16px;">${cardData.front || 'No title'}</div>
+            
+            <div class="card-content">
+                <strong style="opacity: 0.6; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block;">Answer:</strong>
+                ${(cardData.back || 'No content available').replace(/\n/g, '<br>')}
+            </div>
+            
+            <div class="card-source">
+                ${cardData.provider ? `${cardData.provider} • ` : ''}${cardData.source || 'AI'}${cardData.originalText ? ` • "${cardData.originalText.substring(0, 40)}..."` : ''}
             </div>
         `;
-        
-        const backHTML = `
-            <div class="card-back">
-                ${headerHTML}
-                <div style="font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.85); margin-bottom: 16px;">
-                    ${cardData.back.replace(/\n/g, '<br>')}
-                </div>
-                <div style="font-size: 12px; opacity: 0.7; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 8px;">
-                    ${cardData.provider ? `Provider: ${cardData.provider} • ` : ''}Source: ${cardData.source || 'AI'}${cardData.originalText ? ` • "${cardData.originalText.substring(0, 30)}..."` : ''}
-                </div>
-            </div>
-        `;
-        
-        return `<div class="card-inner">${frontHTML}${backHTML}</div>`;
     }
     
     /**
-     * Set up click handler for card flipping
+     * Set up click handler for card interactions (no flipping needed)
      */
     setupCardClickHandler(cardElement, cardData) {
-        cardElement.addEventListener('click', () => {
-            cardElement.classList.toggle('flipped');
-            console.log(`🔄 Card ${cardData.id} flipped`);
-        });
+        // Cards now show all content by default - no need for flipping
+        // Could add other interactions here if needed (like copy, star, etc.)
+        cardElement.style.cursor = 'default';
     }
     
     extractCheatCategory(text) {
