@@ -20,6 +20,8 @@ class AudioSystemV3 {
         this.currentAudioSource = 'microphone'; // Default per spec
         this.isTranscribing = false; // Separate from audio levels
         this.permissionRequestInProgress = false;
+        this.lastSwitchTime = 0; // Prevent rapid switching
+        this.switchDebounceMs = 1000; // 1 second debounce
         
         this.initialize();
     }
@@ -68,15 +70,24 @@ class AudioSystemV3 {
     }
     
     async switchAudioSource(newSource) {
-        if (newSource === this.currentAudioSource) {
-            console.log(`🎤 [AudioV3] Already on ${newSource}, but ensuring stream is ready`);
-            // Don't ignore - ensure the stream is active for current source
+        // Debounce rapid switches
+        const now = Date.now();
+        if (now - this.lastSwitchTime < this.switchDebounceMs && newSource !== this.currentAudioSource) {
+            console.log('🎤 [AudioV3] ⚠️ Switch too rapid, ignoring (debounce)');
+            return;
         }
         
         if (this.permissionRequestInProgress) {
             console.log('🎤 [AudioV3] ⚠️ Permission request in progress, ignoring switch');
             return;
         }
+        
+        if (newSource === this.currentAudioSource) {
+            console.log(`🎤 [AudioV3] Already on ${newSource}, but ensuring stream is ready`);
+            // Don't ignore - ensure the stream is active for current source
+        }
+        
+        this.lastSwitchTime = now;
         
         console.log(`🎤 [AudioV3] === SWITCHING: ${this.currentAudioSource} → ${newSource} ===`);
         
@@ -141,28 +152,34 @@ class AudioSystemV3 {
     async switchToDeviceOutput() {
         console.log('🖥️ [AudioV3] === SWITCHING TO DEVICE OUTPUT ===');
         
-        // Check if we have cached system stream
+        // Clean up any existing system stream first
         if (this.systemStream && this.systemStream.active) {
-            console.log('🖥️ [AudioV3] ✅ Using cached system stream');
-            this.connectAudioVisualization(this.systemStream);
-            this.updateTranscriptUI('Device Output Ready', 'Audio levels active - Click Start to transcribe');
-            return;
+            console.log('🖥️ [AudioV3] 🧹 Cleaning up existing system stream');
+            this.systemStream.getTracks().forEach(track => track.stop());
+            this.systemStream = null;
         }
         
-        // No cached stream - request permission
-        console.log('🖥️ [AudioV3] 🔐 No cached system audio - requesting permission');
+        // Request fresh system stream
+        console.log('🖥️ [AudioV3] 🔐 Requesting fresh system audio permission');
         this.permissionRequestInProgress = true;
-        this.updateTranscriptUI('Device Output Mode', 'Requesting tab audio share...');
+        this.updateTranscriptUI('Device Output Mode', 'Select tab or window to capture audio...');
         
         try {
             console.log('🖥️ [AudioV3] 📞 Calling getDisplayMedia...');
+            
+            // Request with more explicit audio requirements
             this.systemStream = await navigator.mediaDevices.getDisplayMedia({
                 audio: { 
                     echoCancellation: false, 
                     noiseSuppression: false, 
-                    autoGainControl: false 
+                    autoGainControl: false,
+                    suppressLocalAudioPlayback: false
                 },
-                video: { width: 1, height: 1 }
+                video: { 
+                    width: { ideal: 1 }, 
+                    height: { ideal: 1 },
+                    frameRate: { ideal: 1 }
+                }
             });
             
             console.log('🖥️ [AudioV3] ✅ System audio permission granted!');
@@ -207,12 +224,25 @@ class AudioSystemV3 {
             
         } catch (error) {
             console.log('🖥️ [AudioV3] ⚠️ System audio permission cancelled/failed:', error);
+            console.log('🖥️ [AudioV3] Error name:', error.name);
             console.log('🖥️ [AudioV3] 🔄 Auto-switching back to microphone');
             
-            // Per spec: fallback to microphone
+            // Clean up any partial stream
+            if (this.systemStream) {
+                this.systemStream.getTracks().forEach(track => track.stop());
+                this.systemStream = null;
+            }
+            
+            // Per spec: fallback to microphone with appropriate message
             this.currentAudioSource = 'microphone';
             this.updateToggleUI();
-            this.updateTranscriptUI('System Audio Cancelled', 'Switched back to microphone mode');
+            
+            if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
+                this.updateTranscriptUI('Permission Cancelled', 'User cancelled sharing - using microphone');
+            } else {
+                this.updateTranscriptUI('System Audio Failed', 'Error occurred - using microphone');
+            }
+            
             await this.switchToMicrophone();
             
         } finally {
