@@ -23,26 +23,67 @@ class WhisperClient {
         this.totalMinutesTranscribed = 0;
         this.totalCost = 0;
         
-        // Quality settings
+        // Advanced Whisper settings leveraging full API capabilities
         this.whisperSettings = {
             model: 'whisper-1',
-            response_format: 'verbose_json', // Get timestamps and metadata
-            temperature: 0.0, // Most deterministic
-            language: null, // Auto-detect
-            prompt: this.getOptimalPrompt()
+            response_format: 'verbose_json', // Get timestamps, confidence, segments
+            temperature: 0.0, // Maximum determinism for educational content
+            language: null, // Auto-detect for multilingual support
+            prompt: this.getContextualPrompt(),
+            // Advanced features
+            timestamp_granularities: ['word', 'segment'], // Both word and segment timestamps
+            word_timestamps: true // Enable word-level timing
+        };
+        
+        // Context-aware prompting for different content types
+        this.contentContexts = {
+            meeting: "Business meeting with technical discussions, decisions, and action items.",
+            lecture: "Educational lecture with technical concepts, definitions, and examples.",
+            presentation: "Professional presentation with data, insights, and explanations.",
+            conference: "Conference talk with industry expertise and technical terminology.",
+            interview: "Interview format with questions, answers, and detailed responses."
+        };
+        
+        // Language-specific optimizations
+        this.languageOptimizations = {
+            'en': { temperature: 0.0, prompt_weight: 1.0 },
+            'de': { temperature: 0.1, prompt_weight: 1.2 },
+            'fr': { temperature: 0.1, prompt_weight: 1.1 },
+            'es': { temperature: 0.1, prompt_weight: 1.1 },
+            'zh': { temperature: 0.2, prompt_weight: 1.3 },
+            'ja': { temperature: 0.2, prompt_weight: 1.3 }
         };
         
         console.log('🎯 [WhisperClient] Initialized for professional transcription');
     }
     
     /**
-     * Get optimal prompt for educational content
+     * Get contextual prompt optimized for current content type
      */
-    getOptimalPrompt() {
-        return `This is educational content from a meeting, lecture, or conference. 
-Please provide accurate transcription with proper punctuation, capitalization, and formatting. 
-Remove filler words like um, uh, ah, like when not meaningful. 
-Preserve technical terms and proper nouns accurately.`;
+    getContextualPrompt(contentType = 'meeting') {
+        const basePrompt = `This is professional ${this.contentContexts[contentType] || this.contentContexts.meeting}
+Please provide accurate transcription with proper punctuation, capitalization, and formatting.
+Remove filler words (um, uh, ah, like) when they don't add meaning.
+Preserve technical terms, proper nouns, and specialized vocabulary.
+Use appropriate formatting for lists, questions, and emphasis.`;
+
+        return basePrompt;
+    }
+    
+    /**
+     * Auto-detect content type from audio metadata and context
+     */
+    detectContentType(metadata) {
+        // Simple heuristics - can be enhanced with ML
+        const source = metadata.source || '';
+        const duration = metadata.duration || 0;
+        
+        if (duration > 1800) return 'lecture'; // >30 minutes likely lecture
+        if (source.includes('presentation')) return 'presentation';
+        if (source.includes('interview')) return 'interview';
+        if (source.includes('conference')) return 'conference';
+        
+        return 'meeting'; // Default
     }
     
     /**
@@ -117,18 +158,31 @@ Preserve technical terms and proper nouns accurately.`;
         console.log('📤 [WhisperClient] Sending transcription request...');
         
         try {
-            // Create FormData for audio upload
+            // Detect content type and optimize prompt
+            const contentType = this.detectContentType(metadata);
+            const contextualPrompt = this.getContextualPrompt(contentType);
+            
+            // Create FormData with advanced Whisper features
             const formData = new FormData();
-            formData.append('audio', audioBlob, 'audio.webm');
+            formData.append('file', audioBlob, `audio_${Date.now()}.webm`);
             formData.append('model', this.whisperSettings.model);
             formData.append('response_format', this.whisperSettings.response_format);
             formData.append('temperature', this.whisperSettings.temperature);
-            formData.append('prompt', this.whisperSettings.prompt);
+            formData.append('prompt', contextualPrompt);
+            formData.append('timestamp_granularities[]', 'word');
+            formData.append('timestamp_granularities[]', 'segment');
             
-            // Add language if specified
+            // Language-specific optimization
             if (this.whisperSettings.language) {
+                const langOpt = this.languageOptimizations[this.whisperSettings.language];
+                if (langOpt) {
+                    formData.set('temperature', langOpt.temperature);
+                }
                 formData.append('language', this.whisperSettings.language);
             }
+            
+            console.log('🎯 [WhisperClient] Content type:', contentType);
+            console.log('📝 [WhisperClient] Using contextual prompt for', contentType);
             
             // Add metadata
             formData.append('metadata', JSON.stringify({

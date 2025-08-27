@@ -20,14 +20,39 @@ class MediaRecorderManager {
         this.totalRecordingTime = 0;
         this.estimatedCost = 0;
         
-        // Quality settings for different sources
-        this.recordingOptions = {
-            mimeType: 'audio/webm;codecs=opus', // Best for Whisper
-            audioBitsPerSecond: 64000, // Good quality, smaller files
-            videoBitsPerSecond: 0 // Audio only
-        };
+        // Optimized settings for Whisper API
+        this.recordingOptions = this.getBestRecordingOptions();
         
         console.log('🎙️ [MediaRecorder] Initialized for Whisper transcription');
+    }
+    
+    /**
+     * Get optimal recording options for Whisper API
+     */
+    getBestRecordingOptions() {
+        // Test supported formats and choose the best for Whisper
+        const formats = [
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/mp4',
+            'audio/mpeg'
+        ];
+        
+        let selectedFormat = 'audio/webm'; // Fallback
+        
+        for (const format of formats) {
+            if (MediaRecorder.isTypeSupported(format)) {
+                selectedFormat = format;
+                console.log(`🎵 [MediaRecorder] Selected format: ${format}`);
+                break;
+            }
+        }
+        
+        return {
+            mimeType: selectedFormat,
+            audioBitsPerSecond: 64000, // Optimal for Whisper (good quality, reasonable size)
+            videoBitsPerSecond: 0 // Audio only
+        };
     }
     
     /**
@@ -48,18 +73,33 @@ class MediaRecorderManager {
                 throw new Error('No audio stream available');
             }
             
-            // Check MediaRecorder support
-            if (!MediaRecorder.isTypeSupported(this.recordingOptions.mimeType)) {
-                console.warn('🎙️ [MediaRecorder] Preferred format not supported, trying fallback');
-                this.recordingOptions.mimeType = 'audio/webm';
+            // Validate stream has audio tracks
+            const audioTracks = this.currentStream.getAudioTracks();
+            if (audioTracks.length === 0) {
+                throw new Error('No audio tracks available in stream');
             }
             
-            // Create MediaRecorder
-            this.mediaRecorder = new MediaRecorder(this.currentStream, this.recordingOptions);
+            console.log('🎵 [MediaRecorder] Audio tracks:', audioTracks.length, 'Type:', this.recordingOptions.mimeType);
+            
+            // Create MediaRecorder with simpler options if needed
+            try {
+                this.mediaRecorder = new MediaRecorder(this.currentStream, this.recordingOptions);
+            } catch (error) {
+                console.warn('🎙️ [MediaRecorder] Full options failed, trying minimal setup');
+                // Fallback to basic MediaRecorder without custom options
+                this.mediaRecorder = new MediaRecorder(this.currentStream);
+            }
+            
             this.setupRecorderEvents();
             
-            // Start recording
-            this.mediaRecorder.start();
+            // Start recording with error handling
+            try {
+                this.mediaRecorder.start();
+                console.log('✅ [MediaRecorder] Started successfully with state:', this.mediaRecorder.state);
+            } catch (startError) {
+                console.error('❌ [MediaRecorder] Start failed:', startError);
+                throw startError;
+            }
             this.isRecording = true;
             this.totalRecordingTime = 0;
             this.estimatedCost = 0;
@@ -122,24 +162,13 @@ class MediaRecorderManager {
         console.log('🔍 [MediaRecorder] Current audio source:', audioSystem.currentAudioSource);
         console.log('🔍 [MediaRecorder] Available streams - mic:', !!audioSystem.microphoneStream, 'system:', !!audioSystem.systemStream);
         
+        // Always request fresh stream for MediaRecorder (more reliable)
         if (audioSystem.currentAudioSource === 'microphone') {
-            // Use microphone stream
-            if (audioSystem.microphoneStream && audioSystem.microphoneStream.active) {
-                console.log('🎤 [MediaRecorder] Using microphone stream');
-                return audioSystem.microphoneStream;
-            } else {
-                console.log('🎤 [MediaRecorder] Requesting microphone access');
-                return await this.requestMicrophoneStream();
-            }
+            console.log('🎤 [MediaRecorder] Getting microphone stream for Whisper');
+            return await this.requestMicrophoneStream();
         } else if (audioSystem.currentAudioSource === 'system') {
-            // Use system stream
-            if (audioSystem.systemStream && audioSystem.systemStream.active) {
-                console.log('🖥️ [MediaRecorder] Using system audio stream');
-                return audioSystem.systemStream;
-            } else {
-                console.log('🖥️ [MediaRecorder] Requesting system audio access');
-                return await this.requestSystemAudioStream();
-            }
+            console.log('🖥️ [MediaRecorder] Getting system audio stream for Whisper');
+            return await this.requestSystemAudioStream();
         }
         
         console.error('❌ [MediaRecorder] Unknown audio source:', audioSystem.currentAudioSource);
