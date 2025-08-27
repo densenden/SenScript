@@ -17,6 +17,11 @@ class SpeechRecognitionManager {
         
         this.setupSpeechRecognition();
         this.setupTabFocusHandlers();
+        
+        // Add debug method to window
+        window.debugSpeechRecognition = () => {
+            this.debugCurrentAudioSetup();
+        };
     }
     
     setupSpeechRecognition() {
@@ -33,6 +38,11 @@ class SpeechRecognitionManager {
         this.recognition.interimResults = true;
         this.recognition.maxAlternatives = 1;
         this.recognition.lang = this.app.currentLang;
+        
+        // RESTORED: Based on working commit babbaf8
+        // Web Speech API DOES work with system audio after getDisplayMedia permission
+        console.log('🎯 [Speech] Web Speech API supports system audio in Chrome after getDisplayMedia');
+        console.log('🎯 [Speech] Tab audio transcription should work when systemAudioReady=true');
         
         // Add audio context for better stability
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -293,7 +303,10 @@ class SpeechRecognitionManager {
         let final = '';
         let interim = '';
         
-        console.log('[Speech] Processing speech result - resultIndex:', event.resultIndex, 'results.length:', event.results.length);
+        console.log('🎙️ [Speech] ========== PROCESSING SPEECH RESULT ==========');
+        console.log('🎙️ [Speech] ResultIndex:', event.resultIndex, 'Results.length:', event.results.length);
+        console.log('🎙️ [Speech] Should be listening:', this.shouldBeListening);
+        console.log('🎙️ [Speech] Background listening:', this.backgroundListening);
         
         // Process speech results with enhanced logging
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -301,14 +314,14 @@ class SpeechRecognitionManager {
             const text = result[0].transcript.trim();
             const confidence = result[0].confidence || 0.5;
             
-            console.log(`[Speech] Result ${i}: "${text}" (final: ${result.isFinal}, confidence: ${confidence.toFixed(2)})`);
+            console.log(`🗣️ [Speech] Result ${i}: "${text}" (final: ${result.isFinal}, confidence: ${confidence.toFixed(2)})`);
             
             if (result.isFinal && text.length > 0) {
                 final += text + ' ';
-                console.log('[Speech] Added to final transcript:', text);
+                console.log('✅ [Speech] Added to final transcript:', text);
             } else if (!result.isFinal && text.length > 0) {
                 interim = text;
-                console.log('[Speech] Updated interim result:', text);
+                console.log('🔄 [Speech] Updated interim result:', text);
             }
         }
         
@@ -419,12 +432,28 @@ class SpeechRecognitionManager {
         console.error('[Speech] Recognition error:', event.error);
         
         if (event.error === 'no-speech') {
-            // No speech detected, try to restart
-            if (this.shouldBeListening) {
-                setTimeout(() => this.startListening(), 1000);
-            }
+            console.log('[Speech] No speech detected - this is normal, continuing...');
+            // Don't restart immediately for no-speech - it's normal
+            // Speech recognition will restart automatically via onend handler
         } else if (event.error === 'audio-capture') {
             console.error('[Speech] Audio capture failed - check microphone permissions');
+            this.updateUI();
+            // Show error in transcript
+            if (this.app.transcriptSystem) {
+                this.app.transcriptSystem.ui.showErrorState('Microphone access failed');
+            }
+        } else if (event.error === 'not-allowed') {
+            console.error('[Speech] Microphone permission denied');
+            this.shouldBeListening = false;
+            this.updateUI();
+            if (this.app.transcriptSystem) {
+                this.app.transcriptSystem.ui.showErrorState('Microphone permission denied');
+            }
+        } else if (event.error === 'network') {
+            console.error('[Speech] Network error - speech recognition unavailable');
+            if (this.app.transcriptSystem) {
+                this.app.transcriptSystem.ui.showErrorState('Speech recognition network error');
+            }
         }
     }
     
@@ -496,6 +525,41 @@ class SpeechRecognitionManager {
             `;
             console.log('[Speech] ⚠️ No content to display - showing placeholder');
         }
+    }
+    
+    /**
+     * DEBUG: Analyze current speech recognition audio setup
+     */
+    debugCurrentAudioSetup() {
+        console.log('🔍 [Speech] ========== SPEECH RECOGNITION DEBUG ==========');
+        console.log('🔍 [Speech] Recognition state:', this.recognition ? 'initialized' : 'not initialized');
+        console.log('🔍 [Speech] Is listening:', this.isListening);
+        console.log('🔍 [Speech] Should be listening:', this.shouldBeListening);
+        console.log('🔍 [Speech] Current language:', this.recognition?.lang);
+        console.log('🔍 [Speech] Continuous:', this.recognition?.continuous);
+        console.log('🔍 [Speech] Interim results:', this.recognition?.interimResults);
+        
+        // Check audio system state
+        if (this.app.audioSystem) {
+            console.log('🔍 [Speech] Audio source:', this.app.audioSystem.currentAudioSource);
+            console.log('🔍 [Speech] System audio ready:', this.app.audioSystem.systemAudioReady);
+        }
+        
+        // Try to analyze what microphone access we have
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                console.log('🔍 [Speech] Microphone access: ✅ Available');
+                console.log('🔍 [Speech] Audio tracks:', stream.getAudioTracks().length);
+                if (stream.getAudioTracks().length > 0) {
+                    const track = stream.getAudioTracks()[0];
+                    console.log('🔍 [Speech] Default mic:', track.label);
+                    console.log('🔍 [Speech] Mic settings:', track.getSettings());
+                }
+                stream.getTracks().forEach(track => track.stop());
+            })
+            .catch(error => {
+                console.log('🔍 [Speech] Microphone access: ❌', error.message);
+            });
     }
 }
 

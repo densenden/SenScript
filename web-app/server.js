@@ -174,6 +174,100 @@ const rateLimit = (userId, limit = 1, windowMs = 15000) => {
 
 // API Routes
 
+// === Database Manager Endpoints (No Auth Required for Development) ===
+
+// Save user settings (for database manager)
+app.post('/api/settings', async (req, res) => {
+    try {
+        const { userId, data } = req.body;
+        
+        if (!userId || !data) {
+            return res.status(400).json({ error: 'userId and data are required' });
+        }
+        
+        console.log('[API] Saving settings for user:', userId);
+        
+        // For now, just acknowledge the save (could store in database later)
+        res.json({ 
+            success: true, 
+            userId, 
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        res.status(500).json({ error: 'Failed to save settings' });
+    }
+});
+
+// Load user settings by userId (for database manager)
+app.get('/api/settings/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        console.log('[API] Loading settings for user:', userId);
+        
+        // Return default settings (could load from database later)
+        res.json({
+            success: true,
+            userId,
+            data: JSON.stringify({
+                autoLanguage: true,
+                language: 'en-US',
+                cardOutputLanguage: 'en-US',
+                autoInputLanguage: true
+            })
+        });
+        
+    } catch (error) {
+        console.error('Error loading settings:', error);
+        res.status(500).json({ error: 'Failed to load settings' });
+    }
+});
+
+// Save session data (for database manager)
+app.post('/api/sessions', async (req, res) => {
+    try {
+        const sessionData = req.body;
+        
+        console.log('[API] Saving session:', sessionData.id || 'unknown');
+        
+        // For now, just acknowledge the save (could store in database later)
+        res.json({ 
+            success: true, 
+            sessionId: sessionData.id,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error saving session:', error);
+        res.status(500).json({ error: 'Failed to save session' });
+    }
+});
+
+// Save daily usage (for database manager)
+app.post('/api/usage/daily', async (req, res) => {
+    try {
+        const usageData = req.body;
+        
+        console.log('[API] Saving daily usage:', usageData);
+        
+        // For now, just acknowledge the save (could store in database later)
+        res.json({ 
+            success: true, 
+            date: usageData.date,
+            minutes: usageData.minutes,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error saving daily usage:', error);
+        res.status(500).json({ error: 'Failed to save daily usage' });
+    }
+});
+
+// === Authenticated Endpoints (Clerk Required) ===
+
 // Get user settings
 app.get('/api/settings', verifyClerkToken, async (req, res) => {
     try {

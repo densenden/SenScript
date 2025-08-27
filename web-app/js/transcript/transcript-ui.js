@@ -30,15 +30,14 @@ class TranscriptUI {
     }
     
     setupTranscriptStructure() {
+        // Work with existing HTML structure, just update content
         this.transcriptElement.innerHTML = `
-            <div class="transcript-container">
-                <div class="transcript-sentences" id="transcriptSentences">
-                    <div class="transcript-placeholder">
-                        Click Start to begin transcription
-                    </div>
+            <div class="transcript-sentences" id="transcriptSentences">
+                <div class="transcript-placeholder">
+                    Click Start to begin transcription
                 </div>
-                <div class="transcript-interim" id="transcriptInterim"></div>
             </div>
+            <div class="transcript-interim" id="transcriptInterim"></div>
         `;
         
         this.sentencesContainer = document.getElementById('transcriptSentences');
@@ -162,12 +161,27 @@ class TranscriptUI {
         // Remove placeholder and show listening indicator
         const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder');
         if (placeholder) {
-            placeholder.innerHTML = `
-                <div class="listening-indicator">
-                    <span class="listening-dot"></span>
-                    <span class="listening-text">Listening for speech...</span>
-                </div>
-            `;
+            // Check if we're in device output mode
+            const isDeviceOutput = this.app.audioSystem && this.app.audioSystem.currentAudioSource === 'system';
+            
+            if (isDeviceOutput) {
+                placeholder.innerHTML = `
+                    <div class="listening-indicator">
+                        <span class="listening-dot"></span>
+                        <span class="listening-text">Listening for speech...</span>
+                        <div style="font-size: 11px; opacity: 0.6; margin-top: 8px;">
+                            🎯 Tab audio captured - transcription should work! If not, try audio routing software.
+                        </div>
+                    </div>
+                `;
+            } else {
+                placeholder.innerHTML = `
+                    <div class="listening-indicator">
+                        <span class="listening-dot"></span>
+                        <span class="listening-text">Listening for speech...</span>
+                    </div>
+                `;
+            }
             placeholder.classList.add('listening');
         }
     }
@@ -187,6 +201,23 @@ class TranscriptUI {
                 </div>
             `;
         }
+    }
+    
+    /**
+     * Show error state
+     */
+    showErrorState(errorMessage) {
+        console.log(`❌ [TranscriptUI] Showing error: ${errorMessage}`);
+        
+        // Clear interim text
+        this.clearInterimText();
+        
+        // Show error message
+        this.sentencesContainer.innerHTML = `
+            <div class="transcript-placeholder error">
+                ❌ ${errorMessage}
+            </div>
+        `;
     }
     
     /**

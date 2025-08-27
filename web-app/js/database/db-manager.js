@@ -55,7 +55,10 @@ class DatabaseManager {
                 });
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    console.warn(`[DB] API endpoint not available (${response.status}), using localStorage fallback`);
+                    // Fallback to localStorage
+                    localStorage.setItem('senscript_settings', JSON.stringify(settings));
+                    return { success: true, fallback: 'localStorage' };
                 }
                 
                 const result = await response.json();
@@ -206,6 +209,12 @@ class DatabaseManager {
                 
                 if (response.ok) {
                     console.log('[DB] Session saved to database:', session);
+                } else {
+                    console.warn(`[DB] Sessions API not available (${response.status}), using localStorage fallback`);
+                    // Store session in localStorage as fallback
+                    const sessions = JSON.parse(localStorage.getItem('senscript_sessions') || '[]');
+                    sessions.push(session);
+                    localStorage.setItem('senscript_sessions', JSON.stringify(sessions));
                 }
             } else {
                 // Queue for later sync
@@ -254,6 +263,11 @@ class DatabaseManager {
                     const result = await response.json();
                     console.log('[DB] Daily usage updated:', result);
                     return result;
+                } else {
+                    console.warn(`[DB] Usage API not available (${response.status}), using localStorage fallback`);
+                    // Store in localStorage
+                    const usageKey = 'senscript_usage_' + today.toDateString();
+                    localStorage.setItem(usageKey, JSON.stringify(payload));
                 }
             } else {
                 // Update localStorage tracking

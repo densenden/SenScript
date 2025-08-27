@@ -55,6 +55,44 @@ class TranscriptSystem {
         this.languageManager.setMode('auto');
         
         console.log('✅ [TranscriptSystem] Transcript system ready');
+        
+        // Add test function for manual testing
+        window.testTranscriptSystem = () => {
+            console.log('🧪 [TranscriptSystem] Testing transcript system...');
+            
+            // Start session if not already started
+            if (!this.state.sessionStarted) {
+                console.log('🧪 [TranscriptSystem] Starting test session...');
+                this.startSession();
+            }
+            
+            // Test interim text
+            this.processIncomingSpeech({
+                isFinal: false,
+                transcript: 'Testing interim text...',
+                confidence: 0.5
+            });
+            
+            setTimeout(() => {
+                // Test final text
+                this.processIncomingSpeech({
+                    isFinal: true,
+                    transcript: 'This is a test sentence for transcript processing and card generation.',
+                    confidence: 0.85
+                });
+            }, 1000);
+            
+            setTimeout(() => {
+                // Test another final text
+                this.processIncomingSpeech({
+                    isFinal: true,
+                    transcript: 'What is machine learning and how does it work in practice?',
+                    confidence: 0.90
+                });
+            }, 2000);
+            
+            console.log('🧪 [TranscriptSystem] Test completed - check transcript display and cards');
+        };
     }
     
     setupEventListeners() {
@@ -74,7 +112,14 @@ class TranscriptSystem {
     processIncomingSpeech(speechResult) {
         const { isFinal, transcript, confidence } = speechResult;
         
-        console.log(`📝 [TranscriptSystem] Processing speech: final=${isFinal}, text="${transcript.substring(0, 30)}..."`);
+        console.log(`📝 [TranscriptSystem] ========== INCOMING SPEECH ==========`);
+        console.log(`📝 [TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
+        console.log(`📝 [TranscriptSystem] Session started: ${this.state.sessionStarted}`);
+        
+        if (!this.state.sessionStarted) {
+            console.log(`📝 [TranscriptSystem] ❌ Session not started, ignoring speech`);
+            return;
+        }
         
         if (isFinal) {
             this.handleFinalText(transcript);

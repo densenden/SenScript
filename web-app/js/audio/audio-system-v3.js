@@ -418,13 +418,20 @@ class AudioSystemV3 {
                     return;
                 }
                 
+                // CRITICAL RESTORATION: This method restores the working functionality
+                // Based on commit babbaf8 that had tab audio transcription working
                 // The key insight: Web Speech API DOES work with system audio in Chrome
                 // when the permission context is correct (after getDisplayMedia)
+                
                 console.log('🔄 [AudioV3] ✅ System audio ready for Web Speech API');
                 console.log('🔄 [AudioV3] 🎯 Chrome allows Web Speech API after getDisplayMedia permission');
                 
                 // Mark that system audio is ready for speech recognition
+                // This flag tells the system that tab audio transcription should work
                 this.systemAudioReady = true;
+                
+                // DEEP DEBUG: Let's analyze what's in this audio stream
+                this.debugSystemAudioStream(audioTracks[0]);
                 
                 console.log('🔄 [AudioV3] ✅ System audio processing setup complete');
                 
@@ -473,6 +480,68 @@ class AudioSystemV3 {
             
         } catch (error) {
             console.error('🎤 [AudioV3] ❌ Failed to setup microphone processing:', error);
+        }
+    }
+    
+    /**
+     * DEBUG: Analyze system audio stream in detail
+     */
+    debugSystemAudioStream(audioTrack) {
+        console.log('🔍 [AudioV3] ========== AUDIO STREAM ANALYSIS ==========');
+        console.log('🔍 [AudioV3] Track ID:', audioTrack.id);
+        console.log('🔍 [AudioV3] Track kind:', audioTrack.kind);
+        console.log('🔍 [AudioV3] Track label:', audioTrack.label);
+        console.log('🔍 [AudioV3] Track enabled:', audioTrack.enabled);
+        console.log('🔍 [AudioV3] Track muted:', audioTrack.muted);
+        console.log('🔍 [AudioV3] Track ready state:', audioTrack.readyState);
+        
+        // Get audio constraints/settings if available
+        const settings = audioTrack.getSettings ? audioTrack.getSettings() : null;
+        if (settings) {
+            console.log('🔍 [AudioV3] Audio settings:', settings);
+        }
+        
+        // Create a temporary analyzer to check audio levels
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        try {
+            // Create audio stream from track
+            const stream = new MediaStream([audioTrack]);
+            const source = this.audioContext.createMediaStreamSource(stream);
+            const analyser = this.audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+            
+            source.connect(analyser);
+            
+            // Check if there's actual audio data
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            let checkCount = 0;
+            const checkAudioData = () => {
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+                const peak = Math.max(...dataArray);
+                
+                console.log(`🔍 [AudioV3] Audio check ${checkCount + 1}/5 - Average: ${average.toFixed(1)}, Peak: ${peak}`);
+                
+                checkCount++;
+                if (checkCount < 5) {
+                    setTimeout(checkAudioData, 500);
+                } else {
+                    console.log('🔍 [AudioV3] ========== AUDIO ANALYSIS COMPLETE ==========');
+                    // Clean up
+                    source.disconnect();
+                }
+            };
+            
+            // Start checking after a brief delay
+            setTimeout(checkAudioData, 100);
+            
+        } catch (error) {
+            console.error('🔍 [AudioV3] Audio analysis failed:', error);
         }
     }
     
