@@ -189,7 +189,15 @@ class SenScript {
                 this.els.recordText.textContent = 'Start';
             }
             
-            throw error; // Re-throw to prevent further processing
+            // Show helpful error message based on error type
+            if (error.message.includes('No system audio stream available')) {
+                console.log('💡 [Control] Hint: Switch to system audio source first, then try recording');
+                if (this.transcriptSystem && this.transcriptSystem.ui) {
+                    this.transcriptSystem.ui.showErrorState('Please switch to system audio first, then click Start');
+                }
+            }
+            
+            // Don't re-throw - just handle gracefully
         }
         
         // Start database session tracking

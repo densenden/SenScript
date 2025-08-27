@@ -162,13 +162,23 @@ class MediaRecorderManager {
         console.log('🔍 [MediaRecorder] Current audio source:', audioSystem.currentAudioSource);
         console.log('🔍 [MediaRecorder] Available streams - mic:', !!audioSystem.microphoneStream, 'system:', !!audioSystem.systemStream);
         
-        // Always request fresh stream for MediaRecorder (more reliable)
+        // Use existing streams from AudioSystem (avoid duplicate permissions)
         if (audioSystem.currentAudioSource === 'microphone') {
-            console.log('🎤 [MediaRecorder] Getting microphone stream for Whisper');
-            return await this.requestMicrophoneStream();
+            if (audioSystem.microphoneStream && audioSystem.microphoneStream.active) {
+                console.log('🎤 [MediaRecorder] Using existing microphone stream');
+                return audioSystem.microphoneStream;
+            } else {
+                console.log('🎤 [MediaRecorder] Requesting fresh microphone stream');
+                return await this.requestMicrophoneStream();
+            }
         } else if (audioSystem.currentAudioSource === 'system') {
-            console.log('🖥️ [MediaRecorder] Getting system audio stream for Whisper');
-            return await this.requestSystemAudioStream();
+            if (audioSystem.systemStream && audioSystem.systemStream.active) {
+                console.log('🖥️ [MediaRecorder] Using existing system audio stream');
+                return audioSystem.systemStream;
+            } else {
+                console.log('🖥️ [MediaRecorder] No system stream available - cannot record');
+                throw new Error('No system audio stream available. Please switch to system audio first.');
+            }
         }
         
         console.error('❌ [MediaRecorder] Unknown audio source:', audioSystem.currentAudioSource);
