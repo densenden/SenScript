@@ -23,19 +23,7 @@ class WhisperClient {
         this.totalMinutesTranscribed = 0;
         this.totalCost = 0;
         
-        // Advanced Whisper settings leveraging full API capabilities
-        this.whisperSettings = {
-            model: 'whisper-1',
-            response_format: 'verbose_json', // Get timestamps, confidence, segments
-            temperature: 0.0, // Maximum determinism for educational content
-            language: null, // Auto-detect for multilingual support
-            prompt: this.getContextualPrompt(),
-            // Advanced features
-            timestamp_granularities: ['word', 'segment'], // Both word and segment timestamps
-            word_timestamps: true // Enable word-level timing
-        };
-        
-        // Context-aware prompting for different content types
+        // Context-aware prompting for different content types (define first)
         this.contentContexts = {
             meeting: "Business meeting with technical discussions, decisions, and action items.",
             lecture: "Educational lecture with technical concepts, definitions, and examples.",
@@ -52,6 +40,18 @@ class WhisperClient {
             'es': { temperature: 0.1, prompt_weight: 1.1 },
             'zh': { temperature: 0.2, prompt_weight: 1.3 },
             'ja': { temperature: 0.2, prompt_weight: 1.3 }
+        };
+        
+        // Advanced Whisper settings (after contexts are defined)
+        this.whisperSettings = {
+            model: 'whisper-1',
+            response_format: 'verbose_json', // Get timestamps, confidence, segments
+            temperature: 0.0, // Maximum determinism for educational content
+            language: null, // Auto-detect for multilingual support
+            prompt: this.getContextualPrompt(),
+            // Advanced features
+            timestamp_granularities: ['word', 'segment'], // Both word and segment timestamps
+            word_timestamps: true // Enable word-level timing
         };
         
         console.log('🎯 [WhisperClient] Initialized for professional transcription');
