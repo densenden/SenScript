@@ -111,10 +111,10 @@ class SettingsManager {
                 );
             }
             
-            // Apply to Web Speech API if used as fallback
-            if (this.app.speechRecognition && this.app.speechRecognition.recognition) {
-                this.app.speechRecognition.recognition.lang = this.settings.language;
-            }
+            // Web Speech API disabled in Whisper-only mode
+            // if (this.app.speechRecognition && this.app.speechRecognition.recognition) {
+            //     this.app.speechRecognition.recognition.lang = this.settings.language;
+            // }
         }
         
         // Update UI elements

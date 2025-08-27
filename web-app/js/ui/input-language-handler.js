@@ -85,10 +85,10 @@ class InputLanguageHandler {
             // Update app language
             this.app.currentLang = langCode;
             
-            // Update speech recognition if available
-            if (this.app.speechRecognition && this.app.speechRecognition.recognition) {
-                this.app.speechRecognition.recognition.lang = langCode;
-                console.log(`[InputLanguage] Speech recognition language updated to: ${langCode}`);
+            // Update Whisper language setting
+            if (this.app.whisperClient) {
+                this.app.whisperClient.setLanguage(langCode);
+                console.log(`[InputLanguage] Whisper language updated to: ${langCode}`);
             }
             
             // Update settings

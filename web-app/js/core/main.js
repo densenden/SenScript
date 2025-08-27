@@ -126,9 +126,8 @@ class SenScript {
     }
     
     toggleListening() {
-        // Check speech recognition state directly
-        if (this.speechRecognition && 
-            (this.speechRecognition.isListening || this.speechRecognition.shouldBeListening)) {
+        // Whisper-only mode: Check MediaRecorder state
+        if (this.mediaRecorder && this.mediaRecorder.isRecording) {
             this.stopListening();
         } else {
             this.startListening();
