@@ -79,25 +79,79 @@ class MediaRecorderManager {
                 throw new Error('No audio tracks available in stream');
             }
             
-            console.log('🎵 [MediaRecorder] Audio tracks:', audioTracks.length, 'Type:', this.recordingOptions.mimeType);
+            console.log('🎵 [MediaRecorder] Audio tracks:', audioTracks.length);
+            console.log('🎵 [MediaRecorder] Track details:', audioTracks.map(t => ({ 
+                label: t.label, 
+                kind: t.kind, 
+                enabled: t.enabled, 
+                readyState: t.readyState 
+            })));
             
-            // Create MediaRecorder with simpler options if needed
-            try {
-                this.mediaRecorder = new MediaRecorder(this.currentStream, this.recordingOptions);
-            } catch (error) {
-                console.warn('🎙️ [MediaRecorder] Full options failed, trying minimal setup');
-                // Fallback to basic MediaRecorder without custom options
-                this.mediaRecorder = new MediaRecorder(this.currentStream);
+            // Try multiple MediaRecorder configurations
+            const configurations = [
+                // Try basic recorder first (most compatible)
+                null,
+                // Try with MIME type only
+                { mimeType: 'audio/webm' },
+                // Try with specific codec
+                { mimeType: 'audio/webm;codecs=opus' },
+                // Try our full options
+                this.recordingOptions
+            ];
+            
+            let recorderCreated = false;
+            
+            for (const config of configurations) {
+                try {
+                    if (config && config.mimeType && !MediaRecorder.isTypeSupported(config.mimeType)) {
+                        console.log('🎵 [MediaRecorder] Skipping unsupported format:', config.mimeType);
+                        continue;
+                    }
+                    
+                    this.mediaRecorder = config ? 
+                        new MediaRecorder(this.currentStream, config) : 
+                        new MediaRecorder(this.currentStream);
+                    
+                    console.log('✅ [MediaRecorder] Created with config:', config || 'default');
+                    recorderCreated = true;
+                    break;
+                    
+                } catch (error) {
+                    console.warn('⚠️ [MediaRecorder] Config failed:', config, error.message);
+                    continue;
+                }
+            }
+            
+            if (!recorderCreated) {
+                throw new Error('Failed to create MediaRecorder with any configuration');
             }
             
             this.setupRecorderEvents();
             
-            // Start recording with error handling
+            // Start recording with extensive debugging
             try {
+                console.log('🚀 [MediaRecorder] Attempting to start recording...');
+                console.log('🚀 [MediaRecorder] Stream active:', this.currentStream.active);
+                console.log('🚀 [MediaRecorder] MediaRecorder state:', this.mediaRecorder.state);
+                console.log('🚀 [MediaRecorder] Audio tracks active:', audioTracks.map(t => t.readyState));
+                
                 this.mediaRecorder.start();
                 console.log('✅ [MediaRecorder] Started successfully with state:', this.mediaRecorder.state);
+                
+                // Wait a moment to verify it actually started
+                setTimeout(() => {
+                    console.log('🔍 [MediaRecorder] State after start:', this.mediaRecorder.state);
+                }, 100);
+                
             } catch (startError) {
                 console.error('❌ [MediaRecorder] Start failed:', startError);
+                console.error('🔍 [MediaRecorder] Debug info:', {
+                    streamActive: this.currentStream.active,
+                    streamId: this.currentStream.id,
+                    audioTracksCount: audioTracks.length,
+                    audioTracksState: audioTracks.map(t => t.readyState),
+                    recorderState: this.mediaRecorder.state
+                });
                 throw startError;
             }
             this.isRecording = true;
@@ -174,6 +228,13 @@ class MediaRecorderManager {
         } else if (audioSystem.currentAudioSource === 'system') {
             if (audioSystem.systemStream && audioSystem.systemStream.active) {
                 console.log('🖥️ [MediaRecorder] Using existing system audio stream');
+                
+                // Check if this is a complex stream that might need special handling
+                const videoTracks = audioSystem.systemStream.getVideoTracks();
+                if (videoTracks.length > 0) {
+                    console.log('🖥️ [MediaRecorder] System stream has video tracks, might need special handling');
+                }
+                
                 return audioSystem.systemStream;
             } else {
                 console.log('🖥️ [MediaRecorder] No system stream available - cannot record');

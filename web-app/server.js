@@ -276,9 +276,18 @@ app.post('/api/usage/daily', async (req, res) => {
     }
 });
 
+console.log('[SERVER] Setting up API endpoints...');
+
+// === Test Endpoint ===
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'Server is working' });
+});
+console.log('[SERVER] Test endpoint registered');
+
 // === Whisper Transcription Endpoint ===
 
 // Transcribe audio using OpenAI Whisper API
+console.log('[SERVER] Registering transcribe endpoint...');
 app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     try {
         console.log('[API] Whisper transcription request received');
@@ -410,6 +419,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
         });
     }
 });
+console.log('[SERVER] Transcribe endpoint registered');
 
 // === Authenticated Endpoints (Clerk Required) ===
 

@@ -164,7 +164,7 @@ Use appropriate formatting for lists, questions, and emphasis.`;
             
             // Create FormData with advanced Whisper features
             const formData = new FormData();
-            formData.append('file', audioBlob, `audio_${Date.now()}.webm`);
+            formData.append('audio', audioBlob, `audio_${Date.now()}.webm`);
             formData.append('model', this.whisperSettings.model);
             formData.append('response_format', this.whisperSettings.response_format);
             formData.append('temperature', this.whisperSettings.temperature);
