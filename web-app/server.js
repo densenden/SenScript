@@ -49,7 +49,6 @@ const upload = multer({
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(__dirname));
 
 // Import education settings with robust error handling
 let SENSCRIPT_CONFIG = {
@@ -895,6 +894,9 @@ app.post('/api/usage/record', verifyClerkToken, async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+// Serve static files (temporarily disabled for API testing)
+// app.use(express.static(__dirname));
 
 // Serve the main application
 app.get('/', (req, res) => {
