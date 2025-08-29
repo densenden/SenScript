@@ -190,9 +190,20 @@ class SpeechRecognitionManager {
         }
         
         console.log('[Speech] === STARTING ACTIVE LISTENING ===');
-        console.log('[Speech] Web Speech API will use the audio source set by the audio system');
-        console.log('[Speech] Microphone mode: direct mic input | Device Output mode: system/tab audio');
         this.shouldBeListening = true;
+        
+        // Check audio source mode
+        const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
+        console.log(`[Speech] Audio source: ${audioSource}`);
+        
+        if (audioSource === 'system') {
+            console.log('[Speech] SYSTEM AUDIO MODE - Web Speech API cannot directly use system audio');
+            console.log('[Speech] Attempting to set up system audio processing...');
+            this.startSystemAudioProcessing();
+        } else {
+            console.log('[Speech] MICROPHONE MODE - Using Web Speech API directly');
+            this.startMicrophoneProcessing();
+        }
         
         // Process cached transcripts immediately for instant flashcards
         if (this.transcriptCache.length > 0) {
@@ -206,15 +217,107 @@ class SpeechRecognitionManager {
             }, 100);
         }
         
+        this.updateUI();
+    }
+    
+    startMicrophoneProcessing() {
+        console.log('[Speech] Starting microphone processing with Web Speech API');
         try {
             this.recognition.start();
             this.app.startMinuteCounting();
+            console.log('[Speech] Web Speech API started for microphone input');
         } catch (error) {
-            console.error('[Speech] Failed to start recognition:', error);
+            console.error('[Speech] Failed to start microphone recognition:', error);
             this.shouldBeListening = false;
         }
+    }
+    
+    startSystemAudioProcessing() {
+        console.log('[Speech] === SYSTEM AUDIO PROCESSING ===');
         
-        this.updateUI();
+        // Check if system audio stream is available
+        const systemStream = this.app.audioSystem?.systemStream;
+        if (!systemStream || !systemStream.active) {
+            console.error('[Speech] No active system audio stream available');
+            this.shouldBeListening = false;
+            return;
+        }
+        
+        console.log('[Speech] System stream available, setting up audio processing...');
+        
+        // CRITICAL FIX: Web Speech API cannot use system audio directly
+        // We need to implement a workaround using Web Audio API or MediaRecorder
+        
+        try {
+            // Method 1: Try to create a virtual microphone using Web Audio API
+            this.setupSystemAudioBridge(systemStream);
+        } catch (error) {
+            console.error('[Speech] Failed to setup system audio bridge:', error);
+            // Fallback: Show user that system audio transcription is not available
+            console.log('[Speech] System audio transcription requires server-side processing');
+            this.shouldBeListening = false;
+            
+            // Update UI to show limitation
+            if (this.app.transcriptSystem?.ui) {
+                this.app.transcriptSystem.ui.updatePlaceholder(
+                    'System Audio Limitation',
+                    'Web Speech API cannot process system audio directly. Switch to microphone mode for transcript generation.'
+                );
+            }
+        }
+    }
+    
+    setupSystemAudioBridge(systemStream) {
+        console.log('[Speech] Setting up Web Audio API bridge for system audio');
+        
+        // TECHNICAL NOTE: This is a complex workaround
+        // Web Speech API only works with getUserMedia streams, not getDisplayMedia
+        // We attempt to create an audio context bridge, but this has limitations
+        
+        if (!window.AudioContext && !window.webkitAudioContext) {
+            throw new Error('Web Audio API not supported');
+        }
+        
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.systemAudioContext = new AudioContext();
+        
+        // Create source from system stream
+        const source = this.systemAudioContext.createMediaStreamSource(systemStream);
+        
+        // Create destination for processing
+        const destination = this.systemAudioContext.createMediaStreamDestination();
+        
+        // Connect source to destination
+        source.connect(destination);
+        
+        // LIMITATION: We cannot force Web Speech API to use this destination stream
+        // This is a known limitation of the Web Speech API
+        console.warn('[Speech] LIMITATION: Cannot redirect system audio to Web Speech API');
+        console.warn('[Speech] Web Speech API only accepts getUserMedia() streams');
+        
+        // Alternative: Start Web Speech API anyway (it will use microphone)
+        // And show user the limitation
+        console.log('[Speech] Starting Web Speech API with microphone as fallback');
+        console.log('[Speech] NOTE: Transcript will come from microphone, not system audio');
+        
+        try {
+            this.recognition.start();
+            this.app.startMinuteCounting();
+            
+            // Inform user about limitation
+            setTimeout(() => {
+                if (this.app.transcriptSystem?.ui) {
+                    this.app.transcriptSystem.ui.updatePlaceholder(
+                        'System Audio + Microphone Mode',
+                        'System audio visualization active, but transcript comes from microphone due to Web Speech API limitations.'
+                    );
+                }
+            }, 1000);
+            
+        } catch (error) {
+            console.error('[Speech] Failed to start recognition fallback:', error);
+            this.shouldBeListening = false;
+        }
     }
     
     startBackgroundListening() {
@@ -293,6 +396,13 @@ class SpeechRecognitionManager {
                 this.audioContext.close();
                 this.audioContext = null;
                 console.log('[Speech] Audio context closed');
+            }
+            
+            // Clean up system audio context
+            if (this.systemAudioContext && this.systemAudioContext.state !== 'closed') {
+                this.systemAudioContext.close();
+                this.systemAudioContext = null;
+                console.log('[Speech] System audio context closed');
             }
         } catch (error) {
             console.warn('[Speech] Error cleaning up audio resources:', error);
