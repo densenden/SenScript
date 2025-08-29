@@ -89,8 +89,7 @@ class SenScript {
         // Initialize UI components
         this.ui = new UIManager(this);
         
-        // Initialize input language handler (legacy - will be replaced by transcript system)
-        this.inputLanguageHandler = new InputLanguageHandler(this);
+        // Language handling now integrated in TranscriptSystem
         
         // Initialize settings
         this.settings = new SettingsManager(this);
@@ -101,10 +100,7 @@ class SenScript {
                 this.settings.initializeAllSettingsUI();
             }
             
-            // Initialize input language handler after settings are ready
-            if (this.inputLanguageHandler && this.inputLanguageHandler.initialize) {
-                this.inputLanguageHandler.initialize();
-            }
+            // Language handler integrated in transcript system
         }, 1500);
     }
     

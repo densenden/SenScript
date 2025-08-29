@@ -44,7 +44,6 @@ class ModuleLoader {
             // UI components
             'js/ui/ui-manager.js',
             'js/ui/settings-manager.js',
-            'js/ui/input-language-handler.js',
             
             // Main application (last)
             'js/core/main.js'
