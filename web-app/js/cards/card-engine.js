@@ -17,6 +17,9 @@ class CardEngine {
         console.log('[CardEngine] Initializing card engine...');
         this.setupInterviewModeToggle();
         this.setupCardsModeToggle();
+        
+        // Initialize cards placeholder
+        this.updateCardsPlaceholder();
     }
     
     setupInterviewModeToggle() {
@@ -71,6 +74,9 @@ class CardEngine {
             }
             
             console.log('[CardEngine] Mode toggled to:', this.interviewMode ? 'CheatCard' : 'FlashCard');
+            
+            // Update cards placeholder message
+            this.updateCardsPlaceholder();
         });
     }
     
@@ -103,6 +109,40 @@ class CardEngine {
         }
         
         console.log('[CardEngine] Mode display updated:', this.interviewMode ? 'CheatCard' : 'FlashCard');
+        
+        // Refresh existing cards to apply new styling
+        this.refreshExistingCards();
+    }
+    
+    /**
+     * Refresh existing cards in the DOM to apply current mode styling
+     */
+    refreshExistingCards() {
+        if (!this.app.cards || this.app.cards.length === 0) {
+            return;
+        }
+        
+        const cardElements = this.app.els.cardsContainer.querySelectorAll('.card');
+        console.log(`[CardEngine] Refreshing ${cardElements.length} existing cards for ${this.interviewMode ? 'CheatCard' : 'FlashCard'} mode`);
+        
+        cardElements.forEach((cardElement, index) => {
+            const cardData = this.app.cards[index];
+            if (cardData) {
+                // Update the card's cardType to match current mode
+                cardData.cardType = this.interviewMode ? 'cheat' : 'flash';
+                
+                // Regenerate and update the card's HTML content
+                cardElement.innerHTML = this.generateCardHTML(cardData);
+                
+                // Update the data attribute for consistency
+                cardElement.setAttribute('data-card-type', cardData.cardType);
+                
+                // Reapply click handlers
+                this.setupCardClickHandler(cardElement, cardData);
+            }
+        });
+        
+        console.log(`[CardEngine] Successfully refreshed ${cardElements.length} cards`);
     }
     
     async processText(text, detection = null) {
@@ -248,6 +288,11 @@ class CardEngine {
             this.updateCardCount();
             if (this.app.els.exportBtn) {
                 this.app.els.exportBtn.disabled = false;
+            }
+            
+            // Update transcript status line with new card count
+            if (this.app.transcriptSystem?.ui?.updateStatusLine) {
+                this.app.transcriptSystem.ui.updateStatusLine();
             }
             
             console.log('✅ [UNIFIED-BIRTH] Card birth animation started:', cardData.category);
@@ -479,6 +524,19 @@ class CardEngine {
                 ? this.app.cards[this.app.cards.length - 1].timestamp 
                 : null
         };
+    }
+    
+    /**
+     * Update cards placeholder message based on current mode
+     */
+    updateCardsPlaceholder() {
+        const cardsTypeMessage = document.getElementById('cardsTypeMessage');
+        if (cardsTypeMessage) {
+            const cardType = this.interviewMode ? 'CheatCards' : 'Flashcards';
+            cardsTypeMessage.textContent = `${cardType} will appear here`;
+            
+            console.log('[CardEngine] Updated placeholder to:', cardType);
+        }
     }
 }
 

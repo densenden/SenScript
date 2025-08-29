@@ -52,25 +52,39 @@ class LanguageManager {
             return;
         }
         
-        // Create dropdown HTML
+        // Create dropdown HTML with same styling as card dropdown
         const dropdown = document.createElement('div');
         dropdown.id = 'inputLanguageDropdown';
-        dropdown.className = 'input-language-dropdown';
-        dropdown.style.display = 'none';
+        dropdown.style.cssText = `
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 4px;
+            min-width: 160px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+        `;
         
         let dropdownHTML = `
-            <div class="input-language-dropdown-option" data-lang="auto">
-                <span class="option-flag material-symbols-outlined">language</span>
-                <span class="option-text">Auto-detect</span>
+            <div class="language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined">language</span>
+                <span>Auto-detect</span>
             </div>
         `;
         
         // Add supported languages
         Object.entries(this.supportedLanguages).forEach(([langCode, lang]) => {
             dropdownHTML += `
-                <div class="input-language-dropdown-option" data-lang="${langCode}">
-                    <span class="option-flag">${lang.flag}</span>
-                    <span class="option-text">${lang.name}</span>
+                <div class="language-dropdown-option" data-lang="${langCode}" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                    <span>${lang.flag}</span>
+                    <span>${lang.name}</span>
                 </div>
             `;
         });
@@ -96,7 +110,7 @@ class LanguageManager {
         });
         
         // Handle option clicks
-        const options = dropdown.querySelectorAll('.input-language-dropdown-option');
+        const options = dropdown.querySelectorAll('.language-dropdown-option');
         options.forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -190,16 +204,26 @@ class LanguageManager {
      * Update detected language (only in auto mode)
      */
     updateDetectedLanguage(detection) {
-        if (this.state.currentMode !== 'auto') return;
-        if (!detection || detection.confidence < 70) return;
+        if (this.state.currentMode !== 'auto') {
+            console.log(`[LanguageManager] Skipping language detection - not in auto mode (current: ${this.state.currentMode})`);
+            return;
+        }
+        if (!detection) {
+            console.log(`[LanguageManager] No language detection data provided`);
+            return;
+        }
+        if (detection.confidence < 50) {
+            console.log(`[LanguageManager] Language confidence too low: ${detection.confidence}% (minimum: 50%)`);
+            return;
+        }
         
         console.log(`🔍 [LanguageManager] Language detected: ${detection.lang} (${detection.confidence}% confidence)`);
         
         this.state.detectedLanguage = detection;
         this.updateUI();
         
-        // Update speech recognition language if confident enough
-        if (detection.confidence > 80 && this.app.speechRecognition && this.app.speechRecognition.recognition) {
+        // Update speech recognition language if reasonably confident (lowered threshold)
+        if (detection.confidence > 60 && this.app.speechRecognition && this.app.speechRecognition.recognition) {
             this.app.speechRecognition.recognition.lang = detection.lang;
             console.log(`[LanguageManager] Speech recognition updated to: ${detection.lang}`);
         }
@@ -248,13 +272,13 @@ class LanguageManager {
         const dropdown = document.getElementById('inputLanguageDropdown');
         if (!dropdown) return;
         
-        const options = dropdown.querySelectorAll('.input-language-dropdown-option');
+        const options = dropdown.querySelectorAll('.language-dropdown-option');
         const selectedLang = this.state.currentMode === 'auto' ? 'auto' : this.state.selectedLanguage;
         
         options.forEach(option => {
-            option.classList.remove('selected');
+            option.style.backgroundColor = '';
             if (option.dataset.lang === selectedLang) {
-                option.classList.add('selected');
+                option.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
             }
         });
     }

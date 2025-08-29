@@ -34,7 +34,7 @@ class TranscriptUI {
         const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
         const placeholderText = this.getPlaceholderText(audioSource);
         
-        // NEW COMPACT LAYOUT: Current line at bottom, completed sentences above, max 3 sentences
+        // NEW COMPACT LAYOUT: Current line at bottom, completed sentences above, max 3 sentences (no separate status bar)
         this.transcriptElement.innerHTML = `
             <div class="transcript-sentences-compact" id="transcriptSentences">
                 <div class="transcript-placeholder-compact">
@@ -54,9 +54,40 @@ class TranscriptUI {
      */
     getPlaceholderText(audioSource) {
         if (audioSource === 'system') {
-            return 'Device Output Mode<br><small>Select tab or window to capture audio, then click Start</small>';
+            return this.getSystemAudioPlaceholder();
         } else {
-            return 'Microphone Mode<br><small>Click Start to begin transcription</small>';
+            return 'Microphone Mode<br><small>AI analyzes your speech in real-time</small>';
+        }
+    }
+    
+    /**
+     * Get system audio placeholder with active sharing information
+     */
+    getSystemAudioPlaceholder() {
+        // Check if there's an active system audio stream
+        const systemStream = this.app.audioSystem?.systemStream;
+        
+        if (systemStream && systemStream.active) {
+            // Try to get information about what's being shared
+            const tracks = systemStream.getVideoTracks();
+            let sourceInfo = 'System Audio';
+            
+            if (tracks.length > 0) {
+                const track = tracks[0];
+                const settings = track.getSettings();
+                
+                if (settings.displaySurface === 'window') {
+                    sourceInfo = 'Window Audio Shared';
+                } else if (settings.displaySurface === 'browser') {
+                    sourceInfo = 'Browser Tab Audio Shared';
+                } else if (settings.displaySurface === 'monitor') {
+                    sourceInfo = 'Screen Audio Shared';
+                }
+            }
+            
+            return `Device Output Mode<br><small>${sourceInfo} • Permission active • Click Start</small>`;
+        } else {
+            return 'Device Output Mode<br><small>Select tab or window to capture audio, then click Start</small>';
         }
     }
     
@@ -67,9 +98,15 @@ class TranscriptUI {
         console.log(`[TranscriptUI] Audio source changed to: ${audioSource}`);
         
         // Update placeholder if no transcription is active
-        const placeholder = this.sentencesContainer?.querySelector('.transcript-placeholder');
+        const placeholder = this.sentencesContainer?.querySelector('.transcript-placeholder-compact');
         if (placeholder) {
             placeholder.innerHTML = this.getPlaceholderText(audioSource);
+        }
+        
+        // Also update legacy placeholder
+        const legacyPlaceholder = this.sentencesContainer?.querySelector('.transcript-placeholder');
+        if (legacyPlaceholder) {
+            legacyPlaceholder.innerHTML = this.getPlaceholderText(audioSource);
         }
     }
     
@@ -96,6 +133,9 @@ class TranscriptUI {
         
         // Manage sentence count (keep last 3 sentences max)
         this.manageSentenceCount();
+        
+        // Force scroll to show new sentence
+        this.forceScrollToBottom();
     }
     
     /**
@@ -109,6 +149,106 @@ class TranscriptUI {
             rejected: true, 
             rejectionReason: reason 
         });
+    }
+    
+    /**
+     * Add a rhythm-based segment (5-second chunks)
+     */
+    addRhythmSegment(segment) {
+        console.log(`[TranscriptUI] Adding rhythm segment (${segment.duration}ms): "${segment.text.substring(0, 30)}..."`);
+        
+        if (!this.sentencesContainer) {
+            this.initialize();
+            if (!this.sentencesContainer) {
+                console.error(`[TranscriptUI] Cannot add rhythm segment - container not found`);
+                return;
+            }
+        }
+        
+        // Remove placeholder if present
+        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        // Create rhythm segment element with timing visualization
+        const segmentEl = this.createRhythmSegmentElement(segment);
+        
+        // Add to container TOP (newest segments push older ones up)
+        this.sentencesContainer.insertBefore(segmentEl, this.sentencesContainer.firstChild);
+        
+        // Update font sizes and opacity with 3-tier system
+        this.updateCompactSentenceHierarchy();
+        
+        // Manage segment count (keep last 3 segments max)
+        this.manageSentenceCount();
+        
+        // Force scroll to show new segment
+        this.forceScrollToBottom();
+    }
+    
+    /**
+     * Create rhythm segment element with timing dots
+     */
+    createRhythmSegmentElement(segment) {
+        const segmentEl = document.createElement('div');
+        segmentEl.className = 'transcript-sentence-compact rhythm-segment';
+        segmentEl.dataset.timestamp = segment.timestamp;
+        segmentEl.dataset.duration = segment.duration;
+        
+        // Create rhythm dots (●●●○○ pattern)
+        const rhythmDots = this.createRhythmDots(segment.duration, 5000);
+        
+        // Language flag
+        const languageFlag = segment.language ? segment.language.flag || '🌐' : '🌐';
+        
+        // Create status line for this segment
+        const statusLine = this.createSegmentStatusLine(segment.duration);
+        
+        segmentEl.innerHTML = `
+            <div class="segment-main-content">
+                <span class="sentence-flag-compact">${languageFlag}</span>
+                <span class="sentence-text-compact">${segment.text}</span>
+                <span class="rhythm-dots">${rhythmDots}</span>
+            </div>
+            <div class="segment-status-line">${statusLine}</div>
+        `;
+        
+        return segmentEl;
+    }
+    
+    /**
+     * Create rhythm visualization dots (●●●○○)
+     */
+    createRhythmDots(duration, maxDuration = 5000) {
+        const totalDots = 5;
+        const filledDots = Math.round((duration / maxDuration) * totalDots);
+        const filled = '●'.repeat(Math.min(filledDots, totalDots));
+        const empty = '○'.repeat(Math.max(0, totalDots - filledDots));
+        return filled + empty;
+    }
+    
+    /**
+     * Create status line for individual segment (EN • 3.2s • 14:23)
+     */
+    createSegmentStatusLine(segmentDuration) {
+        // Get language info
+        const langInfo = this.app.languageManager?.getCurrentLanguage();
+        const langDisplay = langInfo?.mode === 'auto' ? 'AUTO' : (langInfo?.selectedLanguage?.split('-')[0]?.toUpperCase() || 'EN');
+        
+        // Format duration
+        const seconds = (segmentDuration / 1000).toFixed(1);
+        const durationDisplay = `${seconds}s`;
+        
+        // Get timestamp
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { 
+            hour12: false, 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        return `${langDisplay} • ${durationDisplay} • ${timeStr}`;
     }
     
     /**
@@ -264,6 +404,9 @@ class TranscriptUI {
                 <span class="interim-cursor-compact">▌</span>
             `;
             this.interimElement.classList.add('active-compact');
+            
+            // Ensure current line is visible when typing
+            this.scrollToBottom();
         } else {
             this.clearInterimText();
         }
@@ -283,14 +426,20 @@ class TranscriptUI {
      * Show listening state
      */
     showListeningState() {
-        // Remove placeholder and show listening indicator
-        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder');
+        // Hide placeholder when transcription is running
+        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
         if (placeholder) {
+            placeholder.classList.add('hidden');
+        }
+        
+        // Legacy placeholder support
+        const legacyPlaceholder = this.sentencesContainer.querySelector('.transcript-placeholder');
+        if (legacyPlaceholder) {
             // Check if we're in device output mode
             const isDeviceOutput = this.app.audioSystem && this.app.audioSystem.currentAudioSource === 'system';
             
             if (isDeviceOutput) {
-                placeholder.innerHTML = `
+                legacyPlaceholder.innerHTML = `
                     <div class="listening-indicator">
                         <span class="listening-dot"></span>
                         <span class="listening-text">Listening for speech...</span>
@@ -300,14 +449,14 @@ class TranscriptUI {
                     </div>
                 `;
             } else {
-                placeholder.innerHTML = `
+                legacyPlaceholder.innerHTML = `
                     <div class="listening-indicator">
                         <span class="listening-dot"></span>
                         <span class="listening-text">Listening for speech...</span>
                     </div>
                 `;
             }
-            placeholder.classList.add('listening');
+            legacyPlaceholder.classList.add('listening');
         }
     }
     
@@ -318,11 +467,20 @@ class TranscriptUI {
         // Clear interim text
         this.clearInterimText();
         
+        // Show placeholder again when stopped
+        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
+        if (placeholder) {
+            placeholder.classList.remove('hidden');
+        }
+        
         // If no sentences, show default placeholder
         if (this.sentencesContainer.children.length === 0) {
+            const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
+            const placeholderText = this.getPlaceholderText(audioSource);
+            
             this.sentencesContainer.innerHTML = `
-                <div class="transcript-placeholder">
-                    Click Start to begin transcription
+                <div class="transcript-placeholder-compact">
+                    ${placeholderText}
                 </div>
             `;
         }
@@ -346,9 +504,23 @@ class TranscriptUI {
     }
     
     /**
-     * Auto-scroll to show latest content
+     * Auto-scroll to show latest content (only when new content is added)
      */
     scrollToBottom() {
+        if (!this.transcriptElement) return;
+        
+        // Only auto-scroll if user is already near the bottom (within 50px)
+        const isNearBottom = this.transcriptElement.scrollHeight - this.transcriptElement.scrollTop - this.transcriptElement.clientHeight < 50;
+        
+        if (isNearBottom) {
+            this.transcriptElement.scrollTop = this.transcriptElement.scrollHeight;
+        }
+    }
+    
+    /**
+     * Force scroll to bottom (for new sentence additions)
+     */
+    forceScrollToBottom() {
         if (this.transcriptElement) {
             this.transcriptElement.scrollTop = this.transcriptElement.scrollHeight;
         }
@@ -398,7 +570,6 @@ class TranscriptUI {
                 `;
             }
         }
-    }
 }
 
 // Export to window

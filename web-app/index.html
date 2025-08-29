@@ -4575,81 +4575,11 @@
                         <span id="langCodeTranscript">AUTO</span>
                         <span style="font-size: 8px;">▼</span>
                     </div>
-                    <!-- Input Language Dropdown -->
-                    <div id="inputLanguageDropdown" style="
-                        position: absolute;
-                        bottom: 100%;
-                        left: 0;
-                        background: rgba(31, 41, 55, 0.95);
-                        backdrop-filter: blur(20px) saturate(180%);
-                        -webkit-backdrop-filter: blur(20px) saturate(180%);
-                        border: 1px solid rgba(255, 255, 255, 0.2);
-                        border-radius: 12px;
-                        padding: 8px;
-                        margin-bottom: 4px;
-                        min-width: 160px;
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                        z-index: 1000;
-                        display: none;
-                    ">
-                        <div class="input-language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span class="material-symbols-outlined">language</span>
-                            <span>Auto-detect</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇺🇸</span>
-                            <span>English</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇩🇪</span>
-                            <span>German</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇫🇷</span>
-                            <span>French</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="es-ES" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇪🇸</span>
-                            <span>Spanish</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="it-IT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇮🇹</span>
-                            <span>Italian</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="pt-PT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇵🇹</span>
-                            <span>Portuguese</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="nl-NL" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇳🇱</span>
-                            <span>Dutch</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="ru-RU" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇷🇺</span>
-                            <span>Russian</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="zh-CN" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇨🇳</span>
-                            <span>Chinese</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="ja-JP" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇯🇵</span>
-                            <span>Japanese</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="ko-KR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇰🇷</span>
-                            <span>Korean</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="ar-SA" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇸🇦</span>
-                            <span>Arabic</span>
-                        </div>
-                        <div class="input-language-dropdown-option" data-lang="el-GR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇬🇷</span>
-                            <span>Greek</span>
-                        </div>
-                    </div>
+                    <!-- Input Language Dropdown - Generated by LanguageManager -->
                 </div>
+                <button id="inputSourceIndicator" class="control-element" title="Input Source">
+                    <span id="inputSourceIcon" class="material-symbols-outlined">mic</span>
+                </button>
                 <button id="exportTranscriptBtn" class="control-element" disabled>
                     <span class="material-symbols-outlined">description</span>
                 </button>
@@ -4718,8 +4648,8 @@
                 </div>
                 <!-- Cards Content -->
                 <div id="cardsContainer" class="cards-content">
-                    <div style="text-align: center; opacity: 0.5; padding: 40px 20px;">
-                        <p style="font-size: 1.2em;">Flashcards will appear here</p>
+                    <div id="cardsPlaceholder" style="text-align: center; opacity: 0.5; padding: 40px 20px;">
+                        <p id="cardsTypeMessage" style="font-size: 1.2em;">Flashcards will appear here</p>
                         <p style="font-size: 1.2em; margin-top: 8px;">AI analyzes your speech in real-time</p>
                     </div>
                 </div>
@@ -5067,8 +4997,8 @@
                         <div id="languageSelectContainer" style="display: none;">
                             <label class="api-label">Fixed Output Language</label>
                             <select id="outputLanguage" class="setting-input">
+                                <option value="en-US" selected>🇺🇸 English</option>
                                 <option value="de-DE">🇩🇪 German</option>
-                                <option value="en-US">🇺🇸 English</option>
                                 <option value="fr-FR">🇫🇷 French</option>
                                 <option value="es-ES">🇪🇸 Spanish</option>
                                 <option value="it-IT">🇮🇹 Italian</option>
@@ -5081,6 +5011,24 @@
                                 <option value="ar-SA">🇸🇦 Arabic</option>
                                 <option value="el-GR">🇬🇷 Greek</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Transcript Rhythm Settings -->
+                <div class="setting-group">
+                    <label class="setting-label">Transcript Rhythm</label>
+                    <p class="setting-description">Control how often transcript segments are created for better readability.</p>
+                    <div style="margin-bottom: 16px;">
+                        <label class="api-label">Segment Duration (seconds)</label>
+                        <input type="range" id="rhythmDurationSlider" min="2" max="10" step="0.5" value="5" class="setting-input" style="width: 100%;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 4px;">
+                            <span>2s (fast)</span>
+                            <span id="rhythmDurationDisplay">5.0s</span>
+                            <span>10s (slow)</span>
+                        </div>
+                        <div class="range-description">
+                            Shorter segments create more frequent breaks for easier reading, while longer segments allow for more complete thoughts. 5 seconds matches natural speech rhythm.
                         </div>
                     </div>
                 </div>

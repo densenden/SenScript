@@ -15,16 +15,19 @@ class TranscriptSystem {
     constructor(app) {
         this.app = app;
         
-        // Core state
+        // Core state (language mode now managed by LanguageManager)
         this.state = {
-            currentMode: 'auto', // 'auto' | 'manual'
-            selectedLanguage: 'en-US',
             transcriptBuffer: [], // Final sentences with metadata
             interimText: '',
             finalizedSentences: [],
             lastLanguageDetection: null,
             pendingSentence: '',
-            sessionStarted: false
+            sessionStarted: false,
+            // Rhythm-based segmentation
+            currentSegmentStart: null,
+            currentSegmentText: '',
+            segmentTimer: null,
+            maxSegmentDuration: this.app.settings?.rhythmSegmentDuration || 5000 // Default 5 seconds, adjustable
         };
         
         // UI components
@@ -241,49 +244,29 @@ class TranscriptSystem {
     }
     
     /**
-     * Handle finalized speech text
+     * Handle finalized speech text (triggers rhythm segment completion)
      */
     handleFinalText(text) {
         if (!text || text.trim().length === 0) return;
         
         const trimmedText = text.trim();
-        console.log(`[TranscriptSystem] Final text: "${trimmedText.substring(0, 50)}..."`);
+        console.log(`🎵 [RhythmSegment] Final text received - completing current segment: "${trimmedText.substring(0, 50)}..."`);
         
-        // Detect language for this text
-        const languageDetection = this.detectLanguage(trimmedText);
+        // Update current segment with final text
+        this.state.currentSegmentText = trimmedText;
         
-        // Create sentence record
-        const sentence = {
-            text: trimmedText,
-            timestamp: Date.now(),
-            language: languageDetection,
-            processed: false
-        };
-        
-        // Add to finalized sentences
-        this.state.finalizedSentences.push(sentence);
-        this.state.transcriptBuffer.push(sentence);
-        
-        // Update language indicator if in auto mode
-        if (this.state.currentMode === 'auto' && languageDetection.confidence > 70) {
-            this.languageManager.updateDetectedLanguage(languageDetection);
+        // Force end current rhythm segment (speech recognition finalized)
+        if (this.state.currentSegmentStart && this.state.currentSegmentText.trim()) {
+            const segmentDuration = Date.now() - this.state.currentSegmentStart;
+            this.finalizeRhythmSegment(trimmedText, segmentDuration);
+            
+            // Start new segment for continuing speech
+            this.startNewSegment();
         }
-        
-        // Update UI with wobble animation
-        this.ui.addFinalSentence(sentence);
-        this.animations.triggerWobble();
-        
-        // Check for card generation (with debouncing)
-        this.queueCardGeneration(sentence);
         
         // Clear interim text
         this.state.interimText = '';
         this.ui.clearInterimText();
-        
-        // Manage buffer size (keep last 50 sentences)
-        if (this.state.transcriptBuffer.length > 50) {
-            this.state.transcriptBuffer = this.state.transcriptBuffer.slice(-50);
-        }
     }
     
     /**
@@ -295,6 +278,11 @@ class TranscriptSystem {
         console.log(` [TranscriptSystem] Interim: "${text.substring(0, 30)}..."`);
         
         this.state.interimText = text;
+        
+        // Accumulate text in current rhythm segment
+        if (this.state.currentSegmentStart) {
+            this.state.currentSegmentText = text;
+        }
         
         // Update UI with flip animation
         this.ui.updateInterimText(text);
@@ -470,6 +458,88 @@ class TranscriptSystem {
     }
     
     /**
+     * Start a new rhythm segment
+     */
+    startNewSegment() {
+        console.log('🎵 [RhythmSegment] Starting new 5-second segment');
+        
+        this.state.currentSegmentStart = Date.now();
+        this.state.currentSegmentText = '';
+        
+        // Clear any existing timer
+        if (this.state.segmentTimer) {
+            clearTimeout(this.state.segmentTimer);
+        }
+        
+        // Set rhythm-based force cutoff (adjustable duration)
+        this.state.segmentTimer = setTimeout(() => {
+            console.log(`⏰ [RhythmSegment] ${this.state.maxSegmentDuration}ms timer expired - forcing segment end`);
+            this.forceSegmentEnd();
+        }, this.state.maxSegmentDuration);
+    }
+    
+    /**
+     * Force current segment to end (rhythm timer expired)
+     */
+    forceSegmentEnd() {
+        if (!this.state.currentSegmentStart || !this.state.currentSegmentText.trim()) {
+            console.log('🎵 [RhythmSegment] No active segment to force end');
+            return;
+        }
+        
+        const segmentDuration = Date.now() - this.state.currentSegmentStart;
+        const segmentText = this.state.currentSegmentText.trim();
+        
+        console.log(`🎵 [RhythmSegment] Force-ending segment after ${segmentDuration}ms: "${segmentText.substring(0, 30)}..."`);
+        
+        // Finalize this segment
+        this.finalizeRhythmSegment(segmentText, segmentDuration);
+        
+        // Start new segment for continuing speech
+        this.startNewSegment();
+    }
+    
+    /**
+     * Finalize a rhythm-based segment
+     */
+    finalizeRhythmSegment(text, duration) {
+        console.log(`🎵 [RhythmSegment] Finalizing ${duration}ms segment: "${text.substring(0, 30)}..."`);
+        
+        // Detect language for this segment
+        const languageDetection = this.detectLanguage(text);
+        
+        // Create rhythm segment record
+        const segment = {
+            text: text,
+            timestamp: Date.now(),
+            duration: duration,
+            isRhythmSegment: true,
+            language: languageDetection,
+            processed: false
+        };
+        
+        // Add to finalized sentences
+        this.state.finalizedSentences.push(segment);
+        this.state.transcriptBuffer.push(segment);
+        
+        // Always pass language detection to LanguageManager (it will handle mode checking)
+        this.languageManager.updateDetectedLanguage(languageDetection);
+        
+        // Update UI with rhythm segment
+        this.ui.addRhythmSegment(segment);
+        this.animations.triggerWobble();
+        
+        // Check for card generation on shorter segments
+        this.queueCardGeneration(segment);
+        
+        // Clear the segment timer
+        if (this.state.segmentTimer) {
+            clearTimeout(this.state.segmentTimer);
+            this.state.segmentTimer = null;
+        }
+    }
+    
+    /**
      * Start transcript session
      */
     startSession() {
@@ -477,6 +547,9 @@ class TranscriptSystem {
         console.log('[TranscriptSystem] Previous session state:', this.state.sessionStarted);
         
         this.state.sessionStarted = true;
+        
+        // Start first rhythm segment
+        this.startNewSegment();
         console.log('[TranscriptSystem] New session state:', this.state.sessionStarted);
         this.state.transcriptBuffer = [];
         this.state.finalizedSentences = [];
@@ -487,6 +560,33 @@ class TranscriptSystem {
         
         // Show initial state
         this.ui.showListeningState();
+    }
+    
+    /**
+     * Update rhythm segment duration (called from settings)
+     */
+    updateRhythmDuration(newDuration) {
+        console.log(`🎵 [RhythmSegment] Updating segment duration to ${newDuration}ms`);
+        
+        this.state.maxSegmentDuration = newDuration;
+        
+        // Restart current segment with new duration if one is active
+        if (this.state.currentSegmentStart && this.state.segmentTimer) {
+            console.log('🎵 [RhythmSegment] Restarting current segment with new duration');
+            
+            // Clear existing timer
+            clearTimeout(this.state.segmentTimer);
+            
+            // Calculate remaining time based on new duration
+            const elapsed = Date.now() - this.state.currentSegmentStart;
+            const remaining = Math.max(0, newDuration - elapsed);
+            
+            // Set new timer with remaining time
+            this.state.segmentTimer = setTimeout(() => {
+                console.log('⏰ [RhythmSegment] Updated timer expired - forcing segment end');
+                this.forceSegmentEnd();
+            }, remaining);
+        }
     }
     
     /**

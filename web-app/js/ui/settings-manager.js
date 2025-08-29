@@ -22,6 +22,9 @@ class SettingsManager {
             cardOutputLanguage: 'auto',
             autoLanguage: true,
             
+            // Transcript rhythm settings  
+            rhythmSegmentDuration: 5000, // 5 seconds default
+            
             // Education settings
             educationLevel: 3,
             detailLevel: 3,
@@ -499,7 +502,9 @@ class SettingsManager {
         // Output language selection
         const outputLanguageEl = document.getElementById('outputLanguage');
         if (outputLanguageEl) {
-            outputLanguageEl.value = this.settings.cardOutputLanguage;
+            // Handle auto language case - default to English when auto is selected
+            const outputLang = (this.settings.cardOutputLanguage === 'auto') ? 'en-US' : this.settings.cardOutputLanguage;
+            outputLanguageEl.value = outputLang;
             outputLanguageEl.addEventListener('change', () => {
                 this.settings.cardOutputLanguage = outputLanguageEl.value;
                 console.log('[Settings] Output language changed to:', outputLanguageEl.value);
@@ -512,6 +517,9 @@ class SettingsManager {
         
         // Initialize Whisper toggle
         this.initializeWhisperToggle();
+        
+        // Initialize rhythm duration slider
+        this.initializeRhythmDurationSlider();
     }
     
     /**
@@ -717,6 +725,39 @@ class SettingsManager {
         const inputLanguageContainer = document.getElementById('inputLanguageContainer');
         if (inputLanguageContainer) {
             inputLanguageContainer.style.display = this.settings.autoInputLanguage ? 'none' : 'block';
+        }
+    }
+    
+    /**
+     * Initialize rhythm duration slider
+     */
+    initializeRhythmDurationSlider() {
+        const rhythmSlider = document.getElementById('rhythmDurationSlider');
+        const rhythmDisplay = document.getElementById('rhythmDurationDisplay');
+        
+        if (rhythmSlider && rhythmDisplay) {
+            // Set initial value from settings
+            const durationSeconds = this.settings.rhythmSegmentDuration / 1000;
+            rhythmSlider.value = durationSeconds;
+            rhythmDisplay.textContent = `${durationSeconds}s`;
+            
+            // Handle slider changes
+            rhythmSlider.addEventListener('input', () => {
+                const seconds = parseFloat(rhythmSlider.value);
+                rhythmDisplay.textContent = `${seconds}s`;
+                
+                // Update settings
+                this.settings.rhythmSegmentDuration = seconds * 1000;
+                
+                // Update transcript system if available
+                if (this.app.transcriptSystem) {
+                    this.app.transcriptSystem.updateRhythmDuration(this.settings.rhythmSegmentDuration);
+                }
+                
+                console.log('[Settings] Rhythm duration updated to:', seconds, 'seconds');
+            });
+            
+            console.log('[Settings] Rhythm duration slider initialized');
         }
     }
     

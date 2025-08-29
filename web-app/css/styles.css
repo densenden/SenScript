@@ -143,12 +143,13 @@ body {
    TRANSCRIPT STYLES - Compact Design (no containers, 3 text sizes)
    ============================================================================ */
 
-/* Main transcript container - ensures current line stays at bottom */
+/* Main transcript container - allows user scrolling but auto-scrolls on new content */
 .transcript-content {
     display: flex;
     flex-direction: column;
     height: 100%;
-    overflow: hidden;
+    overflow-y: auto;       /* Allow user scrolling */
+    scroll-behavior: smooth; /* Smooth auto-scrolling */
 }
 
 /* Compact sentence container */
@@ -159,8 +160,9 @@ body {
     gap: 8px;
     padding: 12px 16px 8px 16px; /* Less bottom padding */
     flex: 1; /* Takes available space, pushing current line to bottom */
-    overflow-y: auto; /* Scrollable if needed */
+    overflow-y: hidden; /* No scroll needed with 3-sentence max */
     min-height: 80px; /* Space for 3 lines */
+    max-height: 120px; /* Limit height to prevent overflow beyond 3 sentences */
 }
 
 /* Compact sentence styling - no backgrounds, just clean text */
@@ -174,35 +176,45 @@ body {
     font-size: 0.75em; /* Smallest default size */
 }
 
-/* Three-tier hierarchy for smooth upward movement */
+/* Three-tier hierarchy with progressive font sizes and line heights */
 .transcript-sentence-compact.sentence-newest {
-    opacity: 1.0;           /* Full brightness */
-    font-size: 0.95em;      /* Largest text */
+    opacity: 1.0;           /* Full brightness - white */
+    font-size: 0.9em;       /* Largest text */
+    line-height: 1.3;       /* Comfortable reading */
     font-weight: 500;       /* Slightly bold */
+    color: #ffffff;
 }
 
 .transcript-sentence-compact.sentence-middle {
-    opacity: 0.75;          /* Medium brightness */
-    font-size: 0.85em;      /* Medium text */
+    opacity: 1.0;           /* Keep white, not dimmed */
+    font-size: 0.8em;       /* Medium text */
+    line-height: 1.25;      /* Tighter line height */
     font-weight: 400;       /* Normal weight */
+    color: #ffffff;
 }
 
 .transcript-sentence-compact.sentence-oldest {
-    opacity: 0.4;           /* Lowest brightness */
-    font-size: 0.75em;      /* Smallest text */
+    opacity: 0.6;           /* Only oldest is dimmed */
+    font-size: 0.7em;       /* Smallest text */
+    line-height: 1.2;       /* Most compact */
     font-weight: 300;       /* Light weight */
+    color: #ffffff;
 }
 
-/* Flag and text styling */
+/* Optimized flag and text styling - minimize flag width, maximize text */
 .sentence-flag-compact {
-    font-size: 0.9em;
-    opacity: 0.8;
+    font-size: 0.65em;      /* Much smaller flag */
+    opacity: 0.7;           /* More subtle */
+    width: 12px;            /* Fixed small width */
     flex-shrink: 0;
+    text-align: center;
+    margin-right: 6px;      /* Minimal spacing */
 }
 
 .sentence-text-compact {
-    flex: 1;
+    flex: 1;                /* Take all remaining width */
     color: #ffffff;
+    /* Text now gets full width minus tiny flag */
 }
 
 /* Current line (interim text) styling - always at bottom */
@@ -242,11 +254,60 @@ body {
     font-size: 0.9em;
     color: rgba(255, 255, 255, 0.6);
     line-height: 1.4;
+    transition: opacity 0.3s ease;
+}
+
+/* Hide placeholder when transcription is running */
+.transcript-placeholder-compact.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Active state for current line */
 .transcript-current-line.active-compact {
     border-top-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Individual segment status line integrated into each segment */
+.segment-status-line {
+    padding: 4px 0 0 0;
+    font-size: 0.55em;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-variant: small-caps;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 6px;
+    text-align: right;
+}
+
+.segment-main-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+}
+
+/* Rhythm visualization dots */
+.rhythm-dots {
+    font-size: 0.6em;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 1px;
+    margin-left: 8px;
+    font-family: monospace;
+    flex-shrink: 0;
+}
+
+.rhythm-segment .rhythm-dots {
+    color: rgba(16, 185, 129, 0.6);
+}
+
+/* Rhythm segment specific styling */
+.rhythm-segment {
+    border-left: 2px solid rgba(16, 185, 129, 0.3);
+    padding-left: 6px;
 }
 
 /* ============================================================================
@@ -676,4 +737,17 @@ body {
     color: rgba(31, 41, 55, 0.6);
     background: rgba(0, 0, 0, 0.05);
     border-left-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   LANGUAGE DROPDOWN STYLES
+   ============================================================================ */
+
+/* Unified language dropdown option styling */
+.language-dropdown-option {
+    transition: background-color 0.2s ease;
+}
+
+.language-dropdown-option:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }

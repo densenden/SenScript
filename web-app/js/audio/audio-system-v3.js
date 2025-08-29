@@ -35,6 +35,7 @@ class AudioSystemV3 {
         
         // Per spec: App loads → Microphone mode → NO permission requests initially
         this.showInitialState();
+        this.initializeInputSourceIndicator();
         
         console.log('🎤 [AudioV3] ✅ Audio system initialized - waiting for user action');
     }
@@ -84,6 +85,7 @@ class AudioSystemV3 {
             return;
         }
         
+        
         if (newSource === this.currentAudioSource) {
             console.log(`🎤 [AudioV3] Already on ${newSource}, but ensuring stream is ready`);
             // Don't ignore - ensure the stream is active for current source
@@ -102,11 +104,17 @@ class AudioSystemV3 {
             this.app.transcriptSystem.ui.updateAudioSource(newSource);
         }
         
+        // Update input source indicator
+        this.updateInputSourceIndicator(newSource);
+        
         if (newSource === 'microphone') {
             await this.switchToMicrophone();
         } else if (newSource === 'system') {
             await this.switchToDeviceOutput();
         }
+        
+        // Update indicator again after async operation completes to ensure it's in sync
+        this.updateInputSourceIndicator(this.currentAudioSource);
     }
     
     async switchToMicrophone() {
@@ -159,15 +167,16 @@ class AudioSystemV3 {
     async switchToDeviceOutput() {
         console.log('🖥️ [AudioV3] === SWITCHING TO DEVICE OUTPUT ===');
         
-        // Clean up any existing system stream first
+        // Check if we have a cached and active system stream
         if (this.systemStream && this.systemStream.active) {
-            console.log('🖥️ [AudioV3] 🧹 Cleaning up existing system stream');
-            this.systemStream.getTracks().forEach(track => track.stop());
-            this.systemStream = null;
+            console.log('🖥️ [AudioV3] ✅ Using cached system stream');
+            this.connectAudioVisualization(this.systemStream);
+            this.setupSystemAudioProcessing();
+            return;
         }
         
-        // Request fresh system stream
-        console.log('🖥️ [AudioV3] 🔐 Requesting fresh system audio permission');
+        // No cached stream - request fresh system stream
+        console.log('🖥️ [AudioV3] 🔐 No cached system stream - requesting permission');
         this.permissionRequestInProgress = true;
         // this.updateTranscriptUI('Device Output Mode', 'Select tab or window to capture audio...'); // Disabled: TranscriptUI now manages this
         
@@ -225,12 +234,22 @@ class AudioSystemV3 {
                         this.currentAudioSource = 'microphone';
                         this.updateToggleUI();
                         this.switchToMicrophone();
+                        
+                        // Update transcript UI
+                        if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
+                            this.app.transcriptSystem.ui.updateAudioSource('microphone');
+                        }
                     }, 500); // Longer delay when stream naturally ends
                 };
             }
             
             this.connectAudioVisualization(this.systemStream);
             // this.updateTranscriptUI('Device Output Ready', 'Audio levels active - Click Start to transcribe'); // Disabled: TranscriptUI now manages this
+            
+            // Update transcript UI with new system stream information
+            if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
+                this.app.transcriptSystem.ui.updateAudioSource('system');
+            }
             
         } catch (error) {
             console.log('🖥️ [AudioV3] ⚠️ System audio permission cancelled/failed:', error);
@@ -597,6 +616,47 @@ class AudioSystemV3 {
             transcribing: this.isTranscribing,
             requestingPermission: this.permissionRequestInProgress
         };
+    }
+    
+    /**
+     * Initialize input source indicator button
+     */
+    initializeInputSourceIndicator() {
+        const indicator = document.getElementById('inputSourceIndicator');
+        if (indicator) {
+            // Set initial state
+            this.updateInputSourceIndicator(this.currentAudioSource);
+            
+            // Only add event listener if not already added
+            if (!indicator.dataset.listenerAdded) {
+                indicator.addEventListener('click', () => {
+                    console.log('🎤 [AudioV3] Input source indicator clicked');
+                    const newSource = this.currentAudioSource === 'microphone' ? 'system' : 'microphone';
+                    this.switchAudioSource(newSource);
+                });
+                indicator.dataset.listenerAdded = 'true';
+            }
+        }
+    }
+    
+    /**
+     * Update input source indicator icon and tooltip
+     */
+    updateInputSourceIndicator(source) {
+        const indicator = document.getElementById('inputSourceIndicator');
+        const icon = document.getElementById('inputSourceIcon');
+        
+        if (indicator && icon) {
+            if (source === 'system') {
+                icon.textContent = 'desktop_windows';
+                indicator.title = 'Input: System Audio (click to switch to microphone)';
+                indicator.style.color = '#10b981'; // Green for system audio
+            } else {
+                icon.textContent = 'mic';
+                indicator.title = 'Input: Microphone (click to switch to system audio)';
+                indicator.style.color = '#3b82f6'; // Blue for microphone
+            }
+        }
     }
 }
 

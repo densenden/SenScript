@@ -34,12 +34,12 @@ class UIManager {
     }
     
     setupLanguageDropdown() {
-        // Get elements
-        const languageIndicator = document.getElementById('languageIndicator');
-        const languageDropdown = document.getElementById('languageDropdown');
+        // Get elements (using correct IDs)
+        const languageIndicator = document.getElementById('cardLanguageIndicator');
+        const languageDropdown = document.getElementById('cardLanguageDropdown');
         
         if (!languageIndicator || !languageDropdown) {
-            console.warn('[UI] Language dropdown elements not found');
+            console.warn('[UI] Card language dropdown elements not found');
             return;
         }
         
@@ -54,14 +54,20 @@ class UIManager {
             console.log('[UI] Language dropdown:', isVisible ? 'closed' : 'opened');
         });
         
-        // Handle language selection
-        const languageOptions = languageDropdown.querySelectorAll('.language-option');
+        // Handle language selection (using unified class name)
+        const languageOptions = languageDropdown.querySelectorAll('.language-dropdown-option');
         languageOptions.forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const lang = option.dataset.lang;
-                const flag = option.querySelector('.flag').textContent;
-                const name = option.querySelector('.lang-name').textContent;
+                const flagElement = option.querySelector('span:first-child');
+                const nameElement = option.querySelector('span:last-child');
+                const flag = flagElement ? flagElement.textContent : '🌐';
+                const name = nameElement ? nameElement.textContent : 'Auto-detect';
+                
+                // Update selection highlighting
+                languageOptions.forEach(opt => opt.style.backgroundColor = '');
+                option.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
                 
                 // Update the app language
                 this.updateCardLanguage(lang, flag, name);
@@ -80,9 +86,9 @@ class UIManager {
     updateCardLanguage(lang, flag, name) {
         console.log(`[UI] Changing card language to: ${lang} ${flag} ${name}`);
         
-        // Update indicator
-        const languageFlag = document.getElementById('languageFlag');
-        const languageText = document.getElementById('languageText');
+        // Update indicator (using correct IDs)
+        const languageFlag = document.getElementById('cardLanguageFlag');
+        const languageText = document.getElementById('cardLanguageCode');
         
         if (languageFlag) languageFlag.textContent = flag;
         if (languageText) languageText.textContent = lang === 'auto' ? 'AUTO' : name.split(' ')[0];
@@ -91,6 +97,15 @@ class UIManager {
         if (this.app.settings) {
             this.app.settings.cardOutputLanguage = lang;
             this.app.settings.autoLanguage = (lang === 'auto');
+            
+            // Save settings
+            this.app.settings.saveSettings();
+        }
+        
+        // Sync with transcript language system if needed
+        if (lang !== 'auto' && this.app.transcriptSystem?.languageManager) {
+            // If user manually selects card output language, don't override transcript input
+            console.log('[UI] Card language changed, keeping transcript input language independent');
         }
         
         // Save to localStorage
