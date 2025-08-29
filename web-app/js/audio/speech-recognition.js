@@ -41,8 +41,8 @@ class SpeechRecognitionManager {
         
         // RESTORED: Based on working commit babbaf8
         // Web Speech API DOES work with system audio after getDisplayMedia permission
-        console.log('🎯 [Speech] Web Speech API supports system audio in Chrome after getDisplayMedia');
-        console.log('🎯 [Speech] Tab audio transcription should work when systemAudioReady=true');
+        console.log('[Speech] Web Speech API supports system audio in Chrome after getDisplayMedia');
+        console.log('[Speech] Tab audio transcription should work when systemAudioReady=true');
         
         // Add audio context for better stability
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -303,10 +303,10 @@ class SpeechRecognitionManager {
         let final = '';
         let interim = '';
         
-        console.log('🎙️ [Speech] ========== PROCESSING SPEECH RESULT ==========');
-        console.log('🎙️ [Speech] ResultIndex:', event.resultIndex, 'Results.length:', event.results.length);
-        console.log('🎙️ [Speech] Should be listening:', this.shouldBeListening);
-        console.log('🎙️ [Speech] Background listening:', this.backgroundListening);
+        console.log('[Speech] ========== PROCESSING SPEECH RESULT ==========');
+        console.log('[Speech] ResultIndex:', event.resultIndex, 'Results.length:', event.results.length);
+        console.log('[Speech] Should be listening:', this.shouldBeListening);
+        console.log('[Speech] Background listening:', this.backgroundListening);
         
         // Process speech results with enhanced logging
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -314,14 +314,14 @@ class SpeechRecognitionManager {
             const text = result[0].transcript.trim();
             const confidence = result[0].confidence || 0.5;
             
-            console.log(`🗣️ [Speech] Result ${i}: "${text}" (final: ${result.isFinal}, confidence: ${confidence.toFixed(2)})`);
+            console.log(`[Speech] Result ${i}: "${text}" (final: ${result.isFinal}, confidence: ${confidence.toFixed(2)})`);
             
             if (result.isFinal && text.length > 0) {
                 final += text + ' ';
-                console.log('✅ [Speech] Added to final transcript:', text);
+                console.log('[Speech] Added to final transcript:', text);
             } else if (!result.isFinal && text.length > 0) {
                 interim = text;
-                console.log('🔄 [Speech] Updated interim result:', text);
+                console.log('[Speech] Updated interim result:', text);
             }
         }
         
@@ -462,14 +462,12 @@ class SpeechRecognitionManager {
         if (this.app.els.recordBtn) {
             if (this.isListening) {
                 this.app.els.recordBtn.classList.add('listening');
-                this.app.els.recordText.textContent = 'Stop';
             } else {
                 this.app.els.recordBtn.classList.remove('listening');
-                this.app.els.recordText.textContent = 'Start';
             }
         }
         
-        // Update record dot
+        // Update record dot (main visual indicator)
         if (this.app.els.recordDot) {
             this.app.els.recordDot.classList.toggle('active', this.isListening);
         }
@@ -503,14 +501,14 @@ class SpeechRecognitionManager {
                 <div class="transcript-rows">
                     <div class="transcript-row current">
                         <span class="final-text" style="color: rgba(255, 255, 255, 0.9);">${finalPart}</span>
-                        <span class="interim-text" style="color: rgba(255, 255, 255, 0.6); font-style: italic;">${interimPart}</span>
+                        <span class="interim-text" style="color: rgba(255, 255, 255, 0.6);">${interimPart}</span>
                     </div>
                     <div class="transcript-stats" style="font-size: 10px; opacity: 0.5; margin-top: 8px;">
-                        Words: ${wordCount} | Listening: ${this.isListening ? '✅' : '❌'}
+                        Words: ${wordCount} | Listening: ${this.isListening ? 'Active' : 'Inactive'}
                     </div>
                 </div>
             `;
-            console.log('[Speech] ✅ Enhanced transcript display updated - Words:', wordCount);
+            console.log('[Speech] Enhanced transcript display updated - Words:', wordCount);
             
             // Auto-scroll to bottom to show latest content
             this.app.els.transcript.scrollTop = this.app.els.transcript.scrollHeight;
@@ -518,12 +516,12 @@ class SpeechRecognitionManager {
             // Show helpful status when no content
             this.app.els.transcript.innerHTML = `
                 <div class="transcript-rows">
-                    <div class="transcript-row placeholder" style="color: rgba(255, 255, 255, 0.4); font-style: italic;">
+                    <div class="transcript-row placeholder" style="color: rgba(255, 255, 255, 0.4);">
                         ${this.isListening ? 'Listening for speech...' : 'Click Start to begin transcription'}
                     </div>
                 </div>
             `;
-            console.log('[Speech] ⚠️ No content to display - showing placeholder');
+            console.log('[Speech] No content to display - showing placeholder');
         }
     }
     

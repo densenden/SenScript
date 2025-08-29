@@ -5,7 +5,7 @@
 
 class SenScript {
     constructor() {
-        console.log('🚀 SenScript initializing...');
+        console.log('SenScript initializing...');
         
         // Core properties
         this.recognition = null;
@@ -36,7 +36,6 @@ class SenScript {
             mobileRecordBtn: document.getElementById('mobileRecordBtn'),
             testTranscriptsBtn: document.getElementById('testTranscriptsBtn'),
             recordDot: document.getElementById('recordDot'),
-            recordText: document.getElementById('recordText'),
             transcript: document.getElementById('transcript'),
             cardsContainer: document.getElementById('cardsContainer'),
             cardCount: document.getElementById('cardCount'),
@@ -55,6 +54,7 @@ class SenScript {
             educationLevel: document.getElementById('educationLevel'),
             detailLevel: document.getElementById('detailLevel'),
             exampleComplexity: document.getElementById('exampleComplexity'),
+            activeLevelDots: document.querySelectorAll('#activeLevelDots .level-dot'),
             micLevelDots: document.querySelectorAll('#micLevelDots .level-dot'),
             deviceLevelDots: document.querySelectorAll('#deviceLevelDots .level-dot')
         };
@@ -135,7 +135,7 @@ class SenScript {
     }
     
     async startListening() {
-        console.log('🚀 [Control] === START BUTTON CLICKED ===');
+        console.log('[Control] === START BUTTON CLICKED ===');
         
         // Add recording class for button animation
         this.els.recordBtn.classList.add('recording');
@@ -144,9 +144,6 @@ class SenScript {
         }
         
         // Update button text
-        if (this.els.recordText) {
-            this.els.recordText.textContent = 'Stop';
-        }
         
         // V3: Ensure audio source is ready for transcription
         const hasAudioSource = await this.audioSystem.ensureAudioSourceForTranscription();
@@ -157,9 +154,6 @@ class SenScript {
             if (this.els.mobileRecordBtn) {
                 this.els.mobileRecordBtn.classList.remove('recording');
             }
-            if (this.els.recordText) {
-                this.els.recordText.textContent = 'Start';
-            }
             return;
         }
         
@@ -169,33 +163,33 @@ class SenScript {
         // Start Web Speech API (primary transcription)
         if (this.speechRecognition) {
             try {
-                this.speechRecognition.start();
-                console.log('✅ [Control] Web Speech API started successfully');
+                this.speechRecognition.startListening();
+                console.log('[Control] Web Speech API started successfully');
             } catch (speechError) {
-                console.error('❌ [Control] Web Speech API failed to start:', speechError);
+                console.error('[Control] Web Speech API failed to start:', speechError);
             }
         } else {
-            console.error('❌ [Control] SpeechRecognitionManager not available');
+            console.error('[Control] SpeechRecognitionManager not available');
         }
         
         // Optional Whisper transcription (if enabled in settings)
         if (this.settings && this.settings.settings && this.settings.settings.enableWhisper) {
-            console.log('🎯 [Control] Starting optional Whisper transcription (user enabled)');
+            console.log('[Control] Starting optional Whisper transcription (user enabled)');
             
             try {
                 await this.mediaRecorder.startRecording();
-                console.log('✅ [Control] Whisper transcription started successfully');
+                console.log('[Control] Whisper transcription started successfully');
                 
                 // Show cost tracking display
                 this.showCostTracking();
                 
             } catch (error) {
-                console.warn('⚠️ [Control] Whisper transcription failed (optional):', error.message);
-                console.log('ℹ️ [Control] Continuing with Web Speech API only');
+                console.warn('[Control] Whisper transcription failed (optional):', error.message);
+                console.log('[Control] Continuing with Web Speech API only');
                 // Don't reset UI - Web Speech API continues working
             }
         } else {
-            console.log('ℹ️ [Control] Whisper disabled in settings - using Web Speech API only');
+            console.log('[Control] Whisper disabled in settings - using Web Speech API only');
         }
         
         // Start database session tracking
@@ -205,7 +199,7 @@ class SenScript {
     }
     
     async stopListening() {
-        console.log('🛑 [Control] === STOP BUTTON CLICKED ===');
+        console.log('[Control] === STOP BUTTON CLICKED ===');
         
         // Remove recording class for button animation
         this.els.recordBtn.classList.remove('recording');
@@ -214,24 +208,21 @@ class SenScript {
         }
         
         // Update button text
-        if (this.els.recordText) {
-            this.els.recordText.textContent = 'Start';
-        }
         
         // Stop Web Speech API (primary transcription)
         if (this.speechRecognition) {
             try {
-                this.speechRecognition.stop();
-                console.log('✅ [Control] Web Speech API stopped');
+                this.speechRecognition.stopListening();
+                console.log('[Control] Web Speech API stopped');
             } catch (speechError) {
-                console.warn('⚠️ [Control] Error stopping Web Speech API:', speechError);
+                console.warn('[Control] Error stopping Web Speech API:', speechError);
             }
         }
         
         // Stop Whisper transcription system (if it was started)
         if (this.mediaRecorder && this.mediaRecorder.isRecording) {
             await this.mediaRecorder.stopRecording();
-            console.log('✅ [Control] Whisper transcription stopped');
+            console.log('[Control] Whisper transcription stopped');
             
             // Hide cost tracking display
             this.hideCostTracking();

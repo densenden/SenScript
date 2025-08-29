@@ -71,7 +71,7 @@ class MediaRecorderManager {
             return;
         }
         
-        console.log('🚀 [MediaRecorder] === STARTING RECORDING ===');
+        console.log(' [MediaRecorder] === STARTING RECORDING ===');
         
         try {
             // Get current audio stream from audio system
@@ -139,10 +139,10 @@ class MediaRecorderManager {
             
             // Start recording with extensive debugging
             try {
-                console.log('🚀 [MediaRecorder] Attempting to start recording...');
-                console.log('🚀 [MediaRecorder] Stream active:', this.currentStream.active);
-                console.log('🚀 [MediaRecorder] MediaRecorder state:', this.mediaRecorder.state);
-                console.log('🚀 [MediaRecorder] Audio tracks active:', audioTracks.map(t => t.readyState));
+                console.log(' [MediaRecorder] Attempting to start recording...');
+                console.log(' [MediaRecorder] Stream active:', this.currentStream.active);
+                console.log(' [MediaRecorder] MediaRecorder state:', this.mediaRecorder.state);
+                console.log(' [MediaRecorder] Audio tracks active:', audioTracks.map(t => t.readyState));
                 
                 this.mediaRecorder.start();
                 console.log('✅ [MediaRecorder] Started successfully with state:', this.mediaRecorder.state);
@@ -399,7 +399,7 @@ class MediaRecorderManager {
             return;
         }
         
-        console.log(`🚀 [MediaRecorder] Sending ${this.audioChunks.length} chunks to Whisper`);
+        console.log(` [MediaRecorder] Sending ${this.audioChunks.length} chunks to Whisper`);
         
         try {
             // Combine chunks into single blob

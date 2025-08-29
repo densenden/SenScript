@@ -351,30 +351,30 @@ class AudioSystemV3 {
     // ============ PUBLIC API FOR START BUTTON ============
     
     async ensureAudioSourceForTranscription() {
-        console.log('🚀 [AudioV3] === START BUTTON PRESSED ===');
-        console.log(`🚀 [AudioV3] Current source: ${this.currentAudioSource}`);
-        console.log(`🚀 [AudioV3] Permission in progress: ${this.permissionRequestInProgress}`);
+        console.log(' [AudioV3] === START BUTTON PRESSED ===');
+        console.log(` [AudioV3] Current source: ${this.currentAudioSource}`);
+        console.log(` [AudioV3] Permission in progress: ${this.permissionRequestInProgress}`);
         
         // Wait if permission request is in progress
         if (this.permissionRequestInProgress) {
-            console.log('🚀 [AudioV3] ⏳ Waiting for permission request to complete...');
+            console.log(' [AudioV3] ⏳ Waiting for permission request to complete...');
             await this.waitForPermissionComplete();
         }
         
         if (this.currentAudioSource === 'microphone') {
             if (this.microphoneStream && this.microphoneStream.active) {
-                console.log('🚀 [AudioV3] ✅ Microphone stream ready for transcription');
+                console.log(' [AudioV3] ✅ Microphone stream ready for transcription');
                 return true;
             } else {
-                console.log('🚀 [AudioV3] ❌ No active microphone stream');
+                console.log(' [AudioV3] ❌ No active microphone stream');
                 return false;
             }
         } else if (this.currentAudioSource === 'system') {
             if (this.systemStream && this.systemStream.active) {
-                console.log('🚀 [AudioV3] ✅ System stream ready for transcription');
+                console.log(' [AudioV3] ✅ System stream ready for transcription');
                 return true;
             } else {
-                console.log('🚀 [AudioV3] ❌ No active system stream');
+                console.log(' [AudioV3] ❌ No active system stream');
                 return false;
             }
         }
@@ -389,7 +389,7 @@ class AudioSystemV3 {
     }
     
     startTranscription() {
-        console.log('🚀 [AudioV3] === STARTING TRANSCRIPTION ===');
+        console.log(' [AudioV3] === STARTING TRANSCRIPTION ===');
         this.isTranscribing = true;
         
         // Update UI to show transcription started
@@ -398,7 +398,7 @@ class AudioSystemV3 {
     }
     
     stopTranscription() {
-        console.log('🚀 [AudioV3] === STOPPING TRANSCRIPTION ===');
+        console.log(' [AudioV3] === STOPPING TRANSCRIPTION ===');
         this.isTranscribing = false;
         
         // Update UI to show transcription stopped
