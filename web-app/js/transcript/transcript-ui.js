@@ -34,18 +34,19 @@ class TranscriptUI {
         const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
         const placeholderText = this.getPlaceholderText(audioSource);
         
-        // Work with existing HTML structure, just update content
+        // NEW COMPACT LAYOUT: Current line at bottom, completed sentences above, max 3 sentences
         this.transcriptElement.innerHTML = `
-            <div class="transcript-sentences" id="transcriptSentences">
-                <div class="transcript-placeholder">
+            <div class="transcript-sentences-compact" id="transcriptSentences">
+                <div class="transcript-placeholder-compact">
                     ${placeholderText}
                 </div>
             </div>
-            <div class="transcript-interim" id="transcriptInterim"></div>
+            <div class="transcript-current-line" id="transcriptInterim"></div>
         `;
         
         this.sentencesContainer = document.getElementById('transcriptSentences');
         this.interimElement = document.getElementById('transcriptInterim');
+        this.maxVisibleSentences = 3; // Updated to 3 max as requested
     }
     
     /**
@@ -73,30 +74,27 @@ class TranscriptUI {
     }
     
     /**
-     * Add a finalized sentence to the transcript display
+     * Add a finalized sentence to the transcript display (COMPACT VERSION)
      */
     addFinalSentence(sentence) {
         console.log(`[TranscriptUI] Adding final sentence: "${sentence.text.substring(0, 30)}..."`);
         
         // Remove placeholder if present
-        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder');
+        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
         if (placeholder) {
             placeholder.remove();
         }
         
-        // Create sentence element
-        const sentenceEl = this.createSentenceElement(sentence);
+        // Create compact sentence element
+        const sentenceEl = this.createCompactSentenceElement(sentence);
         
-        // Add to container (newest at bottom for natural reading flow)
-        this.sentencesContainer.appendChild(sentenceEl);
+        // Add to container TOP (newest sentences push older ones up)
+        this.sentencesContainer.insertBefore(sentenceEl, this.sentencesContainer.firstChild);
         
-        // Update font sizes and opacity (newest = largest/brightest)
-        this.updateSentenceHierarchy();
+        // Update font sizes and opacity with 3-tier system
+        this.updateCompactSentenceHierarchy();
         
-        // Auto-scroll to show latest content
-        this.scrollToBottom();
-        
-        // Manage sentence count (keep last N sentences)
+        // Manage sentence count (keep last 3 sentences max)
         this.manageSentenceCount();
     }
     
@@ -166,55 +164,64 @@ class TranscriptUI {
     }
     
     /**
-     * Create DOM element for sentence
+     * Create compact DOM element for sentence (no background containers)
      */
-    createSentenceElement(sentence) {
+    createCompactSentenceElement(sentence) {
         const sentenceEl = document.createElement('div');
-        sentenceEl.className = 'transcript-sentence';
+        sentenceEl.className = 'transcript-sentence-compact';
         sentenceEl.dataset.timestamp = sentence.timestamp;
         
-        // Add language indicator
-        const languageFlag = sentence.language ? sentence.language.flag || '<span class="material-symbols-outlined">language</span>' : '<span class="material-symbols-outlined">language</span>';
+        // Add language flag and text only (clean, no containers)
+        const languageFlag = sentence.language ? sentence.language.flag || '🌐' : '🌐';
         
         sentenceEl.innerHTML = `
-            <div class="sentence-content">
-                <span class="sentence-flag">${languageFlag}</span>
-                <span class="sentence-text">${sentence.text}</span>
-            </div>
+            <span class="sentence-flag-compact">${languageFlag}</span>
+            <span class="sentence-text-compact">${sentence.text}</span>
         `;
         
         return sentenceEl;
     }
     
     /**
-     * Update visual hierarchy of sentences (3 font sizes, opacity levels)
+     * Create DOM element for sentence (legacy method for compatibility)
      */
-    updateSentenceHierarchy() {
-        const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence');
-        const sentenceCount = sentences.length;
+    createSentenceElement(sentence) {
+        return this.createCompactSentenceElement(sentence);
+    }
+    
+    /**
+     * Update compact visual hierarchy (3 text sizes, smooth upward movement)
+     */
+    updateCompactSentenceHierarchy() {
+        const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence-compact');
         
         sentences.forEach((sentence, index) => {
-            // Calculate position from end (0 = newest, 1 = second newest, etc.)
-            const positionFromEnd = sentenceCount - 1 - index;
-            
             // Remove existing hierarchy classes
-            sentence.classList.remove('sentence-current', 'sentence-recent', 'sentence-old');
+            sentence.classList.remove('sentence-newest', 'sentence-middle', 'sentence-oldest');
             
-            if (positionFromEnd === 0) {
-                // Current (newest) sentence - largest font, full opacity
-                sentence.classList.add('sentence-current');
-            } else if (positionFromEnd === 1) {
-                // Recent sentence - medium font, high opacity
-                sentence.classList.add('sentence-recent');
-            } else {
-                // Old sentences - small font, low opacity
-                sentence.classList.add('sentence-old');
+            // Apply 3-tier hierarchy (index 0 = newest at top)
+            if (index === 0) {
+                // Newest sentence - largest font, full opacity
+                sentence.classList.add('sentence-newest');
+            } else if (index === 1) {
+                // Middle sentence - medium font, medium opacity
+                sentence.classList.add('sentence-middle');
+            } else if (index === 2) {
+                // Oldest sentence - smallest font, low opacity
+                sentence.classList.add('sentence-oldest');
             }
         });
     }
     
     /**
-     * Update interim text (changing/unfinished text)
+     * Legacy method for compatibility
+     */
+    updateSentenceHierarchy() {
+        this.updateCompactSentenceHierarchy();
+    }
+    
+    /**
+     * Update interim text (COMPACT VERSION - more prominent current line)
      */
     updateInterimText(text) {
         if (!this.interimElement) return;
@@ -222,28 +229,24 @@ class TranscriptUI {
         console.log(`[TranscriptUI] Updating interim: "${text.substring(0, 30)}..."`);
         
         if (text && text.trim()) {
+            // Clean, prominent current line with blinking cursor
             this.interimElement.innerHTML = `
-                <div class="interim-content">
-                    <span class="interim-text">${text}</span>
-                    <span class="interim-cursor">▌</span>
-                </div>
+                <span class="interim-text-compact">${text}</span>
+                <span class="interim-cursor-compact">▌</span>
             `;
-            this.interimElement.classList.add('active');
+            this.interimElement.classList.add('active-compact');
         } else {
             this.clearInterimText();
         }
-        
-        // Auto-scroll when interim updates
-        this.scrollToBottom();
     }
     
     /**
-     * Clear interim text
+     * Clear interim text (COMPACT VERSION)
      */
     clearInterimText() {
         if (this.interimElement) {
             this.interimElement.innerHTML = '';
-            this.interimElement.classList.remove('active');
+            this.interimElement.classList.remove('active', 'active-compact');
         }
     }
     

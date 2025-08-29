@@ -282,24 +282,40 @@ class CardEngine {
             '<span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>' : 
             '<span style="display: inline-block; width: 8px; height: 8px; background: #6b7280; border-radius: 50%;"></span>';
         
+        // Detect if this is a CheatCard to format content appropriately
+        const isCheatCard = cardData.cardType === 'cheat';
+        const cardTypeDisplay = isCheatCard ? 'CHEATCARD' : 'FLASHCARD';
+        
+        // Format the back content based on card type
+        let formattedBack = cardData.back || 'No content available';
+        if (isCheatCard) {
+            // CheatCards should preserve emoji formatting (🎯, ⚡, 📝)
+            formattedBack = formattedBack.replace(/\n/g, '<br>');
+        } else {
+            // FlashCards should show as paragraphs
+            formattedBack = formattedBack.replace(/\n/g, '<br>');
+        }
+        
         return `
             <div class="card-header">
                 <div class="card-type">${cardData.category || 'CONCEPT'}</div>
                 <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; opacity: 0.7;">
                     ${sourceCircle}
                     <span>${cardData.flag || '🌐'}</span>
+                    <span class="card-type-indicator" style="font-weight: 600; color: ${isCheatCard ? '#f59e0b' : '#3b82f6'};">${cardTypeDisplay}</span>
                     <span>${timeDisplay}</span>
                 </div>
             </div>
             
-            <div class="card-title" style="margin-bottom: 16px;">${cardData.front || 'No title'}</div>
+            <div class="card-title" style="margin-bottom: 16px; font-weight: 600;">${cardData.front || 'No title'}</div>
             
-            <div class="card-content">
-                <strong style="opacity: 0.6; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block;">Answer:</strong>
-                ${(cardData.back || 'No content available').replace(/\n/g, '<br>')}
+            <div class="card-content ${isCheatCard ? 'cheat-content' : 'flash-content'}">
+                <div class="card-answer-content">
+                    ${formattedBack}
+                </div>
             </div>
             
-            <div class="card-source">
+            <div class="card-source" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; opacity: 0.6;">
                 ${cardData.provider ? `${cardData.provider} • ` : ''}${cardData.source || 'AI'}${cardData.originalText ? ` • "${cardData.originalText.substring(0, 40)}..."` : ''}
             </div>
         `;
