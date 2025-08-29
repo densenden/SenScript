@@ -55,6 +55,7 @@ class SenScript {
             detailLevel: document.getElementById('detailLevel'),
             exampleComplexity: document.getElementById('exampleComplexity'),
             activeLevelDots: document.querySelectorAll('#activeLevelDots .level-dot'),
+            levelMeterContainer: document.getElementById('levelMeterContainer'),
             micLevelDots: document.querySelectorAll('#micLevelDots .level-dot'),
             deviceLevelDots: document.querySelectorAll('#deviceLevelDots .level-dot')
         };

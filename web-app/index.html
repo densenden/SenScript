@@ -5769,8 +5769,8 @@
                         localStorage.setItem('cardLanguage', langCode);
                         
                         // Notify app if available
-                        if (window.senScript && window.senScript.settings) {
-                            window.senScript.settings.updateCardLanguage(langCode);
+                        if (window.senScript && window.senScript.ui) {
+                            window.senScript.ui.updateCardLanguage(langCode);
                         }
                         
                         // Update display

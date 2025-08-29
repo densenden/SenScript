@@ -304,8 +304,8 @@ class AudioSystemV3 {
         
         const levelDots = this.app.els.activeLevelDots;
         
-        console.log(`🎵 [AudioV3] Level dots for ${this.currentAudioSource}:`, levelDots ? levelDots.length : 'null');
-        console.log(`🎵 [AudioV3] Audio analyser:`, !!this.audioAnalyser);
+        console.log(`[AudioV3] Level dots for ${this.currentAudioSource}:`, levelDots ? levelDots.length : 'null');
+        console.log(`[AudioV3] Audio analyser:`, !!this.audioAnalyser);
         
         // Show level meter (new container has priority, fallback to legacy overlay)
         if (this.app.els.levelMeterContainer) {
@@ -315,11 +315,11 @@ class AudioSystemV3 {
         }
             
         if (!levelDots || levelDots.length === 0 || !this.audioAnalyser) {
-            console.warn('🎵 [AudioV3] ⚠️ Level dots or analyser not available');
+            console.warn('[AudioV3] Level dots or analyser not available');
             return;
         }
         
-        console.log(`🎵 [AudioV3] 📊 Starting level visualization for ${this.currentAudioSource}`);
+        console.log(`[AudioV3] Starting level visualization for ${this.currentAudioSource}`);
         
         const bufferLength = this.audioAnalyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
