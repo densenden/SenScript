@@ -8,9 +8,9 @@ class WhisperClient {
     constructor(app) {
         this.app = app;
         
-        // API configuration
-        this.baseUrl = window.location.origin;
-        this.transcriptionEndpoint = '/api/transcribe';
+        // API configuration - Real OpenAI Whisper API
+        this.baseUrl = 'https://api.openai.com/v1';
+        this.transcriptionEndpoint = '/audio/transcriptions';
         
         // Request queue and timing
         this.requestQueue = [];
@@ -48,10 +48,8 @@ class WhisperClient {
             response_format: 'verbose_json', // Get timestamps, confidence, segments
             temperature: 0.0, // Maximum determinism for educational content
             language: null, // Auto-detect for multilingual support
-            prompt: this.getContextualPrompt(),
-            // Advanced features
-            timestamp_granularities: ['word', 'segment'], // Both word and segment timestamps
-            word_timestamps: true // Enable word-level timing
+            prompt: this.getContextualPrompt()
+            // Note: timestamp_granularities is handled dynamically in the request
         };
         
         console.log('🎯 [WhisperClient] Initialized for professional transcription');
@@ -111,8 +109,8 @@ Use appropriate formatting for lists, questions, and emphasis.`;
             }
             
         } catch (error) {
-            console.error('❌ [WhisperClient] Transcription failed:', error);
-            this.showError('Transcription error: ' + error.message);
+            console.warn('⚠️ [WhisperClient] Whisper transcription failed, Web Speech API continues:', error.message);
+            // Don't show error to user - Whisper is supplementary to Web Speech API
         }
     }
     
@@ -141,7 +139,7 @@ Use appropriate formatting for lists, questions, and emphasis.`;
             try {
                 await this.sendTranscriptionRequest(request.audioBlob, request.metadata);
             } catch (error) {
-                console.error('❌ [WhisperClient] Request failed:', error);
+                console.warn('⚠️ [WhisperClient] Whisper request failed, continuing with Web Speech API:', error.message);
             }
             
             this.lastRequestTime = Date.now();
@@ -162,43 +160,90 @@ Use appropriate formatting for lists, questions, and emphasis.`;
             const contentType = this.detectContentType(metadata);
             const contextualPrompt = this.getContextualPrompt(contentType);
             
-            // Create FormData with advanced Whisper features
+            // Create FormData with valid Whisper API parameters
             const formData = new FormData();
-            formData.append('audio', audioBlob, `audio_${Date.now()}.webm`);
+            
+            // Generate correct filename based on MIME type
+            const filename = this.generateAudioFilename(audioBlob.type);
+            formData.append('file', audioBlob, filename);
+            console.log(`📁 [WhisperClient] File: ${filename} (${audioBlob.type}, ${(audioBlob.size / 1024).toFixed(1)}KB)`);
             formData.append('model', this.whisperSettings.model);
             formData.append('response_format', this.whisperSettings.response_format);
             formData.append('temperature', this.whisperSettings.temperature);
             formData.append('prompt', contextualPrompt);
-            formData.append('timestamp_granularities[]', 'word');
-            formData.append('timestamp_granularities[]', 'segment');
+            
+            // Add timestamp granularities correctly (only for verbose_json format)
+            if (this.whisperSettings.response_format === 'verbose_json') {
+                formData.append('timestamp_granularities[]', 'word');
+            }
             
             // Language-specific optimization
             if (this.whisperSettings.language) {
-                const langOpt = this.languageOptimizations[this.whisperSettings.language];
+                // Convert from app format (en-US) to OpenAI ISO-639-1 format (en)
+                const iso639Language = this.convertToISO639(this.whisperSettings.language);
+                
+                const langOpt = this.languageOptimizations[iso639Language];
                 if (langOpt) {
                     formData.set('temperature', langOpt.temperature);
                 }
-                formData.append('language', this.whisperSettings.language);
+                formData.append('language', iso639Language);
+                console.log(`🌐 [WhisperClient] Language: ${this.whisperSettings.language} → ${iso639Language}`);
             }
             
             console.log('🎯 [WhisperClient] Content type:', contentType);
             console.log('📝 [WhisperClient] Using contextual prompt for', contentType);
+            console.log('📦 [WhisperClient] FormData prepared with parameters:');
             
-            // Add metadata
-            formData.append('metadata', JSON.stringify({
-                duration: metadata.duration || 10,
-                source: metadata.source || 'unknown',
-                timestamp: metadata.timestamp || Date.now()
-            }));
+            // Log all form data parameters for debugging
+            for (let pair of formData.entries()) {
+                if (pair[0] === 'file') {
+                    console.log(`  ${pair[0]}: [File object, size: ${pair[1].size} bytes, type: "${pair[1].type}", name: "${pair[1].name}"]`);
+                    
+                    // Additional file format debugging
+                    console.log(`  ➤ File validation: type="${pair[1].type}", name="${pair[1].name}"`);
+                    console.log(`  ➤ Size check: ${pair[1].size} bytes (${(pair[1].size / 1024).toFixed(2)} KB)`);
+                    
+                    // Check if the file type is in the supported list
+                    const supportedFormats = ['flac', 'm4a', 'mp3', 'mp4', 'mpeg', 'mpga', 'oga', 'ogg', 'wav', 'webm'];
+                    const fileExtension = pair[1].name.split('.').pop();
+                    console.log(`  ➤ Extension "${fileExtension}" supported: ${supportedFormats.includes(fileExtension)}`);
+                } else {
+                    console.log(`  ${pair[0]}: ${pair[1]}`);
+                }
+            }
             
-            // Make request
+            // Note: metadata is handled separately and not sent to OpenAI API
+            
+            // Make request with API key
+            const apiKey = await this.getApiKey();
             const response = await fetch(this.baseUrl + this.transcriptionEndpoint, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`
+                },
                 body: formData
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                // Get detailed error information from the response
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errorBody = await response.text();
+                    console.error('❌ [WhisperClient] Full error response:', errorBody);
+                    if (errorBody) {
+                        try {
+                            const errorJson = JSON.parse(errorBody);
+                            if (errorJson.error && errorJson.error.message) {
+                                errorMessage += ` - ${errorJson.error.message}`;
+                            }
+                        } catch (parseError) {
+                            errorMessage += ` - ${errorBody}`;
+                        }
+                    }
+                } catch (bodyError) {
+                    console.error('❌ [WhisperClient] Could not read error response:', bodyError);
+                }
+                throw new Error(errorMessage);
             }
             
             const result = await response.json();
@@ -213,15 +258,21 @@ Use appropriate formatting for lists, questions, and emphasis.`;
         } catch (error) {
             console.error('❌ [WhisperClient] Request failed:', error);
             
+            // Don't show errors to user for Whisper failures - Web Speech API is primary
+            console.warn('ℹ️ [WhisperClient] Whisper transcription failed, but Web Speech API continues working');
+            
             if (error.message.includes('413')) {
-                this.showError('Audio file too large. Try shorter recording segments.');
+                console.warn('⚠️ [WhisperClient] Audio file too large for Whisper API');
             } else if (error.message.includes('429')) {
-                this.showError('Too many requests. Slowing down transcription rate.');
+                console.warn('⚠️ [WhisperClient] Whisper API rate limited');
+            } else if (error.message.includes('could not be decoded')) {
+                console.warn('⚠️ [WhisperClient] Audio format issue - MediaRecorder compatibility problem');
             } else {
-                this.showError('Transcription failed: ' + error.message);
+                console.warn('⚠️ [WhisperClient] Whisper API error:', error.message);
             }
             
-            throw error;
+            // Don't throw error - let transcription continue with Web Speech API
+            return;
         }
     }
     
@@ -481,6 +532,62 @@ Use appropriate formatting for lists, questions, and emphasis.`;
     }
     
     /**
+     * Convert from app language format (en-US, de-DE) to OpenAI ISO-639-1 format (en, de)
+     */
+    convertToISO639(languageCode) {
+        if (!languageCode || languageCode === 'auto') {
+            return null; // Let OpenAI auto-detect
+        }
+        
+        // Map common app formats to ISO-639-1
+        const languageMap = {
+            'en-US': 'en',
+            'en-GB': 'en',
+            'de-DE': 'de',
+            'fr-FR': 'fr',
+            'es-ES': 'es',
+            'it-IT': 'it',
+            'pt-PT': 'pt',
+            'nl-NL': 'nl',
+            'ru-RU': 'ru',
+            'zh-CN': 'zh',
+            'ja-JP': 'ja',
+            'ko-KR': 'ko',
+            'ar-SA': 'ar',
+            'el-GR': 'el',
+            'sv-SE': 'sv',
+            'no-NO': 'no',
+            'fi-FI': 'fi'
+        };
+        
+        // Return mapped language or extract first part (en-US -> en)
+        return languageMap[languageCode] || languageCode.split('-')[0];
+    }
+    
+    /**
+     * Generate appropriate filename based on MIME type
+     */
+    generateAudioFilename(mimeType) {
+        // Map MIME types to file extensions (using OpenAI supported extensions)
+        const mimeToExt = {
+            'audio/mp4': 'mp4',        // OpenAI supports mp4 directly
+            'audio/mpeg': 'mp3',       // Standard MP3
+            'audio/mp3': 'mp3',        // Alternative MP3 MIME
+            'audio/wav': 'wav',        // WAV format
+            'audio/x-wav': 'wav',      // Alternative WAV MIME
+            'audio/webm': 'webm',      // WebM (keep for compatibility)
+            'audio/webm;codecs=opus': 'webm',
+            'audio/ogg': 'ogg',        // OGG format
+            'audio/flac': 'flac'       // FLAC format
+        };
+        
+        // Get extension from MIME type or default to mp4 (most compatible)
+        const extension = mimeToExt[mimeType] || mimeToExt[mimeType?.split(';')[0]] || 'mp4';
+        
+        return `audio.${extension}`;
+    }
+    
+    /**
      * Reset usage statistics
      */
     resetStats() {
@@ -492,6 +599,47 @@ Use appropriate formatting for lists, questions, and emphasis.`;
         this.updateUsageDisplay();
         
         console.log('🔄 [WhisperClient] Usage statistics reset');
+    }
+    
+    /**
+     * Get OpenAI API key from settings or server environment
+     */
+    async getApiKey() {
+        // Try settings manager first
+        const settings = this.app.settingsManager?.settings;
+        if (settings && settings.apiKeys && settings.apiKeys.openai) {
+            return settings.apiKeys.openai;
+        }
+        
+        // Try localStorage (backward compatibility)
+        let apiKey = localStorage.getItem('openai_api_key');
+        if (apiKey) {
+            // Migrate from localStorage to settings
+            if (this.app.settingsManager) {
+                this.app.settingsManager.updateSetting('apiKeys.openai', apiKey);
+                localStorage.removeItem('openai_api_key');
+            }
+            return apiKey;
+        }
+        
+        // Try to get API key from server environment
+        try {
+            console.log('🔑 [WhisperClient] Fetching API keys from server environment...');
+            const response = await fetch('/api/keys');
+            if (response.ok) {
+                const keys = await response.json();
+                if (keys.openai) {
+                    console.log('✅ [WhisperClient] Got OpenAI API key from server environment');
+                    return keys.openai;
+                }
+            }
+        } catch (error) {
+            console.warn('⚠️ [WhisperClient] Could not fetch API keys from server:', error.message);
+        }
+        
+        // Final fallback
+        console.warn('⚠️ [WhisperClient] No API key found in settings or server environment');
+        throw new Error('Please set your OpenAI API key in Settings → AI & API → OpenAI API Key, or configure OPENAI_API_KEY environment variable');
     }
 }
 

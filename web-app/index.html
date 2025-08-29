@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,100,0,0" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
     <style>
         * {
             margin: 0;
@@ -20,7 +22,7 @@
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
-            font-size: 1.2em; /* 1.2x bigger body font */
+            font-size: 1.2em; /* Standard size for all text */
         }
         
         /* iOS 16 Glass Morphism */
@@ -49,6 +51,7 @@
             border-radius: 15px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 1em;
         }
         
         .glass-button:hover {
@@ -550,7 +553,8 @@
             height: 24px;
             background: #ef4444; /* Red instead of grey */
             border-radius: 50%;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth morphing transition */
+            animation: dot-idle-pulse 3s ease-in-out infinite;
         }
         
         /* Desktop record button: red dot becomes square when recording */
@@ -558,6 +562,7 @@
             border-radius: 6px; /* Square red dot when recording (1.5x mobile's 4px) */
             width: 30px; /* Bigger dot when recording (1.5x mobile's 20px) */
             height: 30px;
+            animation: dot-recording-pulse 1.2s ease-in-out infinite, dot-recording-glow 2s ease-in-out infinite alternate;
         }
         
         .light .record-dot {
@@ -590,6 +595,39 @@
             50% { 
                 opacity: 1;
                 transform: scale(1.1);
+            }
+        }
+
+        @keyframes dot-idle-pulse {
+            0%, 100% {
+                opacity: 0.9;
+                transform: scale(1);
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+            }
+        }
+
+        @keyframes dot-recording-pulse {
+            0%, 100% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.15);
+            }
+        }
+
+        @keyframes dot-recording-glow {
+            0% {
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3);
+            }
+            100% {
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 35px rgba(239, 68, 68, 0.5), 0 0 50px rgba(239, 68, 68, 0.2);
             }
         }
         
@@ -769,29 +807,6 @@
             margin-top: auto;
         }
         
-        .export-button {
-            width: 100%;
-            padding: 20px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            color: white;
-            border-radius: 20px;
-        }
-        
-        .light .export-button {
-            color: #1f2937;
-        }
-        
-        .export-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-        }
-        
-        .light .export-button:disabled {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-        }
         
         /* Screen 2: Transcript - Mobile Portrait: 30% height */
         .screen-2 {
@@ -1084,9 +1099,10 @@
         /* Controls section layout adjustments */
         .controls-section {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 24px; /* Even spacing between all three elements */
             margin: 20px 0;
         }
         
@@ -1129,7 +1145,6 @@
         /* Placeholder styling */
         .transcript-row .placeholder {
             color: rgba(255, 255, 255, 0.3);
-            font-style: italic;
             font-size: 14px;
         }
         
@@ -1217,7 +1232,6 @@
         /* Interim text (current speech) */
         .transcript-interim {
             color: rgba(255, 255, 255, 0.7);
-            font-style: italic;
             animation: pulse 1.5s ease-in-out infinite;
         }
         
@@ -1260,33 +1274,49 @@
             color: #1f2937;
         }
         
-        .language-bubble {
-            background: rgba(255, 255, 255, 0.15);
+        /* UNIFIED CONTROL ELEMENT - ONE CLASS FOR ALL BUTTONS AND DROPDOWNS */
+        .control-element {
+            background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 6px 14px;
-            border-radius: 18px; /* height = 2x radius: 36px height, 18px radius */
+            padding: 6px 12px;
+            border-radius: 18px;
             height: 36px;
             font-size: 11px;
             font-weight: 500;
+            color: white;
             display: flex;
             align-items: center;
             gap: 4px;
             transition: all 0.2s ease;
+            min-width: fit-content;
+            width: fit-content;
+            box-sizing: border-box;
+            cursor: pointer;
         }
         
-        .language-bubble:hover {
-            background: rgba(255, 255, 255, 0.25);
+        .control-element:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
             transform: translateY(-1px);
         }
         
-        .light .language-bubble {
-            background: rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+        .control-element:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Light theme overrides */
+        .light .control-element {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.2);
             color: #1f2937;
         }
         
-        .light .language-bubble:hover {
-            background: rgba(0, 0, 0, 0.15);
+        .light .control-element:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
         }
         
         /* Language Dropdown Styling */
@@ -1304,10 +1334,18 @@
         .language-dropdown-option {
             transition: all 0.2s ease;
             color: white;
+            font-weight: 500;
+            border-radius: 8px;
         }
         
         .language-dropdown-option:hover {
             background: rgba(255, 255, 255, 0.1) !important;
+            transform: translateY(-1px);
+        }
+        
+        .language-dropdown-option:active {
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateY(0px);
         }
         
         .light .language-dropdown-option {
@@ -1316,6 +1354,12 @@
         
         .light .language-dropdown-option:hover {
             background: rgba(0, 0, 0, 0.05) !important;
+            transform: translateY(-1px);
+        }
+        
+        .light .language-dropdown-option:active {
+            background: rgba(0, 0, 0, 0.08) !important;
+            transform: translateY(0px);
         }
         
         .language-checkbox {
@@ -1337,10 +1381,18 @@
         .input-language-dropdown-option {
             transition: all 0.2s ease;
             color: white;
+            font-weight: 500;
+            border-radius: 8px;
         }
         
         .input-language-dropdown-option:hover {
             background: rgba(255, 255, 255, 0.1) !important;
+            transform: translateY(-1px);
+        }
+        
+        .input-language-dropdown-option:active {
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateY(0px);
         }
         
         .light .input-language-dropdown-option {
@@ -1349,6 +1401,12 @@
         
         .light .input-language-dropdown-option:hover {
             background: rgba(0, 0, 0, 0.05) !important;
+            transform: translateY(-1px);
+        }
+        
+        .light .input-language-dropdown-option:active {
+            background: rgba(0, 0, 0, 0.08) !important;
+            transform: translateY(0px);
         }
         
         /* New card entry animation */
@@ -1634,7 +1692,6 @@
         .card-source {
             font-size: 11px;
             color: rgba(255, 255, 255, 0.6);
-            font-style: italic;
             padding-top: 8px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             margin-top: auto; /* Push to bottom */
@@ -3043,7 +3100,6 @@
         .range-description {
             font-size: 13px;
             color: rgba(255, 255, 255, 0.6);
-            font-style: italic;
             margin-top: 8px;
             padding: 8px 12px;
             background: rgba(255, 255, 255, 0.05);
@@ -3125,7 +3181,7 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
-            font-size: 13px;
+            font-size: 1em;
             font-weight: 500;
             position: relative;
             overflow: hidden;
@@ -3275,7 +3331,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 16px;
             color: white;
-            font-size: 16px;
+            font-size: 1em;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -3749,7 +3805,7 @@
             .screen-1 {
                 display: flex !important; /* Override mobile hiding */
                 order: 1;
-                flex: 0 0 350px;
+                flex: 0 0 270px;
                 flex-direction: column;
                 border-radius: 36px;
             }
@@ -3993,7 +4049,7 @@
             }
             
             .screen-1 {
-                flex: 0 0 350px;
+                flex: 0 0 270px;
             }
             
             .screen-4 {
@@ -4243,6 +4299,111 @@
         .flip-card-inner.flipped {
             transform: rotateY(180deg);
         }
+        
+        /* Clean transcript styling */
+        #transcript {
+            overflow-y: auto;
+            height: auto;
+        }
+        
+        /* Transcript sentence styling */
+        .transcript-sentence {
+            padding: 12px 16px;
+            margin: 6px 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #3b82f6;
+            color: #ffffff;
+            font-size: 0.8em;
+            line-height: 1.6;
+            opacity: 0.85;
+            display: block;
+        }
+        
+        .transcript-sentence.sentence-current {
+            opacity: 1.0;
+            font-size: 0.9em;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .transcript-sentence.sentence-recent {
+            opacity: 0.9;
+            font-size: 0.85em;
+        }
+        
+        .light .transcript-sentence {
+            background: rgba(0, 0, 0, 0.05);
+            color: #374151;
+        }
+        
+        .light .transcript-sentence.sentence-current {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Transcript placeholder styling */
+        .transcript-placeholder {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+        }
+        
+        .light .transcript-placeholder {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .transcript-placeholder small {
+            font-size: 1.2em;
+            display: block;
+            margin-top: 8px;
+            opacity: 0.8;
+        }
+        
+        /* Whisper transcript confidence indicators */
+        .whisper-sentence {
+            position: relative;
+        }
+        
+        .sentence-meta {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+            gap: 4px;
+        }
+        
+        .confidence-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            font-size: 8px;
+            line-height: 1;
+        }
+        
+        .confidence-high {
+            color: #10b981; /* Green */
+        }
+        
+        .confidence-medium {
+            color: #f59e0b; /* Amber */
+        }
+        
+        .confidence-low {
+            color: #ef4444; /* Red */
+        }
+        
+        .light .confidence-high {
+            color: #059669;
+        }
+        
+        .light .confidence-medium {
+            color: #d97706;
+        }
+        
+        .light .confidence-low {
+            color: #dc2626;
+        }
     </style>
 </head>
 <body>
@@ -4295,43 +4456,37 @@
             </div>
             
             <div class="controls-section">
-                <!-- Sophisticated Audio Source Toggle Switch -->
+                <!-- Simplified Audio Source Toggle - Two Circles -->
                 <div class="audio-source-toggle">
-                    <div id="audioSourceSwitch" class="toggle-switch glass-button">
-                        <div class="toggle-divider"></div>
-                        <div class="toggle-labels">
-                            <div class="toggle-option active" data-value="microphone">
-                                <div class="toggle-text">Microphone</div>
-                                <div class="audio-level-dots" id="micLevelDots">
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                </div>
-                            </div>
-                            <div class="toggle-option" data-value="system">
-                                <div class="toggle-text">Device Output</div>
-                                <div class="audio-level-dots" id="deviceLevelDots">
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                    <div class="level-dot"></div>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="audioSourceSwitch" class="audio-toggle-circles">
+                        <button class="audio-circle toggle-option active" data-value="microphone" title="Microphone">
+                            <span class="material-symbols-outlined">mic</span>
+                        </button>
+                        <button class="audio-circle toggle-option" data-value="system" title="Device Output">
+                            <span class="material-symbols-outlined">speaker</span>
+                        </button>
                     </div>
                 </div>
                 
-                <button id="recordBtn" class="record-button glass-button">
-                    <span id="recordDot" class="record-dot"></span>
-                    <span id="recordText">Start</span>
-                </button>
+                <!-- Level Meter - Between audio selector and start button -->
+                <div class="level-meter-container" id="levelMeterContainer">
+                    <div class="audio-level-dots" id="activeLevelDots">
+                        <div class="level-dot"></div>
+                        <div class="level-dot"></div>
+                        <div class="level-dot"></div>
+                        <div class="level-dot"></div>
+                        <div class="level-dot"></div>
+                        <div class="level-dot"></div>
+                        <div class="level-dot"></div>
+                    </div>
+                </div>
+                
+                <!-- Start Button -->
+                <div class="start-button-container">
+                    <button id="recordBtn" class="record-button-large glass-button">
+                        <span id="recordDot" class="record-dot"></span>
+                    </button>
+                </div>
             </div>
             
             
@@ -4356,8 +4511,8 @@
                 <div id="clerk-user-button" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"></div>
                 
                 <!-- Settings Button (Round) -->
-                <button id="settingsBtn" class="export-button glass-button" style="flex: 1; padding: 8px 16px; height: 40px; border-radius: 20px;">
-                    Settings
+                <button id="settingsBtn" class="icon-button" title="Settings">
+                    <span class="material-symbols-outlined">more_vert</span>
                 </button>
             </div>
         </div>
@@ -4391,12 +4546,8 @@
                     <div id="clerk-user-button-mobile" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"></div>
                     
                     <!-- Three-dot menu button -->
-                    <button id="mobileSettingsBtn" class="glass-button" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="1"></circle>
-                            <circle cx="12" cy="5" r="1"></circle>
-                            <circle cx="12" cy="19" r="1"></circle>
-                        </svg>
+                    <button id="mobileSettingsBtn" class="icon-button" style="width: 32px; height: 32px;">
+                        <span class="material-symbols-outlined">more_vert</span>
                     </button>
                 </div>
             </div>
@@ -4409,80 +4560,6 @@
             <div class="transcript-container">
                 <div class="transcript-header">
                     <h2 class="transcript-title">Live Transcript</h2>
-                    <div style="position: relative;">
-                        <div id="transcriptLanguageIndicator" class="language-bubble" title="Input language (click to change)" style="cursor: pointer;">
-                            <span id="transcriptLanguageFlag">🌐</span>
-                            <span id="langCodeTranscript">AUTO</span>
-                            <span style="margin-left: 4px; font-size: 8px;">▼</span>
-                        </div>
-                        
-                        <!-- Input Language Dropdown -->
-                        <div id="inputLanguageDropdown" style="
-                            position: absolute;
-                            top: 100%;
-                            right: 0;
-                            background: rgba(31, 41, 55, 0.95);
-                            backdrop-filter: blur(20px) saturate(180%);
-                            -webkit-backdrop-filter: blur(20px) saturate(180%);
-                            border: 1px solid rgba(255, 255, 255, 0.2);
-                            border-radius: 12px;
-                            padding: 8px;
-                            margin-top: 4px;
-                            min-width: 160px;
-                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                            z-index: 1000;
-                            display: none;
-                        ">
-                            <div class="input-language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🌐</span>
-                                <span>Auto-detect</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇺🇸</span>
-                                <span>English</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇩🇪</span>
-                                <span>German</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇫🇷</span>
-                                <span>French</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="es-ES" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇪🇸</span>
-                                <span>Spanish</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="it-IT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇮🇹</span>
-                                <span>Italian</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="pt-PT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇵🇹</span>
-                                <span>Portuguese</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="nl-NL" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇳🇱</span>
-                                <span>Dutch</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="ru-RU" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇷🇺</span>
-                                <span>Russian</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="zh-CN" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇨🇳</span>
-                                <span>Chinese</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="ja-JP" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇯🇵</span>
-                                <span>Japanese</span>
-                            </div>
-                            <div class="input-language-dropdown-option" data-lang="ko-KR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span>🇰🇷</span>
-                                <span>Korean</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <!-- Transcript Content -->
                 <div id="transcript" class="transcript-content">
@@ -4490,107 +4567,200 @@
                 </div>
             </div>
             
-            <!-- Transcript Export Button - Hidden on mobile -->
-            <div class="desktop-only" style="padding: 20px; margin: 0;">
-                <button id="exportTranscriptBtn" class="export-button glass-button" style="width: 100%; padding: 8px 16px; height: 32px; border-radius: 16px;" disabled>
-                    Export Transcript
+            <!-- Bottom row -->
+            <div style="display: flex; align-items: center; padding: 20px; gap: 12px; flex-wrap: nowrap;">
+                <div style="position: relative;">
+                    <div id="transcriptLanguageIndicator" class="control-element">
+                        <span id="transcriptLanguageFlag" class="material-symbols-outlined">language</span>
+                        <span id="langCodeTranscript">AUTO</span>
+                        <span style="font-size: 8px;">▼</span>
+                    </div>
+                    <!-- Input Language Dropdown -->
+                    <div id="inputLanguageDropdown" style="
+                        position: absolute;
+                        bottom: 100%;
+                        left: 0;
+                        background: rgba(31, 41, 55, 0.95);
+                        backdrop-filter: blur(20px) saturate(180%);
+                        -webkit-backdrop-filter: blur(20px) saturate(180%);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 12px;
+                        padding: 8px;
+                        margin-bottom: 4px;
+                        min-width: 160px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                        z-index: 1000;
+                        display: none;
+                    ">
+                        <div class="input-language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-outlined">language</span>
+                            <span>Auto-detect</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇺🇸</span>
+                            <span>English</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇩🇪</span>
+                            <span>German</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇫🇷</span>
+                            <span>French</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="es-ES" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇪🇸</span>
+                            <span>Spanish</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="it-IT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇮🇹</span>
+                            <span>Italian</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="pt-PT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇵🇹</span>
+                            <span>Portuguese</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="nl-NL" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇳🇱</span>
+                            <span>Dutch</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="ru-RU" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇷🇺</span>
+                            <span>Russian</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="zh-CN" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇨🇳</span>
+                            <span>Chinese</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="ja-JP" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇯🇵</span>
+                            <span>Japanese</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="ko-KR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇰🇷</span>
+                            <span>Korean</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="ar-SA" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇸🇦</span>
+                            <span>Arabic</span>
+                        </div>
+                        <div class="input-language-dropdown-option" data-lang="el-GR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇬🇷</span>
+                            <span>Greek</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="exportTranscriptBtn" class="control-element" disabled>
+                    <span class="material-symbols-outlined">description</span>
                 </button>
             </div>
             </div> <!-- Close screen-2 -->
         
             <!-- Screen 3: Flashcards -->
             <div class="screen-3 glass-dark" id="screen3">
-            <div class="cards-header">
-                <h2 class="cards-title" style="display: flex; align-items: center; gap: 12px;">
-                    <div class="flip-card" style="perspective: 1000px; width: auto; height: auto;">
-                        <div id="cardsModeToggle" class="flip-card-inner" style="
-                            position: relative;
-                            width: 100%;
-                            height: 100%;
-                            cursor: pointer;
-                            transition: transform 0.6s;
-                            transform-style: preserve-3d;
-                            border-radius: 12px;
-                        ">
-                            <!-- Front side (FlashCards) -->
-                            <div class="flip-card-front" style="
-                                position: absolute;
-                                width: 100%;
-                                height: 100%;
-                                backface-visibility: hidden;
-                                background: rgba(255, 255, 255, 0.1);
-                                border: 1px solid rgba(255, 255, 255, 0.2);
-                                border-radius: 12px;
-                                padding: 8px 16px;
-                                display: flex;
-                                align-items: center;
-                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                                transition: all 0.3s ease;
-                            ">
-                                <span id="cardsMainTitle" style="font-size: 16px; font-weight: 600;">FlashCards</span>
-                            </div>
-                            
-                            <!-- Back side (CheatCards) -->
-                            <div class="flip-card-back" style="
-                                position: absolute;
-                                width: 100%;
-                                height: 100%;
-                                backface-visibility: hidden;
-                                background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.15));
-                                border: 1px solid rgba(239, 68, 68, 0.3);
-                                border-radius: 12px;
-                                padding: 8px 16px;
-                                display: flex;
-                                align-items: center;
-                                transform: rotateY(180deg);
-                                box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
-                                transition: all 0.3s ease;
+            <div class="cards-container">
+                <div class="cards-header">
+                    <h2 class="cards-title" style="display: flex; align-items: center; gap: 12px;">
+                        <div class="flip-card" style="perspective: 1000px; width: auto; height: auto;">
+                            <div id="cardsModeToggle" class="flip-card-inner" style="
                                 position: relative;
-                                overflow: hidden;
+                                width: 100%;
+                                height: 100%;
+                                cursor: pointer;
+                                transition: transform 0.6s;
+                                transform-style: preserve-3d;
+                                border-radius: 12px;
                             ">
-                                <span style="font-size: 16px; font-weight: 600; color: #fee2e2;">CheatCards</span>
+                                <!-- Front side (FlashCards) -->
+                                <div class="flip-card-front" style="
+                                    position: absolute;
+                                    width: 100%;
+                                    height: 100%;
+                                    backface-visibility: hidden;
+                                    background: rgba(255, 255, 255, 0.1);
+                                    border: 1px solid rgba(255, 255, 255, 0.2);
+                                    border-radius: 12px;
+                                    padding: 8px 16px;
+                                    display: flex;
+                                    align-items: center;
+                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                                    transition: all 0.3s ease;
+                                ">
+                                    <span id="cardsMainTitle" style="font-size: 16px; font-weight: 600;">FlashCards</span>
+                                </div>
+                                
+                                <!-- Back side (CheatCards) -->
+                                <div class="flip-card-back" style="
+                                    position: absolute;
+                                    width: 100%;
+                                    height: 100%;
+                                    backface-visibility: hidden;
+                                    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.15));
+                                    border: 1px solid rgba(239, 68, 68, 0.3);
+                                    border-radius: 12px;
+                                    padding: 8px 16px;
+                                    display: flex;
+                                    align-items: center;
+                                    transform: rotateY(180deg);
+                                    box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
+                                    transition: all 0.3s ease;
+                                    position: relative;
+                                    overflow: hidden;
+                                ">
+                                    <span style="font-size: 16px; font-weight: 600; color: #fee2e2;">CheatCards</span>
+                                </div>
                             </div>
                         </div>
+                        <button id="modeInfoButton" class="glass-button" style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; opacity: 0.7; padding: 0;" title="Card settings">
+                            i
+                        </button>
+                    </h2>
+                </div>
+                <!-- Cards Content -->
+                <div id="cardsContainer" class="cards-content">
+                    <div style="text-align: center; opacity: 0.5; padding: 40px 20px;">
+                        <p style="font-size: 1.2em;">Flashcards will appear here</p>
+                        <p style="font-size: 1.2em; margin-top: 8px;">AI analyzes your speech in real-time</p>
                     </div>
-                    <button id="modeInfoButton" class="glass-button" style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; opacity: 0.7; padding: 0;" title="Learn more about CheatCards">
-                        i
-                    </button>
-                </h2>
-                <div style="display: flex; align-items: center; gap: 12px; position: relative;">
-                    <span id="cardCount" class="cards-count">0 cards</span>
-                    <div id="languageIndicator" class="language-bubble" title="Card output language (click to change)" style="cursor: pointer;">
-                        <span id="languageFlag">🌐</span>
-                        <span id="languageText">AUTO</span>
-                        <span style="margin-left: 4px; font-size: 8px;">▼</span>
+                </div>
+            </div>
+            
+            <!-- Bottom row -->
+            <div style="display: flex; align-items: center; padding: 20px; gap: 12px; flex-wrap: nowrap;">
+                <div style="position: relative;">
+                    <div id="cardLanguageIndicator" class="control-element">
+                        <span id="cardLanguageFlag" class="material-symbols-outlined">language</span>
+                        <span id="cardLanguageCode">AUTO</span>
+                        <span style="font-size: 8px;">▼</span>
                     </div>
-                    
-                    <!-- Language Dropdown -->
-                    <div id="languageDropdown" style="
+                    <!-- Card Language Dropdown -->
+                    <div id="cardLanguageDropdown" style="
                         position: absolute;
-                        top: 100%;
-                        right: 0;
+                        bottom: 100%;
+                        left: 0;
                         background: rgba(31, 41, 55, 0.95);
                         backdrop-filter: blur(20px) saturate(180%);
+                        -webkit-backdrop-filter: blur(20px) saturate(180%);
                         border: 1px solid rgba(255, 255, 255, 0.2);
                         border-radius: 12px;
                         padding: 8px;
-                        margin-top: 4px;
-                        display: none;
-                        z-index: 1000;
+                        margin-bottom: 4px;
                         min-width: 160px;
-                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                        z-index: 1000;
+                        display: none;
                     ">
                         <div class="language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🌐</span>
+                            <span class="material-symbols-outlined">language</span>
                             <span>Auto-detect</span>
-                        </div>
-                        <div class="language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
-                            <span>🇩🇪</span>
-                            <span>German</span>
                         </div>
                         <div class="language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
                             <span>🇺🇸</span>
                             <span>English</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇩🇪</span>
+                            <span>German</span>
                         </div>
                         <div class="language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
                             <span>🇫🇷</span>
@@ -4638,20 +4808,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div id="cardsContainer" class="cards-container">
-                <div style="text-align: center; opacity: 0.5; padding: 40px 20px;">
-                    <p>Flashcards will appear here</p>
-                    <p style="font-size: 12px; margin-top: 8px;">AI analyzes your speech in real-time</p>
-                </div>
-            </div>
-            
-            <!-- Cards Export Button - Hidden on mobile -->
-            <div class="desktop-only" style="padding: 20px; margin: 0;">
-                <button id="exportBtn" class="export-button glass-button" style="width: 100%; padding: 8px 16px; height: 32px; border-radius: 16px;" disabled>
-                    Export Cards
+                <button id="exportBtn" class="control-element" disabled>
+                    <span class="material-symbols-outlined">download</span>
                 </button>
+                <span id="cardCount" class="cards-count">0 cards</span>
             </div>
             </div> <!-- Close screen-3 -->
         </div> <!-- Close app-content -->
@@ -4664,8 +4824,9 @@
             <!-- Features section hidden on mobile -->
             
             <div class="export-section">
-                <button id="exportBtn" class="export-button glass-button" disabled>
-                    💾 Export Cards
+                <button id="exportCombinedBtn" class="control-element" disabled>
+                    <span class="material-symbols-outlined" style="margin-right: 8px;">download</span>
+                    Export All
                 </button>
             </div>
             </div> <!-- Close screen-4 -->
@@ -4696,7 +4857,9 @@
                     <span>Audio</span>
                 </button>
                 <button class="tab-button" data-tab="languages" title="Input and output language settings">
-                    <div class="tab-icon">🌐</div>
+                    <div class="tab-icon">
+                        <span class="material-symbols-outlined">language</span>
+                    </div>
                     <span>Languages</span>
                 </button>
                 <button class="tab-button" data-tab="ai" title="AI models and API configuration">
@@ -4933,6 +5096,23 @@
                     <p class="setting-description">Choose your preferred AI model. Fastest response wins automatically.</p>
                     <div id="modelGrid" class="model-grid">
                         <!-- Models loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Whisper Transcription -->
+                <div class="setting-group">
+                    <label class="setting-label">Enhanced Transcription</label>
+                    <p class="setting-description">Optional OpenAI Whisper for higher accuracy. Web Speech API works great without this.</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label class="toggle-label">
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="enableWhisper">
+                                <span class="toggle-slider"></span>
+                            </div>
+                            <span><strong>Enable Whisper Transcription</strong></span>
+                        </label>
+                        <p class="setting-helper">When enabled, uses OpenAI Whisper for enhanced accuracy alongside Web Speech API</p>
                     </div>
                 </div>
                 
@@ -5559,6 +5739,82 @@
                     });
             }
         })();
+        
+        // Card Language Dropdown Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const cardLanguageIndicator = document.getElementById('cardLanguageIndicator');
+            const cardLanguageDropdown = document.getElementById('cardLanguageDropdown');
+            
+            if (cardLanguageIndicator && cardLanguageDropdown) {
+                let isCardDropdownOpen = false;
+                let selectedCardLanguage = 'auto';
+                
+                // Toggle dropdown on indicator click
+                cardLanguageIndicator.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    isCardDropdownOpen = !isCardDropdownOpen;
+                    cardLanguageDropdown.style.display = isCardDropdownOpen ? 'block' : 'none';
+                });
+                
+                // Handle option selection
+                cardLanguageDropdown.addEventListener('click', (e) => {
+                    const option = e.target.closest('.language-dropdown-option');
+                    if (option) {
+                        const langCode = option.dataset.lang;
+                        const flagElement = document.getElementById('cardLanguageFlag');
+                        const textElement = document.getElementById('cardLanguageCode');
+                        
+                        // Update selected language
+                        selectedCardLanguage = langCode;
+                        
+                        // Store in localStorage for app to use
+                        localStorage.setItem('cardLanguage', langCode);
+                        
+                        // Notify app if available
+                        if (window.senScript && window.senScript.settings) {
+                            window.senScript.settings.updateCardLanguage(langCode);
+                        }
+                        
+                        // Update display
+                        if (langCode === 'auto') {
+                            flagElement.textContent = 'language';
+                            flagElement.className = 'material-symbols-outlined';
+                            textElement.textContent = 'AUTO';
+                        } else {
+                            const flagEmoji = option.querySelector('span:first-child').textContent;
+                            const langName = option.querySelector('span:last-child').textContent;
+                            flagElement.textContent = flagEmoji;
+                            flagElement.className = '';
+                            textElement.textContent = langName.toUpperCase();
+                        }
+                        
+                        console.log('[CardLanguage] Language changed to:', langCode);
+                        
+                        // Close dropdown
+                        isCardDropdownOpen = false;
+                        cardLanguageDropdown.style.display = 'none';
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', () => {
+                    if (isCardDropdownOpen) {
+                        isCardDropdownOpen = false;
+                        cardLanguageDropdown.style.display = 'none';
+                    }
+                });
+                
+                // Load saved language on startup
+                const savedLanguage = localStorage.getItem('cardLanguage');
+                if (savedLanguage && savedLanguage !== 'auto') {
+                    // Find and trigger the option
+                    const option = cardLanguageDropdown.querySelector(`[data-lang="${savedLanguage}"]`);
+                    if (option) {
+                        option.click();
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>

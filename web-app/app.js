@@ -1905,26 +1905,26 @@ class SenScript {
             this.saveSettingsOnly();
         });
         
-        // Handle info button click - opens settings to CheatCard Mode tab
+        // Handle info button click - opens settings to Cards tab
         this.els.modeInfoButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('[Mode] Info button clicked - opening CheatCard Mode settings');
+            console.log('[Mode] Info button clicked - opening Card settings');
             
             // Open settings modal
             this.openSettings();
             
-            // Switch to interview/CheatCard tab
-            const interviewTab = document.querySelector('[data-tab="interview"]');
-            if (interviewTab) {
+            // Switch to cards tab
+            const cardsTab = document.querySelector('[data-tab="cards"]');
+            if (cardsTab) {
                 // Remove active from all tabs
                 document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 
-                // Activate interview tab
-                interviewTab.classList.add('active');
-                const interviewContent = document.getElementById('tab-interview');
-                if (interviewContent) {
-                    interviewContent.classList.add('active');
+                // Activate cards tab
+                cardsTab.classList.add('active');
+                const cardsContent = document.getElementById('tab-cards');
+                if (cardsContent) {
+                    cardsContent.classList.add('active');
                 }
             }
         });

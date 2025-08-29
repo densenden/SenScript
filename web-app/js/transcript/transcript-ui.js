@@ -30,11 +30,15 @@ class TranscriptUI {
     }
     
     setupTranscriptStructure() {
+        // Get current audio source for appropriate placeholder
+        const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
+        const placeholderText = this.getPlaceholderText(audioSource);
+        
         // Work with existing HTML structure, just update content
         this.transcriptElement.innerHTML = `
             <div class="transcript-sentences" id="transcriptSentences">
                 <div class="transcript-placeholder">
-                    Click Start to begin transcription
+                    ${placeholderText}
                 </div>
             </div>
             <div class="transcript-interim" id="transcriptInterim"></div>
@@ -42,6 +46,30 @@ class TranscriptUI {
         
         this.sentencesContainer = document.getElementById('transcriptSentences');
         this.interimElement = document.getElementById('transcriptInterim');
+    }
+    
+    /**
+     * Get appropriate placeholder text based on audio source
+     */
+    getPlaceholderText(audioSource) {
+        if (audioSource === 'system') {
+            return 'Device Output Mode<br><small>Select tab or window to capture audio, then click Start</small>';
+        } else {
+            return 'Microphone Mode<br><small>Click Start to begin transcription</small>';
+        }
+    }
+    
+    /**
+     * Update placeholder text when audio source changes
+     */
+    updateAudioSource(audioSource) {
+        console.log(`🔄 [TranscriptUI] Audio source changed to: ${audioSource}`);
+        
+        // Update placeholder if no transcription is active
+        const placeholder = this.sentencesContainer?.querySelector('.transcript-placeholder');
+        if (placeholder) {
+            placeholder.innerHTML = this.getPlaceholderText(audioSource);
+        }
     }
     
     /**
@@ -73,6 +101,71 @@ class TranscriptUI {
     }
     
     /**
+     * Add a sentence from Whisper transcription
+     */
+    addWhisperSentence(sentence) {
+        if (!this.sentencesContainer) {
+            this.initialize();
+            if (!this.sentencesContainer) {
+                console.error(`❌ [TranscriptUI] Cannot add sentence - container not found`);
+                return;
+            }
+        }
+        
+        // Remove placeholder if present
+        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        // Create sentence element with Whisper-specific enhancements
+        const sentenceEl = this.createWhisperSentenceElement(sentence);
+        
+        // Add to container (newest at bottom for natural reading flow)
+        this.sentencesContainer.appendChild(sentenceEl);
+        
+        // Update font sizes and opacity (newest = largest/brightest)
+        this.updateSentenceHierarchy();
+        
+        // Auto-scroll to show latest content
+        this.scrollToBottom();
+        
+        // Manage sentence count (keep last N sentences)
+        this.manageSentenceCount();
+    }
+    
+    /**
+     * Create DOM element for Whisper sentence with enhanced data
+     */
+    createWhisperSentenceElement(sentence) {
+        const sentenceEl = document.createElement('div');
+        sentenceEl.className = 'transcript-sentence whisper-sentence';
+        sentenceEl.dataset.timestamp = sentence.timestamp;
+        sentenceEl.dataset.confidence = sentence.confidence || 0.5;
+        sentenceEl.dataset.duration = sentence.duration || 0;
+        
+        // Add language indicator (from detection)
+        const languageFlag = sentence.language ? sentence.language.flag || '<span class="material-symbols-outlined">language</span>' : '<span class="material-symbols-outlined">language</span>';
+        const languageCode = sentence.language ? sentence.language.code || 'auto' : 'auto';
+        
+        // Confidence indicator
+        const confidenceLevel = sentence.confidence > 0.8 ? 'high' : 
+                              sentence.confidence > 0.5 ? 'medium' : 'low';
+        
+        sentenceEl.innerHTML = `
+            <div class="sentence-content">
+                <span class="sentence-flag" title="${languageCode}">${languageFlag}</span>
+                <span class="sentence-text">${sentence.text}</span>
+                <span class="sentence-meta">
+                    <span class="confidence-indicator confidence-${confidenceLevel}" title="Confidence: ${(sentence.confidence * 100).toFixed(0)}%">●</span>
+                </span>
+            </div>
+        `;
+        
+        return sentenceEl;
+    }
+    
+    /**
      * Create DOM element for sentence
      */
     createSentenceElement(sentence) {
@@ -81,7 +174,7 @@ class TranscriptUI {
         sentenceEl.dataset.timestamp = sentence.timestamp;
         
         // Add language indicator
-        const languageFlag = sentence.language ? sentence.language.flag || '🌐' : '🌐';
+        const languageFlag = sentence.language ? sentence.language.flag || '<span class="material-symbols-outlined">language</span>' : '<span class="material-symbols-outlined">language</span>';
         
         sentenceEl.innerHTML = `
             <div class="sentence-content">
@@ -263,7 +356,7 @@ class TranscriptUI {
         if (this.languageIndicator) {
             if (mode === 'auto') {
                 this.languageIndicator.innerHTML = `
-                    <span class="language-flag">🌐</span>
+                    <span class="language-flag material-symbols-outlined">language</span>
                     <span class="language-code">AUTO</span>
                 `;
             } else {

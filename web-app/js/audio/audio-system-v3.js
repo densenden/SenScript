@@ -74,6 +74,8 @@ class AudioSystemV3 {
         const now = Date.now();
         if (now - this.lastSwitchTime < this.switchDebounceMs && newSource !== this.currentAudioSource) {
             console.log('🎤 [AudioV3] ⚠️ Switch too rapid, ignoring (debounce)');
+            // Reset toggle UI to current source to prevent visual mismatch
+            this.updateToggleUI();
             return;
         }
         
@@ -95,6 +97,11 @@ class AudioSystemV3 {
         this.currentAudioSource = newSource;
         this.updateToggleUI();
         
+        // Update TranscriptUI placeholder
+        if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
+            this.app.transcriptSystem.ui.updateAudioSource(newSource);
+        }
+        
         if (newSource === 'microphone') {
             await this.switchToMicrophone();
         } else if (newSource === 'system') {
@@ -109,7 +116,7 @@ class AudioSystemV3 {
         if (this.microphoneStream && this.microphoneStream.active) {
             console.log('🎤 [AudioV3] ✅ Using cached microphone stream');
             this.connectAudioVisualization(this.microphoneStream);
-            this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            // this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe'); // Disabled: TranscriptUI now manages this
             
             // Set up microphone for speech recognition
             this.setupMicrophoneProcessing();
@@ -119,7 +126,7 @@ class AudioSystemV3 {
         // No cached stream - request permission
         console.log('🎤 [AudioV3] 🔐 No cached microphone - requesting permission');
         this.permissionRequestInProgress = true;
-        this.updateTranscriptUI('Microphone Mode', 'Requesting microphone permission...');
+        // this.updateTranscriptUI('Microphone Mode', 'Requesting microphone permission...'); // Disabled: TranscriptUI manages this
         
         try {
             console.log('🎤 [AudioV3] 📞 Calling getUserMedia...');
@@ -135,14 +142,14 @@ class AudioSystemV3 {
             console.log('🎤 [AudioV3] 🎵 Connecting audio visualization...');
             
             this.connectAudioVisualization(this.microphoneStream);
-            this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe');
+            // this.updateTranscriptUI('Microphone Ready', 'Audio levels active - Click Start to transcribe'); // Disabled: TranscriptUI now manages this
             
             // Set up microphone for speech recognition
             this.setupMicrophoneProcessing();
             
         } catch (error) {
             console.error('🎤 [AudioV3] ❌ Microphone permission denied:', error);
-            this.updateTranscriptUI('Microphone Access Denied', 'Please allow microphone access and try again');
+            // this.updateTranscriptUI('Microphone Access Denied', 'Please allow microphone access and try again'); // Disabled: TranscriptUI manages this
         } finally {
             this.permissionRequestInProgress = false;
             console.log('🎤 [AudioV3] 🔓 Permission request completed');
@@ -162,7 +169,7 @@ class AudioSystemV3 {
         // Request fresh system stream
         console.log('🖥️ [AudioV3] 🔐 Requesting fresh system audio permission');
         this.permissionRequestInProgress = true;
-        this.updateTranscriptUI('Device Output Mode', 'Select tab or window to capture audio...');
+        // this.updateTranscriptUI('Device Output Mode', 'Select tab or window to capture audio...'); // Disabled: TranscriptUI now manages this
         
         try {
             console.log('🖥️ [AudioV3] 📞 Calling getDisplayMedia...');
@@ -194,7 +201,7 @@ class AudioSystemV3 {
                 this.systemStream = null;
                 this.currentAudioSource = 'microphone';
                 this.updateToggleUI();
-                this.updateTranscriptUI('System Audio Failed', 'No audio track available - switched to microphone');
+                // this.updateTranscriptUI('System Audio Failed', 'No audio track available - switched to microphone'); // Disabled: TranscriptUI manages this
                 await this.switchToMicrophone();
                 return;
             }
@@ -213,14 +220,17 @@ class AudioSystemV3 {
                 videoTrack.onended = () => {
                     console.log('🖥️ [AudioV3] ⚠️ System stream ended - switching back to microphone');
                     this.systemStream = null;
-                    this.currentAudioSource = 'microphone';
-                    this.updateToggleUI();
-                    this.switchToMicrophone();
+                    // Add delay to prevent jarring UI jump when user stops screen sharing
+                    setTimeout(() => {
+                        this.currentAudioSource = 'microphone';
+                        this.updateToggleUI();
+                        this.switchToMicrophone();
+                    }, 500); // Longer delay when stream naturally ends
                 };
             }
             
             this.connectAudioVisualization(this.systemStream);
-            this.updateTranscriptUI('Device Output Ready', 'Audio levels active - Click Start to transcribe');
+            // this.updateTranscriptUI('Device Output Ready', 'Audio levels active - Click Start to transcribe'); // Disabled: TranscriptUI now manages this
             
         } catch (error) {
             console.log('🖥️ [AudioV3] ⚠️ System audio permission cancelled/failed:', error);
@@ -233,17 +243,19 @@ class AudioSystemV3 {
                 this.systemStream = null;
             }
             
-            // Per spec: fallback to microphone with appropriate message
-            this.currentAudioSource = 'microphone';
-            this.updateToggleUI();
+                // Per spec: fallback to microphone with appropriate message
+            // Add a small delay before switching to prevent jarring UI jump
+            setTimeout(() => {
+                this.currentAudioSource = 'microphone';
+                this.updateToggleUI();
+                this.switchToMicrophone();
+            }, 300); // 300ms delay for better UX
             
             if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
-                this.updateTranscriptUI('Permission Cancelled', 'User cancelled sharing - using microphone');
+                console.log('🖥️ [AudioV3] User cancelled system audio permission');
             } else {
-                this.updateTranscriptUI('System Audio Failed', 'Error occurred - using microphone');
+                console.log('🖥️ [AudioV3] System audio failed, falling back to microphone');
             }
-            
-            await this.switchToMicrophone();
             
         } finally {
             this.permissionRequestInProgress = false;
@@ -290,12 +302,17 @@ class AudioSystemV3 {
             cancelAnimationFrame(this.animationFrame);
         }
         
-        const levelDots = this.currentAudioSource === 'microphone' 
-            ? this.app.els.micLevelDots 
-            : this.app.els.deviceLevelDots;
+        const levelDots = this.app.els.activeLevelDots;
         
         console.log(`🎵 [AudioV3] Level dots for ${this.currentAudioSource}:`, levelDots ? levelDots.length : 'null');
         console.log(`🎵 [AudioV3] Audio analyser:`, !!this.audioAnalyser);
+        
+        // Show level meter (new container has priority, fallback to legacy overlay)
+        if (this.app.els.levelMeterContainer) {
+            this.app.els.levelMeterContainer.classList.add('active');
+        } else if (this.app.els.levelMeterOverlay) {
+            this.app.els.levelMeterOverlay.classList.add('active');
+        }
             
         if (!levelDots || levelDots.length === 0 || !this.audioAnalyser) {
             console.warn('🎵 [AudioV3] ⚠️ Level dots or analyser not available');
@@ -377,7 +394,7 @@ class AudioSystemV3 {
         
         // Update UI to show transcription started
         const sourceText = this.currentAudioSource === 'microphone' ? 'Microphone' : 'Device Output';
-        this.updateTranscriptUI(`${sourceText} Listening`, 'Transcription active - generating cards');
+        // this.updateTranscriptUI(`${sourceText} Listening`, 'Transcription active - generating cards'); // Disabled: TranscriptUI now manages this
     }
     
     stopTranscription() {
@@ -386,7 +403,7 @@ class AudioSystemV3 {
         
         // Update UI to show transcription stopped
         const sourceText = this.currentAudioSource === 'microphone' ? 'Microphone Ready' : 'Device Output Ready';
-        this.updateTranscriptUI(sourceText, 'Audio levels active - Click Start to transcribe');
+        // this.updateTranscriptUI(sourceText, 'Audio levels active - Click Start to transcribe'); // Disabled: TranscriptUI now manages this
     }
     
     // ============ UI HELPERS ============
@@ -406,19 +423,6 @@ class AudioSystemV3 {
         });
     }
     
-    updateTranscriptUI(current, previous) {
-        if (!this.app.els.transcript) return;
-        
-        const html = `
-            <div class="transcript-rows">
-                <div class="transcript-row current">${current}</div>
-                <div class="transcript-row previous">${previous}</div>
-            </div>
-        `;
-        
-        this.app.els.transcript.innerHTML = html;
-        console.log(`🎨 [AudioV3] UI Updated: "${current}" | "${previous}"`);
-    }
     
     setupUI() {
         // Any additional UI setup can go here

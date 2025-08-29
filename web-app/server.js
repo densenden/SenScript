@@ -10,6 +10,12 @@ const fs = require('fs');
 // Load environment variables (works differently in serverless)
 try {
     require('dotenv').config();
+    console.log('[ENV] ✅ Environment variables loaded successfully');
+    console.log('[ENV] API Keys configured:', {
+        openai: !!process.env.OPENAI_API_KEY,
+        anthropic: !!process.env.ANTHROPIC_API_KEY,
+        deepseek: !!process.env.DEEPSEEK_API_KEY
+    });
 } catch (error) {
     console.log('[ENV] dotenv not available in serverless environment - using process.env directly');
 }
@@ -282,6 +288,7 @@ app.get('/api/test', (req, res) => {
     res.json({ message: 'Server is working' });
 });
 console.log('[SERVER] Test endpoint registered');
+
 
 // === Whisper Transcription Endpoint ===
 
@@ -895,8 +902,35 @@ app.post('/api/usage/record', verifyClerkToken, async (req, res) => {
     }
 });
 
-// Serve static files (temporarily disabled for API testing)
-// app.use(express.static(__dirname));
+// API Keys endpoint - provides environment API keys to client
+app.get('/api/keys', (req, res) => {
+    try {
+        // Provide API keys from environment variables
+        // Only provide keys that are configured, don't expose empty values
+        const keys = {};
+        
+        if (process.env.OPENAI_API_KEY) {
+            keys.openai = process.env.OPENAI_API_KEY;
+        }
+        
+        if (process.env.ANTHROPIC_API_KEY) {
+            keys.anthropic = process.env.ANTHROPIC_API_KEY;
+        }
+        
+        if (process.env.DEEPSEEK_API_KEY) {
+            keys.deepseek = process.env.DEEPSEEK_API_KEY;
+        }
+        
+        console.log('[API] Providing API keys to client:', Object.keys(keys));
+        res.json(keys);
+    } catch (error) {
+        console.error('[API] Error providing API keys:', error);
+        res.status(500).json({ error: 'Failed to get API keys' });
+    }
+});
+
+// Serve static files (CSS, JS, images, etc.)
+app.use(express.static(__dirname));
 
 // Serve the main application
 app.get('/', (req, res) => {

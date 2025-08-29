@@ -30,23 +30,30 @@ class MediaRecorderManager {
      * Get optimal recording options for Whisper API
      */
     getBestRecordingOptions() {
-        // Test supported formats and choose the best for Whisper
+        // Test supported formats and prioritize those that work best with OpenAI Whisper
         const formats = [
-            'audio/webm;codecs=opus',
-            'audio/webm',
-            'audio/mp4',
-            'audio/mpeg'
+            'audio/mp4',           // Most compatible with OpenAI
+            'audio/mpeg',          // Standard MP3
+            'audio/wav',           // Universal compatibility 
+            'audio/webm;codecs=opus', // WebM with specific codec
+            'audio/webm',          // Generic WebM (often problematic)
+            'audio/ogg'            // Fallback
         ];
         
-        let selectedFormat = 'audio/webm'; // Fallback
+        let selectedFormat = 'audio/mp4'; // Fallback to most compatible format
         
+        console.log('🔍 [MediaRecorder] Testing audio formats for Whisper compatibility:');
         for (const format of formats) {
-            if (MediaRecorder.isTypeSupported(format)) {
+            const isSupported = MediaRecorder.isTypeSupported(format);
+            console.log(`  ➤ ${format}: ${isSupported ? '✅ Supported' : '❌ Not supported'}`);
+            if (isSupported) {
                 selectedFormat = format;
                 console.log(`🎵 [MediaRecorder] Selected format: ${format}`);
                 break;
             }
         }
+        
+        console.log(`📋 [MediaRecorder] Final format choice: ${selectedFormat}`);
         
         return {
             mimeType: selectedFormat,
@@ -87,16 +94,18 @@ class MediaRecorderManager {
                 readyState: t.readyState 
             })));
             
-            // Try multiple MediaRecorder configurations
+            // Try multiple MediaRecorder configurations with our optimized format selection
             const configurations = [
-                // Try basic recorder first (most compatible)
-                null,
-                // Try with MIME type only
-                { mimeType: 'audio/webm' },
-                // Try with specific codec
+                // Try our optimized format selection first
+                this.recordingOptions,
+                // Fallback to basic formats
+                { mimeType: 'audio/mp4' },
+                { mimeType: 'audio/mpeg' },
+                { mimeType: 'audio/wav' },
                 { mimeType: 'audio/webm;codecs=opus' },
-                // Try our full options
-                this.recordingOptions
+                { mimeType: 'audio/webm' },
+                // Last resort - basic recorder
+                null
             ];
             
             let recorderCreated = false;
@@ -229,8 +238,23 @@ class MediaRecorderManager {
             if (audioSystem.systemStream && audioSystem.systemStream.active) {
                 console.log('🖥️ [MediaRecorder] Using existing system audio stream');
                 
-                // Check if this is a complex stream that might need special handling
+                // Detailed stream analysis
+                const audioTracks = audioSystem.systemStream.getAudioTracks();
                 const videoTracks = audioSystem.systemStream.getVideoTracks();
+                
+                console.log('🔍 [MediaRecorder] Stream analysis:');
+                console.log('  🎵 Audio tracks:', audioTracks.length);
+                console.log('  🎬 Video tracks:', videoTracks.length);
+                
+                audioTracks.forEach((track, i) => {
+                    console.log(`  🎵 Audio track ${i}:`, {
+                        label: track.label,
+                        enabled: track.enabled,
+                        readyState: track.readyState,
+                        muted: track.muted
+                    });
+                });
+                
                 if (videoTracks.length > 0) {
                     console.log('🖥️ [MediaRecorder] System stream has video tracks, might need special handling');
                 }
@@ -306,9 +330,12 @@ class MediaRecorderManager {
         this.audioChunks = [];
         
         this.mediaRecorder.ondataavailable = (event) => {
+            console.log('🔍 [MediaRecorder] ondataavailable fired - event.data:', !!event.data, 'size:', event.data?.size || 0);
             if (event.data && event.data.size > 0) {
                 this.audioChunks.push(event.data);
                 console.log(`📦 [MediaRecorder] Chunk received: ${event.data.size} bytes`);
+            } else {
+                console.log('⚠️ [MediaRecorder] Empty or no data in ondataavailable event');
             }
         };
         
@@ -347,6 +374,7 @@ class MediaRecorderManager {
         console.log('🔄 [MediaRecorder] Processing audio chunk...');
         
         // Request data from MediaRecorder
+        console.log('📞 [MediaRecorder] Calling requestData() - recorder state:', this.mediaRecorder.state);
         this.mediaRecorder.requestData();
         
         // Wait a moment for data to be available
@@ -379,7 +407,27 @@ class MediaRecorderManager {
                 type: this.recordingOptions.mimeType 
             });
             
-            console.log(`📤 [MediaRecorder] Audio blob size: ${(audioBlob.size / 1024).toFixed(1)}KB`);
+            console.log(`📤 [MediaRecorder] Audio blob created:`);
+            console.log(`  ➤ Size: ${(audioBlob.size / 1024).toFixed(1)}KB (${audioBlob.size} bytes)`);
+            console.log(`  ➤ Type: "${audioBlob.type}"`);
+            console.log(`  ➤ Recording options used: ${JSON.stringify(this.recordingOptions)}`);
+            
+            // Validate audio blob before sending
+            if (audioBlob.size === 0) {
+                console.error('❌ [MediaRecorder] Audio blob is empty - recording failed');
+                return;
+            }
+            
+            if (audioBlob.size < 100) {
+                console.warn('⚠️ [MediaRecorder] Audio blob is very small - might be corrupted');
+            }
+            
+            if (!audioBlob.type || audioBlob.type === '') {
+                console.error('❌ [MediaRecorder] Audio blob has no MIME type');
+                return;
+            }
+            
+            console.log('✅ [MediaRecorder] Audio blob validation passed');
             
             // Send to Whisper client
             if (this.app.whisperClient) {

@@ -60,7 +60,7 @@ class LanguageManager {
         
         let dropdownHTML = `
             <div class="input-language-dropdown-option" data-lang="auto">
-                <span class="option-flag">🌐</span>
+                <span class="option-flag material-symbols-outlined">language</span>
                 <span class="option-text">Auto-detect</span>
             </div>
         `;
@@ -221,13 +221,13 @@ class LanguageManager {
                 code = `AUTO (${this.supportedLanguages[this.state.detectedLanguage.lang]?.code || 'UNK'})`;
             } else {
                 // Show auto mode
-                flag = '🌐';
+                flag = '<span class="material-symbols-outlined">language</span>';
                 code = 'AUTO';
             }
         } else {
             // Show selected language
             const lang = this.supportedLanguages[this.state.selectedLanguage];
-            flag = lang ? lang.flag : '🌐';
+            flag = lang ? lang.flag : '<span class="material-symbols-outlined">language</span>';
             code = lang ? lang.code : 'UNK';
         }
         

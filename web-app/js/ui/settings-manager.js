@@ -32,6 +32,7 @@ class SettingsManager {
             
             // AI settings
             selectedModel: 'auto',
+            enableWhisper: false, // Whisper is optional by default
             useFallback: true,
             apiKeys: {
                 openai: '',
@@ -131,6 +132,12 @@ class SettingsManager {
         }
         if (this.app.els.exampleComplexity) {
             this.app.els.exampleComplexity.value = this.settings.exampleComplexity;
+        }
+        
+        // Update API key fields
+        const openaiKeyEl = document.getElementById('openaiKey');
+        if (openaiKeyEl && this.settings.apiKeys && this.settings.apiKeys.openai) {
+            openaiKeyEl.value = this.settings.apiKeys.openai;
         }
         
         // Update any display elements that show current values
@@ -502,6 +509,31 @@ class SettingsManager {
         // Update visibility based on auto language setting
         this.updateInputLanguageVisibility();
         this.updateLanguageSelectionVisibility();
+        
+        // Initialize Whisper toggle
+        this.initializeWhisperToggle();
+    }
+    
+    /**
+     * Initialize Whisper transcription toggle
+     */
+    initializeWhisperToggle() {
+        const enableWhisperEl = document.getElementById('enableWhisper');
+        if (enableWhisperEl) {
+            enableWhisperEl.checked = this.settings.enableWhisper;
+            enableWhisperEl.addEventListener('change', () => {
+                this.settings.enableWhisper = enableWhisperEl.checked;
+                
+                console.log('[Settings] Whisper transcription', enableWhisperEl.checked ? 'enabled' : 'disabled');
+                
+                // Show user-friendly message about the setting
+                if (enableWhisperEl.checked) {
+                    console.log('[Settings] ℹ️ Whisper will enhance Web Speech API transcription');
+                } else {
+                    console.log('[Settings] ℹ️ Using Web Speech API only (no Whisper enhancement)');
+                }
+            });
+        }
     }
     
     /**
@@ -703,6 +735,32 @@ class SettingsManager {
             
             console.log('[Settings] All settings UI initialized');
         }, 1000);
+    }
+    
+    /**
+     * Update a specific setting using dot notation
+     * @param {string} path - The setting path (e.g., 'apiKeys.openai')
+     * @param {*} value - The new value
+     */
+    updateSetting(path, value) {
+        const keys = path.split('.');
+        let current = this.settings;
+        
+        // Navigate to parent object
+        for (let i = 0; i < keys.length - 1; i++) {
+            if (!current[keys[i]]) {
+                current[keys[i]] = {};
+            }
+            current = current[keys[i]];
+        }
+        
+        // Set the final value
+        current[keys[keys.length - 1]] = value;
+        
+        console.log(`[Settings] Updated ${path} =`, value);
+        
+        // Save settings automatically
+        this.saveSettings();
     }
 }
 

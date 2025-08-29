@@ -139,6 +139,7 @@ class TranscriptSystem {
         console.log(`🎯 [TranscriptSystem] Words: ${transcriptionData.words?.length || 0}`);
         console.log(`🎯 [TranscriptSystem] Segments: ${transcriptionData.segments?.length || 0}`);
         console.log(`🎯 [TranscriptSystem] Educational: ${transcriptionData.metadata?.educational !== false}`);
+        console.log(`🎯 [TranscriptSystem] Session state: sessionStarted=${this.state.sessionStarted}`);
         
         if (!this.state.sessionStarted) {
             console.log(`🎯 [TranscriptSystem] ❌ Session not started, ignoring transcription`);
@@ -215,10 +216,10 @@ class TranscriptSystem {
         this.animations.triggerWobble();
         
         // Check for card generation (only for educational content)
-        if (sentence.whisperData.educational && this.isWorthyOfCard(segmentText)) {
+        if (sentence.whisperData.educational && this.isTextWorthyOfCard(segmentText)) {
             this.queueCardGeneration(sentence);
         } else {
-            console.log(`⏭️ [TranscriptSystem] Skipping card generation - educational: ${sentence.whisperData.educational}, worthy: ${this.isWorthyOfCard(segmentText)}`);
+            console.log(`⏭️ [TranscriptSystem] Skipping card generation - educational: ${sentence.whisperData.educational}, worthy: ${this.isTextWorthyOfCard(segmentText)}`);
         }
         
         // Manage buffer size
@@ -473,8 +474,10 @@ class TranscriptSystem {
      */
     startSession() {
         console.log('🚀 [TranscriptSystem] Starting transcript session');
+        console.log('🚀 [TranscriptSystem] Previous session state:', this.state.sessionStarted);
         
         this.state.sessionStarted = true;
+        console.log('🚀 [TranscriptSystem] New session state:', this.state.sessionStarted);
         this.state.transcriptBuffer = [];
         this.state.finalizedSentences = [];
         this.state.interimText = '';

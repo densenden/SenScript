@@ -74,8 +74,8 @@ class SenScript {
         // Load Whisper usage stats on startup
         this.whisperClient.loadUsageStats();
         
-        // Initialize speech recognition (disabled for Whisper-only mode)
-        // this.speechRecognition = new SpeechRecognitionManager(this);
+        // Initialize speech recognition (primary transcription method)
+        this.speechRecognition = new SpeechRecognitionManager(this);
         
         // Initialize card generator (restored from legacy)
         this.cardGenerator = new CardGenerator(this);
@@ -166,38 +166,36 @@ class SenScript {
         // Start transcript session  
         this.transcriptSystem.startSession();
         
-        // Whisper-only transcription mode
-        console.log('🎯 [Control] Starting Whisper transcription (Web Speech API disabled)');
+        // Start Web Speech API (primary transcription)
+        if (this.speechRecognition) {
+            try {
+                this.speechRecognition.start();
+                console.log('✅ [Control] Web Speech API started successfully');
+            } catch (speechError) {
+                console.error('❌ [Control] Web Speech API failed to start:', speechError);
+            }
+        } else {
+            console.error('❌ [Control] SpeechRecognitionManager not available');
+        }
         
-        try {
-            await this.mediaRecorder.startRecording();
-            console.log('✅ [Control] Whisper transcription started successfully');
+        // Optional Whisper transcription (if enabled in settings)
+        if (this.settings && this.settings.settings && this.settings.settings.enableWhisper) {
+            console.log('🎯 [Control] Starting optional Whisper transcription (user enabled)');
             
-            // Show cost tracking display
-            this.showCostTracking();
-            
-        } catch (error) {
-            console.error('❌ [Control] Whisper transcription failed:', error);
-            console.error('❌ [Control] Web Speech API fallback disabled - Whisper-only mode');
-            
-            // Reset UI on failure
-            this.els.recordBtn.classList.remove('recording');
-            if (this.els.mobileRecordBtn) {
-                this.els.mobileRecordBtn.classList.remove('recording');
+            try {
+                await this.mediaRecorder.startRecording();
+                console.log('✅ [Control] Whisper transcription started successfully');
+                
+                // Show cost tracking display
+                this.showCostTracking();
+                
+            } catch (error) {
+                console.warn('⚠️ [Control] Whisper transcription failed (optional):', error.message);
+                console.log('ℹ️ [Control] Continuing with Web Speech API only');
+                // Don't reset UI - Web Speech API continues working
             }
-            if (this.els.recordText) {
-                this.els.recordText.textContent = 'Start';
-            }
-            
-            // Show helpful error message based on error type
-            if (error.message.includes('No system audio stream available')) {
-                console.log('💡 [Control] Hint: Switch to system audio source first, then try recording');
-                if (this.transcriptSystem && this.transcriptSystem.ui) {
-                    this.transcriptSystem.ui.showErrorState('Please switch to system audio first, then click Start');
-                }
-            }
-            
-            // Don't re-throw - just handle gracefully
+        } else {
+            console.log('ℹ️ [Control] Whisper disabled in settings - using Web Speech API only');
         }
         
         // Start database session tracking
@@ -220,7 +218,17 @@ class SenScript {
             this.els.recordText.textContent = 'Start';
         }
         
-        // Stop Whisper transcription system
+        // Stop Web Speech API (primary transcription)
+        if (this.speechRecognition) {
+            try {
+                this.speechRecognition.stop();
+                console.log('✅ [Control] Web Speech API stopped');
+            } catch (speechError) {
+                console.warn('⚠️ [Control] Error stopping Web Speech API:', speechError);
+            }
+        }
+        
+        // Stop Whisper transcription system (if it was started)
         if (this.mediaRecorder && this.mediaRecorder.isRecording) {
             await this.mediaRecorder.stopRecording();
             console.log('✅ [Control] Whisper transcription stopped');

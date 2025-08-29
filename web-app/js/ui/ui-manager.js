@@ -179,6 +179,53 @@ class UIManager {
         console.log('✅ Transcript exported');
     }
     
+    exportUnified() {
+        console.log('[UI] Exporting transcript and cards...');
+        
+        // Check if we have content to export
+        const hasTranscript = this.app.transcript.trim();
+        const hasCards = this.app.cards.length > 0;
+        
+        if (!hasTranscript && !hasCards) {
+            alert('No content to export! Start recording to generate transcript and cards.');
+            return;
+        }
+        
+        // Create unified export data
+        const exportData = {
+            exportDate: new Date().toISOString(),
+            exportType: 'unified',
+            session: {
+                language: this.app.currentLang,
+                duration: Date.now() - (this.app.startTime || Date.now())
+            },
+            transcript: hasTranscript ? {
+                content: this.app.transcript,
+                wordCount: this.app.transcript.split(' ').length
+            } : null,
+            cards: hasCards ? {
+                data: this.app.cards,
+                totalCount: this.app.cards.length
+            } : null
+        };
+        
+        // Create and download file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: 'application/json'
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `senscript-session-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log(`✅ Exported unified session: ${hasTranscript ? 'transcript' : 'no transcript'}, ${hasCards ? this.app.cards.length + ' cards' : 'no cards'}`);
+    }
+    
     updateStatus(element, status) {
         // Update status indicators
         const statusElement = document.getElementById(element);
