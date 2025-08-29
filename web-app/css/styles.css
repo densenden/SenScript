@@ -229,23 +229,66 @@ body {
 }
 
 .interim-text-compact {
-    font-size: 1.1em;       /* Larger than completed sentences */
-    font-weight: 500;
+    font-size: 1.4em;       /* Bigger for interim text */
+    font-weight: 500;       /* Less bold for subtlety */
     color: #ffffff;
-    opacity: 0.9;
+    opacity: 0.95;          /* Slightly transparent */
+    display: inline;
+    font-style: normal;     /* No italics */
+}
+
+/* Individual letter animation for interim text */
+.interim-letter {
+    display: inline-block;
+    animation: gentle-float 3s ease-in-out infinite;
+    will-change: transform;
+}
+
+.interim-letter:nth-child(odd) {
+    animation-delay: 0.1s;
+}
+
+.interim-letter:nth-child(even) {
+    animation-delay: 0.2s;
+}
+
+.interim-letter:nth-child(3n) {
+    animation-delay: 0.15s;
+}
+
+@keyframes subtle-cursor-blink {
+    0%, 70% { 
+        opacity: 1;
+        transform: scaleY(1);
+    }
+    85%, 100% {
+        opacity: 0.3;
+        transform: scaleY(0.95);
+    }
+}
+
+@keyframes gentle-float {
+    0%, 100% { 
+        transform: translateY(0px);
+    }
+    25% { 
+        transform: translateY(-0.5px);
+    }
+    75% { 
+        transform: translateY(0.5px);
+    }
 }
 
 .interim-cursor-compact {
     color: #3b82f6;
-    animation: blink-compact 1s infinite;
+    animation: subtle-cursor-blink 1.5s ease-in-out infinite;
     font-size: 1.1em;
-    margin-left: 2px;
+    margin-left: 1px;
+    display: inline-block;
+    transform-origin: bottom;
 }
 
-@keyframes blink-compact {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-}
+/* Removed old stretch-cursor animation */
 
 /* Compact placeholder */
 .transcript-placeholder-compact {
@@ -292,12 +335,14 @@ body {
 
 /* Rhythm visualization dots */
 .rhythm-dots {
-    font-size: 0.6em;
-    color: rgba(255, 255, 255, 0.4);
-    letter-spacing: 1px;
+    font-size: 0.8em;
+    color: rgba(16, 185, 129, 0.8);
+    letter-spacing: 2px;
     margin-left: 8px;
     font-family: monospace;
     flex-shrink: 0;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(16, 185, 129, 0.3);
 }
 
 .rhythm-segment .rhythm-dots {
@@ -308,6 +353,283 @@ body {
 .rhythm-segment {
     border-left: 2px solid rgba(16, 185, 129, 0.3);
     padding-left: 6px;
+}
+
+/* ============================================================================
+   RHYTHM-BASED TRANSCRIPT SEGMENTATION STYLES
+   ============================================================================ */
+
+/* Main rhythm transcript container structure */
+.finalized-segments {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 200px; /* Reasonable limit */
+    min-height: 60px; /* Minimum space for content */
+    flex: 1; /* Take available space */
+}
+
+/* Placeholder within rhythm segments area - match cards placeholder styling */
+.finalized-segments .transcript-placeholder {
+    text-align: center;
+    opacity: 0.5;
+    padding: 40px 20px;
+    font-size: 1.2em;
+    color: rgba(255, 255, 255, 1);
+    line-height: 1.4;
+    font-style: normal;
+}
+
+/* Individual finalized segment */
+.finalized-segment {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 10px;
+    transition: all 0.3s ease;
+    opacity: 1; /* Ensure visibility */
+}
+
+/* Segment with plop animation */
+.segment-plop {
+    animation: segmentPlop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes segmentPlop {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1.0);
+        opacity: 1;
+    }
+}
+
+/* Segment content styling */
+.segment-text {
+    font-size: 0.75em;  /* Smaller for old segments */
+    line-height: 1.4;
+    color: #ffffff;
+    margin-bottom: 8px;
+    font-style: normal;  /* No italics */
+}
+
+.segment-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.55em;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-variant: small-caps;
+    letter-spacing: 0.2px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 4px;
+    margin-top: 4px;
+}
+
+.segment-flag {
+    font-size: 0.8em;
+}
+
+.segment-dots {
+    font-family: monospace;
+    color: rgba(16, 185, 129, 0.9);
+    letter-spacing: 2px;
+    font-weight: bold;
+    font-size: 1.1em;
+    text-shadow: 0 0 3px rgba(16, 185, 129, 0.4);
+}
+
+.segment-lang, .segment-duration, .segment-time {
+    font-weight: 500;
+}
+
+.card-icon {
+    color: #f59e0b;
+    font-size: 0.9em;
+    margin-left: auto;
+}
+
+/* Pending line animation area */
+.pending-line-area {
+    padding: 8px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+    background: transparent;
+    border: none;
+    position: relative;
+}
+
+/* The pending line that grows from center */
+.pending-line {
+    width: 100%;
+    height: 2px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+}
+
+.line-progress {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(59, 130, 246, 0.4) 10%,
+        rgba(99, 179, 237, 0.7) 30%,
+        rgba(59, 130, 246, 0.9) 50%, 
+        rgba(99, 179, 237, 0.7) 70%,
+        rgba(59, 130, 246, 0.4) 90%,
+        transparent 100%
+    );
+    width: 0%;
+    border-radius: 1px;
+    box-shadow: 
+        0 0 8px rgba(59, 130, 246, 0.4),
+        0 0 16px rgba(59, 130, 246, 0.2),
+        0 0 24px rgba(59, 130, 246, 0.1);
+    position: relative;
+    animation: progress-fill-and-fade 5s linear infinite;
+}
+
+@keyframes progress-fill-and-fade {
+    0% {
+        width: 0%;
+        opacity: 1;
+    }
+    80% {
+        width: 100%;
+        opacity: 1;
+    }
+    100% {
+        width: 100%;
+        opacity: 0.3;
+    }
+}
+
+.line-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -1px;
+    width: 1px;
+    height: 100%;
+    background: rgba(59, 130, 246, 0.8);
+    border-radius: 0.5px;
+    animation: progress-pulse-with-fade 5s linear;
+}
+
+@keyframes progress-pulse-with-fade {
+    0%, 80% { 
+        opacity: 1; 
+        transform: scaleY(1);
+        animation: progress-pulse 1s ease-in-out infinite alternate;
+    }
+    81%, 100% {
+        opacity: 0.3;
+        transform: scaleY(0.8);
+    }
+}
+
+@keyframes progress-pulse {
+    0% { opacity: 0.7; transform: scaleY(1); }
+    100% { opacity: 1; transform: scaleY(1.2); }
+}
+
+/* Pending line finalizing state */
+.pending-line.finalizing {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Fixed interim area at bottom */
+.interim-area {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.02);
+    height: 54px;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    backdrop-filter: blur(5px);
+    border-radius: 27px; /* Half of height (54px ÷ 2 = 27px) for all corners */
+}
+
+.interim-text {
+    font-size: 1.3em;   /* Bigger for interim text */
+    color: rgba(255, 255, 255, 0.9);
+    font-style: normal;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    flex: 1;
+    display: inline;
+}
+
+.interim-text:empty::before {
+    content: "Listening for speech...";
+    color: rgba(255, 255, 255, 0.4);
+    font-style: normal;
+}
+
+/* ============================================================================
+   CARD MODE TOGGLE STYLES
+   ============================================================================ */
+
+/* Simple card mode toggle button */
+.card-mode-toggle {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+}
+
+.card-mode-toggle:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* CheatCard mode - light orange backdrop */
+.card-mode-toggle.cheat-mode {
+    background: rgba(251, 146, 60, 0.2) !important;
+    border: 1px solid rgba(251, 146, 60, 0.3) !important;
+    color: #fed7aa !important;
+    box-shadow: 0 2px 8px rgba(251, 146, 60, 0.15) !important;
+}
+
+.card-mode-toggle.cheat-mode:hover {
+    background: rgba(251, 146, 60, 0.25) !important;
+}
+
+/* Light theme adjustments */
+.light .card-mode-toggle {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: #1f2937 !important;
+}
+
+.light .card-mode-toggle:hover {
+    background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .card-mode-toggle.cheat-mode {
+    background: rgba(251, 146, 60, 0.15) !important;
+    border: 1px solid rgba(251, 146, 60, 0.25) !important;
+    color: #ea580c !important;
+    box-shadow: 0 2px 8px rgba(251, 146, 60, 0.1) !important;
+}
+
+.light .card-mode-toggle.cheat-mode:hover {
+    background: rgba(251, 146, 60, 0.2) !important;
 }
 
 /* ============================================================================
@@ -496,12 +818,16 @@ body {
     animation: recordingPulse 2s ease-in-out infinite, recording-glow 1.5s ease-in-out infinite alternate;
 }
 
-/* Red dot morphing for large record button */
-.record-button-large.recording .record-dot {
-    border-radius: 8px; /* Rounded square red dot when recording */
-    width: 32px; /* Bigger dot when recording */
-    height: 32px;
-    animation: dot-recording-pulse 1.2s ease-in-out infinite, dot-recording-glow 2s ease-in-out infinite alternate;
+/* Record icon styling */
+.record-icon {
+    font-size: 32px;
+    color: #10b981;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.record-button-large.recording .record-icon {
+    color: #ef4444;
+    animation: recording-pulse 1.2s ease-in-out infinite;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -650,6 +976,151 @@ body {
 .flash-content .card-answer-content {
     /* Standard paragraph formatting for flashcards */
     text-align: left;
+}
+
+/* ============================================================================
+   CARD STYLING & ANIMATIONS
+   ============================================================================ */
+
+/* Base card styling */
+.card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Content-dependent height - NO min-height */
+    height: auto;
+}
+
+.card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Card header styling */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.card-type {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+}
+
+.card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+/* Card Animation States */
+.card-birth {
+    height: 12px !important;
+    min-height: auto;
+    padding: 6px 16px !important;
+    opacity: 0.3;
+    overflow: hidden;
+    transform: scale(0.95);
+}
+
+.card-breeding {
+    animation: card-breeding-shake 0.2s ease-in-out;
+    opacity: 0.6;
+}
+
+.card-open {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 16px !important;
+    opacity: 0.8;
+    transform: scale(1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-ready {
+    opacity: 1 !important;
+    animation: card-content-fade-in 0.3s ease-out;
+}
+
+/* Animation Keyframes */
+@keyframes card-breeding-shake {
+    0%, 100% { transform: scale(0.95) translateX(0px); }
+    25% { transform: scale(0.95) translateX(-1px); }
+    75% { transform: scale(0.95) translateX(1px); }
+}
+
+@keyframes card-content-fade-in {
+    0% { opacity: 0.8; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   CARD CONTENT STYLING - Prominent Back Content Display
+   ============================================================================ */
+
+/* Card content styling for prominent back content display */
+.card-content {
+    font-size: 1.1em;
+    line-height: 1.5;
+    margin: 12px 0;
+}
+
+/* CheatCard content: emphasize emoji structure */
+.card-content.cheat-content {
+    font-size: 1.2em;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.card-content.cheat-content .card-answer-content {
+    white-space: pre-line; /* Preserve line breaks */
+}
+
+/* FlashCard content: readable paragraph format */
+.card-content.flash-content {
+    font-size: 1.0em;
+    line-height: 1.6;
+}
+
+.card-content.flash-content .card-answer-content {
+    text-align: left;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* Card header styling */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-type {
+    font-weight: 700;
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.5px;
+}
+
+.metadata {
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 /* Card type indicator styling */

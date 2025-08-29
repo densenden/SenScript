@@ -128,6 +128,11 @@ class AudioSystemV3 {
             
             // Set up microphone for speech recognition
             this.setupMicrophoneProcessing();
+            
+            // Notify the app that microphone audio is ready
+            if (this.app.onAudioSystemReady) {
+                this.app.onAudioSystemReady('microphone');
+            }
             return;
         }
         
@@ -155,6 +160,11 @@ class AudioSystemV3 {
             // Set up microphone for speech recognition
             this.setupMicrophoneProcessing();
             
+            // Notify the app that microphone audio is ready
+            if (this.app.onAudioSystemReady) {
+                this.app.onAudioSystemReady('microphone');
+            }
+            
         } catch (error) {
             console.error('🎤 [AudioV3] ❌ Microphone permission denied:', error);
             // this.updateTranscriptUI('Microphone Access Denied', 'Please allow microphone access and try again'); // Disabled: TranscriptUI manages this
@@ -172,6 +182,11 @@ class AudioSystemV3 {
             console.log('🖥️ [AudioV3] ✅ Using cached system stream');
             this.connectAudioVisualization(this.systemStream);
             this.setupSystemAudioProcessing();
+            
+            // Notify the app that system audio is ready
+            if (this.app.onAudioSystemReady) {
+                this.app.onAudioSystemReady('system');
+            }
             return;
         }
         
@@ -249,6 +264,11 @@ class AudioSystemV3 {
             // Update transcript UI with new system stream information
             if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
                 this.app.transcriptSystem.ui.updateAudioSource('system');
+            }
+            
+            // Notify the app that system audio is ready
+            if (this.app.onAudioSystemReady) {
+                this.app.onAudioSystemReady('system');
             }
             
         } catch (error) {

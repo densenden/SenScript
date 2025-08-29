@@ -81,10 +81,23 @@ class CardEngine {
     }
     
     updateModeDisplay() {
-        // Update the visual toggle state
+        // Update the simple toggle button with icons
         const cardsModeToggle = document.getElementById('cardsModeToggle');
-        if (cardsModeToggle) {
-            cardsModeToggle.classList.toggle('flipped', this.interviewMode);
+        const cardModeText = document.getElementById('cardModeText');
+        const cardModeIcon = document.getElementById('cardModeIcon');
+        
+        if (cardsModeToggle && cardModeText && cardModeIcon) {
+            if (this.interviewMode) {
+                // CheatCard mode - add orange background, eyeglasses icon, and change text
+                cardsModeToggle.classList.add('cheat-mode');
+                cardModeIcon.textContent = 'eyeglasses';
+                cardModeText.textContent = 'Cheat';
+            } else {
+                // FlashCard mode - remove orange background, bolt icon, and change text  
+                cardsModeToggle.classList.remove('cheat-mode');
+                cardModeIcon.textContent = 'bolt';
+                cardModeText.textContent = 'Flash';
+            }
         }
         
         // Update container class for styling
@@ -109,40 +122,9 @@ class CardEngine {
         }
         
         console.log('[CardEngine] Mode display updated:', this.interviewMode ? 'CheatCard' : 'FlashCard');
-        
-        // Refresh existing cards to apply new styling
-        this.refreshExistingCards();
-    }
-    
-    /**
-     * Refresh existing cards in the DOM to apply current mode styling
-     */
-    refreshExistingCards() {
-        if (!this.app.cards || this.app.cards.length === 0) {
-            return;
-        }
-        
-        const cardElements = this.app.els.cardsContainer.querySelectorAll('.card');
-        console.log(`[CardEngine] Refreshing ${cardElements.length} existing cards for ${this.interviewMode ? 'CheatCard' : 'FlashCard'} mode`);
-        
-        cardElements.forEach((cardElement, index) => {
-            const cardData = this.app.cards[index];
-            if (cardData) {
-                // Update the card's cardType to match current mode
-                cardData.cardType = this.interviewMode ? 'cheat' : 'flash';
-                
-                // Regenerate and update the card's HTML content
-                cardElement.innerHTML = this.generateCardHTML(cardData);
-                
-                // Update the data attribute for consistency
-                cardElement.setAttribute('data-card-type', cardData.cardType);
-                
-                // Reapply click handlers
-                this.setupCardClickHandler(cardElement, cardData);
-            }
-        });
-        
-        console.log(`[CardEngine] Successfully refreshed ${cardElements.length} cards`);
+        console.log('[CardEngine] Button text updated to:', cardModeText ? cardModeText.textContent : 'unknown');
+        console.log('[CardEngine] Button icon updated to:', cardModeIcon ? cardModeIcon.textContent : 'unknown');
+        console.log('[CardEngine] Existing cards maintain their original type - only new cards will use the selected mode');
     }
     
     async processText(text, detection = null) {
@@ -275,7 +257,9 @@ class CardEngine {
                     // 6. Add content and fade in after growth completes
                     setTimeout(() => {
                         console.log('📝 [PIPELINE] Adding content and fading in');
-                        cardElement.innerHTML = this.generateCardHTML(cardData);
+                        const htmlContent = this.generateCardHTML(cardData);
+                        console.log('📝 [PIPELINE] Generated HTML length:', htmlContent.length);
+                        cardElement.innerHTML = htmlContent;
                         cardElement.classList.add('card-ready');
                         this.setupCardClickHandler(cardElement, cardData);
                     }, 400); // After height animation
@@ -333,8 +317,28 @@ class CardEngine {
         const isCheatCard = cardData.cardType === 'cheat';
         const cardTypeDisplay = isCheatCard ? 'CHEATCARD' : 'FLASHCARD';
         
+        console.log(`[CardEngine] Card type detection: cardType="${cardData.cardType}", isCheatCard=${isCheatCard}, display="${cardTypeDisplay}"`);
+        
+        // Debug: Log the card data
+        console.log(`[CardEngine] Generating HTML for card:`, {
+            category: cardData.category,
+            front: cardData.front?.substring(0, 50),
+            back: cardData.back?.substring(0, 100),
+            cardType: cardData.cardType,
+            hasBack: !!cardData.back,
+            fullData: cardData
+        });
+        
+        // Ensure we have content - try multiple fields
+        let content = cardData.back || cardData.content || cardData.answer || cardData.text || cardData.front;
+        
+        if (!content || content.trim().length === 0) {
+            console.error('[CardEngine] No content found in card data:', cardData);
+            content = `Debug: Missing content. Available fields: ${Object.keys(cardData).join(', ')}`;
+        }
+        
         // Format the back content based on card type
-        let formattedBack = cardData.back || 'No content available';
+        let formattedBack = content;
         if (isCheatCard) {
             // CheatCards should preserve emoji formatting (🎯, ⚡, 📝)
             formattedBack = formattedBack.replace(/\n/g, '<br>');
@@ -346,7 +350,7 @@ class CardEngine {
         return `
             <div class="card-header">
                 <div class="card-type">${cardData.category || 'CONCEPT'}</div>
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; opacity: 0.7;">
+                <div class="metadata" style="display: flex; align-items: center; gap: 8px; font-size: 11px; opacity: 0.7;">
                     ${sourceCircle}
                     <span>${cardData.flag || '🌐'}</span>
                     <span class="card-type-indicator" style="font-weight: 600; color: ${isCheatCard ? '#f59e0b' : '#3b82f6'};">${cardTypeDisplay}</span>
@@ -354,11 +358,10 @@ class CardEngine {
                 </div>
             </div>
             
-            <div class="card-title" style="margin-bottom: 16px; font-weight: 600;">${cardData.front || 'No title'}</div>
-            
             <div class="card-content ${isCheatCard ? 'cheat-content' : 'flash-content'}">
+                ${isCheatCard ? '' : '<strong style="font-size: 0.9em; color: rgba(255,255,255,0.8); margin-bottom: 8px; display: block;">Answer:</strong>'}
                 <div class="card-answer-content">
-                    ${formattedBack}
+                    ${formattedBack || 'Content is being generated...'}
                 </div>
             </div>
             
@@ -507,6 +510,52 @@ class CardEngine {
         
         // Note: Don't switch back automatically - let user see the results
         console.log('🎯 CheatCard tests completed - staying in CheatCard mode');
+    }
+    
+    /**
+     * Test card type display with mock data
+     */
+    testCardTypeDisplay() {
+        console.log('🧪 Testing card type display...');
+        
+        // Mock cheat card data
+        const mockCheatCard = {
+            cardType: 'cheat',
+            category: 'TEST CHEAT',
+            front: 'Test Cheat Question',
+            back: '🎯 Test cheat card content\n⚡ Multiple lines\n📝 With emojis',
+            flag: '🇺🇸',
+            source: 'AI',
+            time: '12:00:00'
+        };
+        
+        // Mock flash card data
+        const mockFlashCard = {
+            cardType: 'flash',
+            category: 'TEST FLASH',
+            front: 'Test Flash Question',
+            back: 'Test flash card content with regular formatting',
+            flag: '🇺🇸',
+            source: 'AI',
+            time: '12:00:01'
+        };
+        
+        console.log('🔍 Testing CheatCard HTML generation:');
+        const cheatHTML = this.generateCardHTML(mockCheatCard);
+        console.log('CheatCard HTML contains:', cheatHTML.includes('CHEATCARD') ? '✅ CHEATCARD' : '❌ FLASHCARD');
+        
+        console.log('🔍 Testing FlashCard HTML generation:');
+        const flashHTML = this.generateCardHTML(mockFlashCard);
+        console.log('FlashCard HTML contains:', flashHTML.includes('FLASHCARD') ? '✅ FLASHCARD' : '❌ CHEATCARD');
+        
+        // Create test cards in UI to verify visually
+        setTimeout(() => {
+            this.createUnifiedCardWithBirthAnimation(mockCheatCard);
+        }, 1000);
+        
+        setTimeout(() => {
+            this.createUnifiedCardWithBirthAnimation(mockFlashCard);
+        }, 2000);
     }
     
     resetAllCaches() {

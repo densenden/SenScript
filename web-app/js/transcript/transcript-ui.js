@@ -10,6 +10,16 @@ class TranscriptUI {
         this.interimElement = null;
         this.languageIndicator = null;
         this.maxVisibleSentences = 5;
+        
+        // Rhythm-based segmentation state
+        this.finalizedSegments = []; // Last 3 segments max (15 seconds total)
+        this.currentSegmentText = '';
+        this.currentSegmentStart = null;
+        this.pendingLine = null;
+        this.segmentTimer = null;
+        this.maxSegmentDuration = 5000; // 5 seconds
+        this.maxSegments = 3; // Show last 3 segments (15 seconds)
+        this.isActivelyListening = false; // Track listening state
     }
     
     initialize() {
@@ -23,10 +33,44 @@ class TranscriptUI {
         
         this.languageIndicator = document.getElementById('transcriptLanguageIndicator');
         
-        // Setup initial HTML structure
-        this.setupTranscriptStructure();
+        // Setup rhythm-based HTML structure
+        this.initializeRhythmDisplay();
         
-        console.log('[TranscriptUI] Transcript UI ready');
+        console.log('[TranscriptUI] Transcript UI ready with rhythm-based segmentation');
+    }
+    
+    /**
+     * Initialize the rhythm-based display structure
+     */
+    initializeRhythmDisplay() {
+        if (!this.transcriptElement) return;
+        
+        this.transcriptElement.innerHTML = `
+            <!-- Finalized segments area (last 3x5-second segments) -->
+            <div id="finalizedSegments" class="finalized-segments">
+                <div class="transcript-placeholder">
+                    Ready for transcript segments (mic active, hit start to transcribe and make cards)
+                </div>
+            </div>
+            
+            <!-- Pending line animation area -->
+            <div id="pendingLineArea" class="pending-line-area">
+                <!-- Line will be dynamically added here -->
+            </div>
+            
+            <!-- Current interim transcription (fixed bottom) -->
+            <div id="interimArea" class="interim-area">
+                <div id="interimText" class="interim-text">
+                    <!-- Live interim text appears here -->
+                </div>
+            </div>
+        `;
+        
+        // Cache the new elements
+        this.finalizedSegmentsContainer = document.getElementById('finalizedSegments');
+        this.pendingLineArea = document.getElementById('pendingLineArea');
+        this.interimArea = document.getElementById('interimArea');
+        this.interimText = document.getElementById('interimText');
     }
     
     setupTranscriptStructure() {
@@ -50,18 +94,21 @@ class TranscriptUI {
     }
     
     /**
-     * Get appropriate placeholder text based on audio source
+     * Get appropriate placeholder text based on audio source (matches cards placeholder format)
      */
     getPlaceholderText(audioSource) {
         if (audioSource === 'system') {
             return this.getSystemAudioPlaceholder();
         } else {
-            return 'Microphone Mode<br><small>AI analyzes your speech in real-time</small>';
+            return `
+                <p style="font-size: 1.2em;">Microphone active</p>
+                <p style="font-size: 1.2em; margin-top: 8px;">AI analyzes your speech in real-time</p>
+            `;
         }
     }
     
     /**
-     * Get system audio placeholder with active sharing information
+     * Get system audio placeholder with detailed sharing information (matches cards placeholder format)
      */
     getSystemAudioPlaceholder() {
         // Check if there's an active system audio stream
@@ -71,23 +118,33 @@ class TranscriptUI {
             // Try to get information about what's being shared
             const tracks = systemStream.getVideoTracks();
             let sourceInfo = 'System Audio';
+            let detailedStatus = 'Permission active • Ready to transcribe';
             
             if (tracks.length > 0) {
                 const track = tracks[0];
                 const settings = track.getSettings();
                 
                 if (settings.displaySurface === 'window') {
-                    sourceInfo = 'Window Audio Shared';
+                    sourceInfo = 'Window Audio Capture';
+                    detailedStatus = 'Sharing specific application window • Permission granted';
                 } else if (settings.displaySurface === 'browser') {
-                    sourceInfo = 'Browser Tab Audio Shared';
+                    sourceInfo = 'Browser Tab Audio Capture';  
+                    detailedStatus = 'Sharing selected browser tab • Permission granted';
                 } else if (settings.displaySurface === 'monitor') {
-                    sourceInfo = 'Screen Audio Shared';
+                    sourceInfo = 'Screen Audio Capture';
+                    detailedStatus = 'Sharing entire screen audio • Permission granted';
                 }
             }
             
-            return `Device Output Mode<br><small>${sourceInfo} • Permission active • Click Start</small>`;
+            return `
+                <p style="font-size: 1.2em;">${sourceInfo} active</p>
+                <p style="font-size: 1.2em; margin-top: 8px;">${detailedStatus}</p>
+            `;
         } else {
-            return 'Device Output Mode<br><small>Select tab or window to capture audio, then click Start</small>';
+            return `
+                <p style="font-size: 1.2em;">Device Output Mode</p>
+                <p style="font-size: 1.2em; margin-top: 8px;">Select tab or window to capture audio</p>
+            `;
         }
     }
     
@@ -112,30 +169,43 @@ class TranscriptUI {
     
     /**
      * Add a finalized sentence to the transcript display (COMPACT VERSION)
+     * Now integrates with rhythm-based system instead of creating separate elements
      */
     addFinalSentence(sentence, options = {}) {
-        console.log(`[TranscriptUI] Adding final sentence: "${sentence.text.substring(0, 30)}..."`);
+        console.log(`[TranscriptUI] Final sentence received: "${sentence.text.substring(0, 30)}..."`);
+        console.log(`[TranscriptUI] Is actively listening: ${this.isActivelyListening}`);
         
-        // Remove placeholder if present
-        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
-        if (placeholder) {
-            placeholder.remove();
+        if (this.isActivelyListening) {
+            // If we're in rhythm mode, just update the current segment text - don't force finalize
+            console.log(`[TranscriptUI] Updating current segment with final sentence (rhythm mode)`);
+            this.currentSegmentText = sentence.text;
+            // Let the 5-second timer handle finalization naturally
+            return; // Exit early to prevent dual processing
+        } else {
+            // Fallback to legacy system if not in rhythm mode
+            console.log(`[TranscriptUI] Using legacy sentence display (not in rhythm mode)`);
+            
+            // Remove placeholder if present
+            const placeholder = this.sentencesContainer?.querySelector('.transcript-placeholder-compact');
+            if (placeholder) {
+                placeholder.remove();
+            }
+            
+            // Create compact sentence element with worthiness status
+            const sentenceEl = this.createCompactSentenceElement(sentence, options);
+            
+            // Add to container BOTTOM (newest sentences at bottom) 
+            this.sentencesContainer?.appendChild(sentenceEl);
+            
+            // Update font sizes and opacity with 3-tier system
+            this.updateCompactSentenceHierarchy();
+            
+            // Manage sentence count (keep reasonable limit)
+            this.manageSentenceCount();
+            
+            // Force scroll to show new sentence
+            this.forceScrollToBottom();
         }
-        
-        // Create compact sentence element with worthiness status
-        const sentenceEl = this.createCompactSentenceElement(sentence, options);
-        
-        // Add to container TOP (newest sentences push older ones up)
-        this.sentencesContainer.insertBefore(sentenceEl, this.sentencesContainer.firstChild);
-        
-        // Update font sizes and opacity with 3-tier system
-        this.updateCompactSentenceHierarchy();
-        
-        // Manage sentence count (keep last 3 sentences max)
-        this.manageSentenceCount();
-        
-        // Force scroll to show new sentence
-        this.forceScrollToBottom();
     }
     
     /**
@@ -155,15 +225,30 @@ class TranscriptUI {
      * Add a rhythm-based segment (5-second chunks)
      */
     addRhythmSegment(segment) {
-        console.log(`[TranscriptUI] Adding rhythm segment (${segment.duration}ms): "${segment.text.substring(0, 30)}..."`);
+        console.log(`[TranscriptUI] Adding rhythm segment (${segment.duration}ms): "${segment.text.substring(0, 30)}..."`);        
         
-        if (!this.sentencesContainer) {
+        // Skip segments with minimal content to avoid duplicates
+        if (!segment.text || segment.text.trim().length < 10 || segment.text.trim().split(' ').length < 3) {
+            console.log(`⏭️ [TranscriptUI] Skipping minimal rhythm segment: "${segment.text}"`);            return;
+        }
+        
+        // Initialize if needed and use finalized segments container
+        if (!this.finalizedSegmentsContainer) {
             this.initialize();
-            if (!this.sentencesContainer) {
-                console.error(`[TranscriptUI] Cannot add rhythm segment - container not found`);
+            if (!this.finalizedSegmentsContainer) {
+                console.error(`[TranscriptUI] Cannot add rhythm segment - finalized container not found`);
                 return;
             }
         }
+        
+        // Route rhythm segments to finalized segments area
+        this.addFinalizedSegment({
+            text: segment.text,
+            duration: segment.duration,
+            timestamp: segment.timestamp || new Date().toLocaleTimeString(),
+            cardCreated: false
+        });
+        return;
         
         // Remove placeholder if present
         const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
@@ -174,13 +259,13 @@ class TranscriptUI {
         // Create rhythm segment element with timing visualization
         const segmentEl = this.createRhythmSegmentElement(segment);
         
-        // Add to container TOP (newest segments push older ones up)
-        this.sentencesContainer.insertBefore(segmentEl, this.sentencesContainer.firstChild);
+        // Add to container BOTTOM (newest segments at bottom)
+        this.sentencesContainer.appendChild(segmentEl);
         
         // Update font sizes and opacity with 3-tier system
         this.updateCompactSentenceHierarchy();
         
-        // Manage segment count (keep last 3 segments max)
+        // Manage segment count (keep reasonable limit)
         this.manageSentenceCount();
         
         // Force scroll to show new segment
@@ -281,7 +366,7 @@ class TranscriptUI {
         // Auto-scroll to show latest content
         this.scrollToBottom();
         
-        // Manage sentence count (keep last N sentences)
+        // Manage sentence count (keep reasonable limit) 
         this.manageSentenceCount();
     }
     
@@ -363,19 +448,20 @@ class TranscriptUI {
      */
     updateCompactSentenceHierarchy() {
         const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence-compact');
+        const length = sentences.length;
         
         sentences.forEach((sentence, index) => {
             // Remove existing hierarchy classes
             sentence.classList.remove('sentence-newest', 'sentence-middle', 'sentence-oldest');
             
-            // Apply 3-tier hierarchy (index 0 = newest at top)
-            if (index === 0) {
+            // Apply 3-tier hierarchy (last index = newest at bottom)
+            if (index === length - 1) {
                 // Newest sentence - largest font, full opacity
                 sentence.classList.add('sentence-newest');
-            } else if (index === 1) {
+            } else if (index === length - 2) {
                 // Middle sentence - medium font, medium opacity
                 sentence.classList.add('sentence-middle');
-            } else if (index === 2) {
+            } else if (index === length - 3) {
                 // Oldest sentence - smallest font, low opacity
                 sentence.classList.add('sentence-oldest');
             }
@@ -393,22 +479,27 @@ class TranscriptUI {
      * Update interim text (COMPACT VERSION - more prominent current line)
      */
     updateInterimText(text) {
-        if (!this.interimElement) return;
+        console.log(`[TranscriptUI] Updating interim text: "${text.substring(0, 30)}..."`);
         
-        console.log(`[TranscriptUI] Updating interim: "${text.substring(0, 30)}..."`);
+        // Update both old and new systems for compatibility
+        // New rhythm system (preferred)
+        this.updateInterim(text);
         
-        if (text && text.trim()) {
-            // Clean, prominent current line with blinking cursor
-            this.interimElement.innerHTML = `
-                <span class="interim-text-compact">${text}</span>
-                <span class="interim-cursor-compact">▌</span>
-            `;
-            this.interimElement.classList.add('active-compact');
-            
-            // Ensure current line is visible when typing
-            this.scrollToBottom();
-        } else {
-            this.clearInterimText();
+        // Legacy system (fallback)
+        if (this.interimElement) {
+            if (text && text.trim()) {
+                // Clean, prominent current line with animated letters and cursor at end
+                const animatedText = this.wrapLettersForAnimation(text);
+                this.interimElement.innerHTML = `
+                    <span class="interim-text-compact">${animatedText}<span class="interim-cursor-compact">▌</span></span>
+                `;
+                this.interimElement.classList.add('active-compact');
+                
+                // Ensure current line is visible when typing
+                this.scrollToBottom();
+            } else {
+                this.clearInterimText();
+            }
         }
     }
     
@@ -426,14 +517,51 @@ class TranscriptUI {
      * Show listening state
      */
     showListeningState() {
-        // Hide placeholder when transcription is running
-        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
+        console.log('🎤 [TranscriptUI] Starting listening state with rhythm system');
+        
+        this.isActivelyListening = true;
+        
+        // Remove placeholder completely when listening starts
+        const placeholder = this.finalizedSegmentsContainer?.querySelector('.transcript-placeholder');
         if (placeholder) {
-            placeholder.classList.add('hidden');
+            placeholder.remove();
         }
         
-        // Legacy placeholder support
-        const legacyPlaceholder = this.sentencesContainer.querySelector('.transcript-placeholder');
+        // Start the 5-second rhythm system immediately
+        this.startNewSegment();
+        
+        // Update interim area with simple status
+        if (this.interimText) {
+            const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
+            let statusMessage = 'Listening to microphone';
+            
+            if (audioSource === 'system') {
+                const systemStream = this.app.audioSystem?.systemStream;
+                if (systemStream && systemStream.active) {
+                    const tracks = systemStream.getVideoTracks();
+                    if (tracks.length > 0) {
+                        const settings = tracks[0].getSettings();
+                        if (settings.displaySurface === 'window') {
+                            statusMessage = 'Listening to window audio';
+                        } else if (settings.displaySurface === 'browser') {
+                            statusMessage = 'Listening to browser tab audio';
+                        } else if (settings.displaySurface === 'monitor') {
+                            statusMessage = 'Listening to screen audio';
+                        }
+                    } else {
+                        statusMessage = 'Listening to system audio';
+                    }
+                } else {
+                    statusMessage = 'Device audio not active';
+                }
+            }
+            
+            this.interimText.textContent = statusMessage + '...';
+            this.interimText.style.opacity = '0.6';
+        }
+        
+        // Legacy support for old system
+        const legacyPlaceholder = this.sentencesContainer?.querySelector('.transcript-placeholder');
         if (legacyPlaceholder) {
             // Check if we're in device output mode
             const isDeviceOutput = this.app.audioSystem && this.app.audioSystem.currentAudioSource === 'system';
@@ -464,17 +592,48 @@ class TranscriptUI {
      * Show stopped state
      */
     showStoppedState() {
+        console.log('🛑 [TranscriptUI] Stopping rhythm system');
+        
+        this.isActivelyListening = false;
+        
+        // Stop the rhythm system
+        if (this.segmentTimer) {
+            clearTimeout(this.segmentTimer);
+            this.segmentTimer = null;
+        }
+        
+        // Remove pending line
+        if (this.pendingLine) {
+            this.pendingLine.remove();
+            this.pendingLine = null;
+        }
+        
         // Clear interim text
         this.clearInterimText();
         
-        // Show placeholder again when stopped
-        const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder-compact');
+        // Only show placeholder if we're truly stopped and not actively listening
+        if (this.finalizedSegments.length === 0 && !this.isActivelyListening) {
+            console.log('📏 [TranscriptUI] Showing placeholder - stopped and no segments');
+            const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
+            const placeholderText = this.getPlaceholderText(audioSource);
+            
+            this.finalizedSegmentsContainer.innerHTML = `
+                <div class="transcript-placeholder">
+                    Ready for transcript segments (mic active, hit start to transcribe and make cards)
+                </div>
+            `;
+        } else if (this.isActivelyListening) {
+            console.log('📏 [TranscriptUI] Skipping placeholder - still actively listening');
+        }
+        
+        // Legacy support
+        const placeholder = this.sentencesContainer?.querySelector('.transcript-placeholder-compact');
         if (placeholder) {
             placeholder.classList.remove('hidden');
         }
         
         // If no sentences, show default placeholder
-        if (this.sentencesContainer.children.length === 0) {
+        if (this.sentencesContainer && this.sentencesContainer.children.length === 0) {
             const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
             const placeholderText = this.getPlaceholderText(audioSource);
             
@@ -530,13 +689,16 @@ class TranscriptUI {
      * Manage sentence count to avoid memory issues
      */
     manageSentenceCount() {
-        const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence');
+        const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence, .transcript-sentence-compact');
+        const maxSentences = 3; // Strict limit to prevent old transcript showing
         
-        if (sentences.length > this.maxVisibleSentences) {
-            // Remove oldest sentences
-            const excessCount = sentences.length - this.maxVisibleSentences;
+        if (sentences.length > maxSentences) {
+            // Remove oldest sentences (first elements since newest are at bottom)
+            const excessCount = sentences.length - maxSentences;
             for (let i = 0; i < excessCount; i++) {
-                sentences[i].remove();
+                if (sentences[i]) {
+                    sentences[i].remove();
+                }
             }
         }
     }
@@ -547,10 +709,265 @@ class TranscriptUI {
     clearAll() {
         this.sentencesContainer.innerHTML = `
             <div class="transcript-placeholder">
-                Click Start to begin transcription
+                Ready for transcript segments (mic active, hit start to transcribe and make cards)
             </div>
         `;
         this.clearInterimText();
+    }
+    
+    /**
+     * Update interim transcription (bottom area)
+     */
+    updateInterim(text) {
+        // Update the rhythm system with current text
+        this.addToCurrentSegment(text);
+        
+        // Update the fixed bottom interim area
+        if (this.interimText) {
+            if (text && text.trim()) {
+                const animatedText = this.wrapLettersForAnimation(text);
+                this.interimText.innerHTML = `${animatedText}<span class="interim-cursor-compact">▌</span>`;
+                this.interimText.style.opacity = '0.9';
+            } else {
+                this.interimText.innerHTML = '';
+                this.interimText.style.opacity = '0.4';
+            }
+        }
+    }
+    
+    /**
+     * Start a new 5-second segment with pending line animation
+     */
+    startNewSegment() {
+        console.log('📏 [TranscriptUI] Starting new 5-second segment');
+        console.log('📏 [TranscriptUI] Current segments count:', this.finalizedSegments.length);
+        console.log('📏 [TranscriptUI] Is actively listening:', this.isActivelyListening);
+        
+        this.currentSegmentStart = Date.now();
+        this.currentSegmentText = '';
+        
+        // Create and animate the pending line
+        this.createPendingLine();
+        
+        // Set timer to finalize segment after 5 seconds
+        if (this.segmentTimer) {
+            console.log('📏 [TranscriptUI] Clearing existing segment timer');
+            clearTimeout(this.segmentTimer);
+        }
+        
+        console.log('📏 [TranscriptUI] Setting 5-second timer for segment finalization');
+        this.segmentTimer = setTimeout(() => {
+            this.finalizeCurrentSegment();
+        }, this.maxSegmentDuration);
+    }
+    
+    /**
+     * Create and animate the pending line
+     */
+    createPendingLine() {
+        if (this.pendingLine) {
+            this.pendingLine.remove();
+        }
+        
+        console.log('⏱️ [TranscriptUI] Creating new pending line for metronome');
+        
+        this.pendingLine = document.createElement('div');
+        this.pendingLine.className = 'pending-line';
+        this.pendingLine.innerHTML = '<div class="line-progress"></div>';
+        
+        this.pendingLineArea.appendChild(this.pendingLine);
+        
+        // Force reflow to reset animation
+        const progressBar = this.pendingLine.querySelector('.line-progress');
+        progressBar.style.animation = 'none';
+        progressBar.offsetHeight; // Force reflow
+        progressBar.style.animation = null; // Restore CSS animation
+        
+        console.log('⏱️ [TranscriptUI] Pending line animation restarted');
+    }
+    
+    /**
+     * Finalize the current segment with "plop" animation
+     */
+    finalizeCurrentSegment() {
+        const segmentDuration = Date.now() - this.currentSegmentStart;
+        const hasContent = this.currentSegmentText && this.currentSegmentText.trim().length > 0;
+        
+        console.log('✅ [TranscriptUI] Finalizing 5-second segment');
+        console.log(`📏 [TranscriptUI] Segment duration: ${(segmentDuration / 1000).toFixed(1)}s`);
+        console.log(`📏 [TranscriptUI] Has content: ${hasContent}`);
+        console.log(`📏 [TranscriptUI] Content: "${this.currentSegmentText}"`);
+        
+        if (hasContent) {
+            console.log(`✅ [TranscriptUI] Finalizing segment with content: "${this.currentSegmentText.substring(0, 50)}..."`);            
+            
+            // Skip if content is too minimal (avoid duplicates with rhythm system)
+            if (this.currentSegmentText.trim().length < 10 || this.currentSegmentText.trim().split(' ').length < 3) {
+                console.log(`⏭️ [TranscriptUI] Skipping minimal finalized segment: "${this.currentSegmentText}"`);                return;
+            }
+            
+            // Create finalized segment from current interim text
+            this.addFinalizedSegment({
+                text: this.currentSegmentText,
+                duration: segmentDuration,
+                timestamp: new Date().toLocaleTimeString('en-US', { 
+                    hour12: false, 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit'
+                }),
+                cardCreated: false // Will be updated when card is created
+            });
+            
+            // Clear interim text since it's now moved to finalized segment
+            this.clearInterimText();
+            
+        } else {
+            console.log('⏭️ [TranscriptUI] No content in segment - skipping');
+        }
+        
+        // Remove pending line
+        if (this.pendingLine) {
+            this.pendingLine.classList.add('finalizing');
+            setTimeout(() => {
+                if (this.pendingLine) {
+                    this.pendingLine.remove();
+                    this.pendingLine = null;
+                }
+            }, 300);
+        }
+        
+        // Reset segment state
+        this.currentSegmentText = '';
+        this.currentSegmentStart = null;
+        
+        // Always start next segment if actively listening (metronome behavior)
+        console.log(`📏 [TranscriptUI] After finalization - isActivelyListening: ${this.isActivelyListening}`);
+        if (this.isActivelyListening) {
+            console.log('📏 [TranscriptUI] Starting next segment immediately (metronome)');
+            // Start next segment immediately for continuous metronome effect
+            this.startNewSegment();
+        } else {
+            console.log('📏 [TranscriptUI] Not starting next segment - no longer listening');
+        }
+    }
+    
+    /**
+     * Add text to current segment
+     */
+    addToCurrentSegment(text) {
+        if (this.currentSegmentStart) {
+            this.currentSegmentText = text;
+            console.log(`📏 [TranscriptUI] Adding to current segment: "${text.substring(0, 30)}..."`);
+        } else {
+            console.log(`⚠️ [TranscriptUI] No active segment to add text to. Starting new segment.`);
+            this.startNewSegment();
+            this.currentSegmentText = text;
+        }
+    }
+    
+    /**
+     * Add a finalized segment to the display
+     */
+    addFinalizedSegment(segment) {
+        console.log(`🎯 [TranscriptUI] Adding finalized segment: "${segment.text.substring(0, 30)}..."`);
+        console.log(`🎯 [TranscriptUI] Current segments count before add: ${this.finalizedSegments.length}`);
+        
+        // Remove placeholder if it exists
+        const placeholder = this.finalizedSegmentsContainer.querySelector('.transcript-placeholder');
+        if (placeholder) {
+            console.log(`🎯 [TranscriptUI] Removing placeholder`);
+            placeholder.remove();
+        }
+        
+        // Create segment element with "plop" animation
+        const segmentEl = document.createElement('div');
+        segmentEl.className = 'finalized-segment segment-plop';
+        
+        // Language detection and flag
+        const language = this.app.languageManager?.state?.detectedLanguage || { flag: '🇺🇸', lang: 'en-US' };
+        
+        // Create rhythm dots (5 dots, filled based on duration)
+        const maxDuration = 5000;
+        const filledDots = Math.round((segment.duration / maxDuration) * 5);
+        const rhythmDots = '●'.repeat(filledDots) + '○'.repeat(5 - filledDots);
+        
+        segmentEl.innerHTML = `
+            <div class="segment-text">${segment.text}</div>
+            <div class="segment-status">
+                <span class="segment-dots">${rhythmDots}</span>
+                <span class="segment-lang">${language.lang.split('-')[0].toUpperCase()}</span>
+                <span class="segment-duration">${(segment.duration / 1000).toFixed(1)}s</span>
+                <span class="segment-time">${segment.timestamp}</span>
+                ${segment.cardCreated ? '<span class="card-icon">🃏</span>' : ''}
+            </div>
+        `;
+        
+        // Add to container (newest at bottom)
+        this.finalizedSegmentsContainer.appendChild(segmentEl);
+        
+        // Remove "plop" class after animation
+        setTimeout(() => {
+            segmentEl.classList.remove('segment-plop');
+        }, 600);
+        
+        // Keep last few segments visible as history (like described in PRD)
+        this.finalizedSegments.push(segment);
+        
+        // Keep reasonable number of segments (3-4) for context
+        if (this.finalizedSegments.length > 4) {
+            this.finalizedSegments = this.finalizedSegments.slice(-4);
+            
+            // Remove oldest DOM elements
+            const segments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
+            while (segments.length > 4) {
+                segments[0].remove();
+            }
+        }
+        
+        console.log(`🎯 [TranscriptUI] Added segment, now have ${this.finalizedSegments.length} visible segments`);
+        
+        // Add visual fade for older segments
+        const segments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
+        segments.forEach((seg, index) => {
+            // Older segments get more transparent but stay visible
+            const opacity = Math.max(0.4, 1 - (segments.length - index - 1) * 0.15);
+            seg.style.opacity = opacity;
+        });
+    }
+    
+    /**
+     * Mark a segment as having created a card
+     */
+    markSegmentCardCreated(segmentIndex = -1) {
+        // Default to most recent segment (-1 = last item)
+        const actualIndex = segmentIndex === -1 ? this.finalizedSegments.length - 1 : segmentIndex;
+        
+        if (this.finalizedSegments[actualIndex]) {
+            this.finalizedSegments[actualIndex].cardCreated = true;
+            
+            // Update DOM - segments are now ordered oldest to newest
+            const segments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
+            if (segments[actualIndex]) {
+                const statusDiv = segments[actualIndex].querySelector('.segment-status');
+                if (statusDiv && !statusDiv.querySelector('.card-icon')) {
+                    statusDiv.insertAdjacentHTML('beforeend', '<span class="card-icon">🃏</span>');
+                }
+            }
+        }
+    }
+    
+    /**
+     * Wrap letters in spans for individual animation
+     */
+    wrapLettersForAnimation(text) {
+        return text.split('').map((char, index) => {
+            if (char === ' ') {
+                return ' '; // Keep spaces as regular spaces
+            }
+            const delay = (index % 10) * 0.05; // Stagger animation delays
+            return `<span class="interim-letter" style="animation-delay: ${delay}s;">${char}</span>`;
+        }).join('');
     }
     
     /**
@@ -570,6 +987,7 @@ class TranscriptUI {
                 `;
             }
         }
+    }
 }
 
 // Export to window

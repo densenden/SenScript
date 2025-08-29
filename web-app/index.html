@@ -1461,7 +1461,7 @@
         }
 
         .cards-container {
-            padding: 0 20px 20px; /* Better bottom padding for last card */
+            padding: 20px 20px 20px; /* Consistent 20px padding on all sides */
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
@@ -4484,7 +4484,7 @@
                 <!-- Start Button -->
                 <div class="start-button-container">
                     <button id="recordBtn" class="record-button-large glass-button">
-                        <span id="recordDot" class="record-dot"></span>
+                        <span id="recordIcon" class="material-symbols-outlined record-icon">play_arrow</span>
                     </button>
                 </div>
             </div>
@@ -4558,9 +4558,6 @@
             <!-- Screen 2: Live Transcript -->
             <div class="screen-2 glass-dark" id="screen2">
             <div class="transcript-container">
-                <div class="transcript-header">
-                    <h2 class="transcript-title">Live Transcript</h2>
-                </div>
                 <!-- Transcript Content -->
                 <div id="transcript" class="transcript-content">
                     Click "Start" to begin transcription...
@@ -4589,63 +4586,7 @@
             <!-- Screen 3: Flashcards -->
             <div class="screen-3 glass-dark" id="screen3">
             <div class="cards-container">
-                <div class="cards-header">
-                    <h2 class="cards-title" style="display: flex; align-items: center; gap: 12px;">
-                        <div class="flip-card" style="perspective: 1000px; width: auto; height: auto;">
-                            <div id="cardsModeToggle" class="flip-card-inner" style="
-                                position: relative;
-                                width: 100%;
-                                height: 100%;
-                                cursor: pointer;
-                                transition: transform 0.6s;
-                                transform-style: preserve-3d;
-                                border-radius: 12px;
-                            ">
-                                <!-- Front side (FlashCards) -->
-                                <div class="flip-card-front" style="
-                                    position: absolute;
-                                    width: 100%;
-                                    height: 100%;
-                                    backface-visibility: hidden;
-                                    background: rgba(255, 255, 255, 0.1);
-                                    border: 1px solid rgba(255, 255, 255, 0.2);
-                                    border-radius: 12px;
-                                    padding: 8px 16px;
-                                    display: flex;
-                                    align-items: center;
-                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                                    transition: all 0.3s ease;
-                                ">
-                                    <span id="cardsMainTitle" style="font-size: 16px; font-weight: 600;">FlashCards</span>
-                                </div>
-                                
-                                <!-- Back side (CheatCards) -->
-                                <div class="flip-card-back" style="
-                                    position: absolute;
-                                    width: 100%;
-                                    height: 100%;
-                                    backface-visibility: hidden;
-                                    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.15));
-                                    border: 1px solid rgba(239, 68, 68, 0.3);
-                                    border-radius: 12px;
-                                    padding: 8px 16px;
-                                    display: flex;
-                                    align-items: center;
-                                    transform: rotateY(180deg);
-                                    box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
-                                    transition: all 0.3s ease;
-                                    position: relative;
-                                    overflow: hidden;
-                                ">
-                                    <span style="font-size: 16px; font-weight: 600; color: #fee2e2;">CheatCards</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button id="modeInfoButton" class="glass-button" style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; opacity: 0.7; padding: 0;" title="Card settings">
-                            i
-                        </button>
-                    </h2>
-                </div>
+                <!-- Cards header removed for minimal design -->
                 <!-- Cards Content -->
                 <div id="cardsContainer" class="cards-content">
                     <div id="cardsPlaceholder" style="text-align: center; opacity: 0.5; padding: 40px 20px;">
@@ -4738,6 +4679,22 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Simple Card Mode Toggle with Icons -->
+                <button id="cardsModeToggle" class="control-element card-mode-toggle" style="
+                    min-width: 80px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    justify-content: center;
+                ">
+                    <span id="cardModeIcon" class="material-symbols-outlined" style="font-size: 16px;">bolt</span>
+                    <span id="cardModeText">Flash</span>
+                </button>
+                
                 <button id="exportBtn" class="control-element" disabled>
                     <span class="material-symbols-outlined">download</span>
                 </button>
@@ -4786,11 +4743,11 @@
                     <div class="tab-icon">🎤</div>
                     <span>Audio</span>
                 </button>
-                <button class="tab-button" data-tab="languages" title="Input and output language settings">
+                <button class="tab-button" data-tab="languages" title="Speech recognition and output language settings">
                     <div class="tab-icon">
                         <span class="material-symbols-outlined">language</span>
                     </div>
-                    <span>Languages</span>
+                    <span>Speech</span>
                 </button>
                 <button class="tab-button" data-tab="ai" title="AI models and API configuration">
                     <div class="tab-icon">🤖</div>
@@ -5119,7 +5076,8 @@
                         </label>
                         
                         <div class="mode-description" style="font-size: 12px; opacity: 0.8; margin-left: 24px; display: none; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 12px; margin-top: 8px;" id="interviewModeDescription">
-                            <p style="margin: 0; font-weight: 500; color: #22c55e;">✓ CheatCard Mode activated</p>
+                            <p style="margin: 0 0 4px 0; font-weight: 500; color: #22c55e;">✓ CheatCard Mode activated</p>
+                            <p style="margin: 0; font-size: 11px; opacity: 0.8; color: #a3e635;">New cards will be generated as CheatCards. Existing cards keep their original type.</p>
                         </div>
                     </div>
                 </div>
@@ -5713,12 +5671,21 @@
                         // Update selected language
                         selectedCardLanguage = langCode;
                         
-                        // Store in localStorage for app to use
-                        localStorage.setItem('cardLanguage', langCode);
+                        // Store in localStorage with correct key used by settings manager
+                        localStorage.setItem('cardOutputLanguage', langCode);
                         
-                        // Notify app if available
-                        if (window.senScript && window.senScript.ui) {
-                            window.senScript.ui.updateCardLanguage(langCode);
+                        // Update app settings directly if available
+                        if (window.app?.settings) {
+                            window.app.settings.cardOutputLanguage = langCode;
+                            window.app.settings.autoLanguage = langCode === 'auto';
+                            console.log('[CardLanguage] Updated settings to:', langCode);
+                        }
+                        
+                        // Update settings manager if available
+                        if (window.app?.settingsManager) {
+                            window.app.settingsManager.settings.cardOutputLanguage = langCode;
+                            window.app.settingsManager.settings.autoLanguage = langCode === 'auto';
+                            console.log('[CardLanguage] Updated settings manager to:', langCode);
                         }
                         
                         // Update display
@@ -5751,14 +5718,30 @@
                 });
                 
                 // Load saved language on startup
-                const savedLanguage = localStorage.getItem('cardLanguage');
-                if (savedLanguage && savedLanguage !== 'auto') {
-                    // Find and trigger the option
+                const savedLanguage = localStorage.getItem('cardOutputLanguage') || 'auto';
+                selectedCardLanguage = savedLanguage;
+                
+                // Update display based on saved language
+                const flagElement = document.getElementById('cardLanguageFlag');
+                const textElement = document.getElementById('cardLanguageCode');
+                
+                if (savedLanguage === 'auto') {
+                    flagElement.textContent = 'language';
+                    flagElement.className = 'material-symbols-outlined';
+                    textElement.textContent = 'AUTO';
+                } else {
+                    // Find the option to get the flag
                     const option = cardLanguageDropdown.querySelector(`[data-lang="${savedLanguage}"]`);
                     if (option) {
-                        option.click();
+                        const flag = option.querySelector('span:first-child').textContent;
+                        const text = option.querySelector('span:last-child').textContent.substring(0, 2).toUpperCase();
+                        flagElement.textContent = flag;
+                        flagElement.className = '';
+                        textElement.textContent = text;
                     }
                 }
+                
+                console.log('[CardLanguage] Loaded saved language:', savedLanguage);
             }
         });
     </script>

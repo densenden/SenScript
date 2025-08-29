@@ -141,8 +141,12 @@ class SenScript {
         // Set listening state
         this.isListening = true;
         
-        // Add recording class for button animation
+        // Add recording class for button animation and update icon
         this.els.recordBtn.classList.add('recording');
+        const recordIcon = document.getElementById('recordIcon');
+        if (recordIcon) {
+            recordIcon.textContent = 'pause';
+        }
         if (this.els.mobileRecordBtn) {
             this.els.mobileRecordBtn.classList.add('recording');
         }
@@ -210,8 +214,12 @@ class SenScript {
         // Reset listening state
         this.isListening = false;
         
-        // Remove recording class for button animation
+        // Remove recording class for button animation and update icon
         this.els.recordBtn.classList.remove('recording');
+        const recordIcon = document.getElementById('recordIcon');
+        if (recordIcon) {
+            recordIcon.textContent = 'play_arrow';
+        }
         if (this.els.mobileRecordBtn) {
             this.els.mobileRecordBtn.classList.remove('recording');
         }
@@ -280,16 +288,59 @@ class SenScript {
         }
     }
     
+    /**
+     * Called when audio system is ready (microphone or system audio)
+     */
+    onAudioSystemReady(audioSource) {
+        console.log(`[Control] 🎯 Audio system ready: ${audioSource}`);
+        
+        // Ensure start button is enabled and responsive
+        if (this.els.recordBtn) {
+            this.els.recordBtn.disabled = false;
+            this.els.recordBtn.style.opacity = '1';
+            this.els.recordBtn.style.cursor = 'pointer';
+            console.log(`[Control] ✅ Start button enabled for ${audioSource} audio`);
+        }
+        
+        // Update UI state to indicate ready
+        if (this.ui && this.ui.updateAudioReadyState) {
+            this.ui.updateAudioReadyState(audioSource);
+        }
+    }
+    
     exposeTestFunctions() {
         try {
             window.testCards = () => this.cardEngine.runCardGenerationTests();
             window.testCheat = () => this.cardEngine.runCheatCardTests();
+            window.testCardTypeDisplay = () => this.cardEngine.testCardTypeDisplay();
+            window.testTranscriptRhythm = () => {
+                if (this.transcriptSystem?.ui) {
+                    this.transcriptSystem.ui.showListeningState();
+                    console.log('🎵 [Test] Rhythm system started - you should see pending line animation');
+                }
+            };
+            window.testToggle = () => {
+                if (this.cardEngine) {
+                    const currentMode = this.cardEngine.interviewMode;
+                    console.log(`🔄 [Test] Current mode: ${currentMode ? 'CheatCard' : 'FlashCard'}`);
+                    console.log('🔄 [Test] Toggling mode...');
+                    document.getElementById('cardsModeToggle')?.click();
+                    setTimeout(() => {
+                        const newMode = this.cardEngine.interviewMode;
+                        console.log(`✅ [Test] New mode: ${newMode ? 'CheatCard' : 'FlashCard'}`);
+                        console.log('🔄 [Test] Check if button background changed to orange for CheatCard mode');
+                    }, 100);
+                }
+            };
             window.resetAllCaches = () => this.cardEngine.resetAllCaches();
             window.app = this;
             
             console.log('🧪 Test functions exposed:');
             console.log('  testCards() - Run card generation tests');
             console.log('  testCheat() - Run CheatCard tests');
+            console.log('  testCardTypeDisplay() - Test card type detection');
+            console.log('  testTranscriptRhythm() - Test rhythm system');
+            console.log('  testToggle() - Test card mode toggle');
             console.log('  window.app - Access main app instance');
             
             if (typeof window.testCards === 'function' && typeof window.testCheat === 'function') {
