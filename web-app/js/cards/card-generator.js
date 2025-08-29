@@ -34,7 +34,7 @@ class CardGenerator {
                 language: outputLanguage,
                 textConfidence: detectedLanguage.confidence,
                 languageFlag: outputFlag,
-                mode: isCheatMode ? 'cheat' : 'flash',
+                cardMode: isCheatMode ? 'cheat' : 'flash', // Fixed parameter name to match server
                 cardType: isCheatMode ? 'tip' : 'concept'
             };
             
