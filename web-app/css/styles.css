@@ -143,12 +143,23 @@ body {
    TRANSCRIPT STYLES - Compact Design (no containers, 3 text sizes)
    ============================================================================ */
 
+/* Main transcript container - ensures current line stays at bottom */
+.transcript-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
 /* Compact sentence container */
 .transcript-sentences-compact {
     display: flex;
     flex-direction: column;
+    justify-content: flex-end; /* Push sentences toward bottom (current line) */
     gap: 8px;
-    padding: 12px 16px;
+    padding: 12px 16px 8px 16px; /* Less bottom padding */
+    flex: 1; /* Takes available space, pushing current line to bottom */
+    overflow-y: auto; /* Scrollable if needed */
     min-height: 80px; /* Space for 3 lines */
 }
 
@@ -194,11 +205,15 @@ body {
     color: #ffffff;
 }
 
-/* Current line (interim text) styling */
+/* Current line (interim text) styling - always at bottom */
 .transcript-current-line {
-    padding: 8px 16px;
-    margin-top: 8px;
+    padding: 12px 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0; /* Never shrinks, always maintains size */
+    min-height: 40px; /* Minimum space for current line */
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02); /* Very subtle background */
 }
 
 .interim-text-compact {
