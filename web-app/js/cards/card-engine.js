@@ -109,9 +109,11 @@ class CardEngine {
         // Check if text is worthy of card generation (delegate to transcript processor if available)
         if (this.app.transcriptProcessor && !this.app.transcriptProcessor.isTextWorthyOfCard(text)) {
             console.log('[CardEngine] Text not worthy according to transcript processor');
+            this.addRejectedTextToTranscript(text, detection, 'transcript processor filter');
             return;
         } else if (!this.app.transcriptProcessor && !this.isTextWorthyOfCard(text)) {
             console.log('[CardEngine] Text not worthy according to card engine');
+            this.addRejectedTextToTranscript(text, detection, 'card engine filter');
             return;
         }
         
@@ -378,6 +380,26 @@ class CardEngine {
         
         // Simple display update without animation (birth animation is handled separately)
         console.log(`🎨 [CardEngine] Updating display with ${this.app.cards.length} cards`);
+    }
+    
+    /**
+     * Add rejected text to transcript with visual indicator
+     */
+    addRejectedTextToTranscript(text, detection, reason) {
+        console.log(`[CardEngine] Adding rejected text to transcript: "${text.substring(0, 30)}..." (${reason})`);
+        
+        // Create sentence object for the rejected text
+        const rejectedSentence = {
+            text: text,
+            timestamp: new Date().toLocaleTimeString(),
+            language: detection || { flag: '🌐', code: 'auto' },
+            confidence: 0.5
+        };
+        
+        // Add to transcript UI with rejection indicator
+        if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
+            this.app.transcriptSystem.ui.addRejectedSentence(rejectedSentence, reason);
+        }
     }
     
     updateCardCount() {

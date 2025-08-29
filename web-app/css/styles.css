@@ -594,6 +594,50 @@ body {
     flex-shrink: 0;
 }
 
+/* Rejection indicator styling - struck-through document icon in circle */
+.sentence-rejection-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.2); /* Red background */
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    margin-right: 8px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.sentence-rejection-indicator .material-symbols-outlined {
+    font-size: 10px;
+    color: #ef4444;
+    opacity: 0.8;
+}
+
+/* Strike-through effect on the icon */
+.sentence-rejection-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    right: 2px;
+    height: 1px;
+    background: #ef4444;
+    transform: translateY(-50%) rotate(-15deg);
+    opacity: 0.9;
+}
+
+/* Rejected sentence styling */
+.transcript-sentence-compact.sentence-rejected {
+    opacity: 0.6; /* Lower opacity for rejected sentences */
+}
+
+.sentence-text-rejected {
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
 .light .card-source {
     color: rgba(0, 0, 0, 0.6);
     border-top-color: rgba(0, 0, 0, 0.1);

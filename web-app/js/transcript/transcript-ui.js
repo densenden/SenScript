@@ -76,7 +76,7 @@ class TranscriptUI {
     /**
      * Add a finalized sentence to the transcript display (COMPACT VERSION)
      */
-    addFinalSentence(sentence) {
+    addFinalSentence(sentence, options = {}) {
         console.log(`[TranscriptUI] Adding final sentence: "${sentence.text.substring(0, 30)}..."`);
         
         // Remove placeholder if present
@@ -85,8 +85,8 @@ class TranscriptUI {
             placeholder.remove();
         }
         
-        // Create compact sentence element
-        const sentenceEl = this.createCompactSentenceElement(sentence);
+        // Create compact sentence element with worthiness status
+        const sentenceEl = this.createCompactSentenceElement(sentence, options);
         
         // Add to container TOP (newest sentences push older ones up)
         this.sentencesContainer.insertBefore(sentenceEl, this.sentencesContainer.firstChild);
@@ -96,6 +96,19 @@ class TranscriptUI {
         
         // Manage sentence count (keep last 3 sentences max)
         this.manageSentenceCount();
+    }
+    
+    /**
+     * Add a rejected sentence (not worthy of card generation)
+     */
+    addRejectedSentence(sentence, reason = 'not worthy') {
+        console.log(`[TranscriptUI] Adding rejected sentence: "${sentence.text.substring(0, 30)}..." (${reason})`);
+        
+        // Add with rejection flag
+        this.addFinalSentence(sentence, { 
+            rejected: true, 
+            rejectionReason: reason 
+        });
     }
     
     /**
@@ -166,18 +179,34 @@ class TranscriptUI {
     /**
      * Create compact DOM element for sentence (no background containers)
      */
-    createCompactSentenceElement(sentence) {
+    createCompactSentenceElement(sentence, options = {}) {
         const sentenceEl = document.createElement('div');
         sentenceEl.className = 'transcript-sentence-compact';
         sentenceEl.dataset.timestamp = sentence.timestamp;
         
-        // Add language flag and text only (clean, no containers)
+        // Add language flag and text
         const languageFlag = sentence.language ? sentence.language.flag || '🌐' : '🌐';
         
-        sentenceEl.innerHTML = `
-            <span class="sentence-flag-compact">${languageFlag}</span>
-            <span class="sentence-text-compact">${sentence.text}</span>
-        `;
+        // Check if this sentence was rejected (not worthy)
+        if (options.rejected) {
+            sentenceEl.classList.add('sentence-rejected');
+            sentenceEl.title = `Not worthy of card generation: ${options.rejectionReason || 'unknown reason'}`;
+            
+            // Add rejection indicator (struck-through document icon in circle)
+            sentenceEl.innerHTML = `
+                <span class="sentence-rejection-indicator" title="Not worthy of card generation">
+                    <span class="material-symbols-outlined">description</span>
+                </span>
+                <span class="sentence-flag-compact">${languageFlag}</span>
+                <span class="sentence-text-compact sentence-text-rejected">${sentence.text}</span>
+            `;
+        } else {
+            // Normal sentence (worthy of card generation or will be processed)
+            sentenceEl.innerHTML = `
+                <span class="sentence-flag-compact">${languageFlag}</span>
+                <span class="sentence-text-compact">${sentence.text}</span>
+            `;
+        }
         
         return sentenceEl;
     }
