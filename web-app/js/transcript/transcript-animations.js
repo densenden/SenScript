@@ -15,7 +15,7 @@ class TranscriptAnimations {
         this.injectAnimationStyles();
         
         this.initialized = true;
-        console.log('✅ [TranscriptAnimations] Animations ready');
+        console.log('[TranscriptAnimations] Animations ready');
     }
     
     /**

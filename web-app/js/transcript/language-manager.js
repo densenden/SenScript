@@ -32,13 +32,13 @@ class LanguageManager {
     }
     
     initialize() {
-        console.log('🌐 [LanguageManager] Initializing language management');
+        console.log('[LanguageManager] Initializing language management');
         
         this.setupDropdown();
         this.setupEventListeners();
         this.setMode('auto'); // Default to auto mode
         
-        console.log('✅ [LanguageManager] Language manager ready');
+        console.log('[LanguageManager] Language manager ready');
     }
     
     setupDropdown() {
@@ -137,7 +137,7 @@ class LanguageManager {
      * Enable automatic language detection
      */
     enableAutoMode() {
-        console.log('🔄 [LanguageManager] Auto-detection enabled');
+        console.log('[LanguageManager] Auto-detection enabled');
         
         // Update speech recognition to be flexible
         if (this.app.speechRecognition && this.app.speechRecognition.recognition) {
@@ -176,7 +176,7 @@ class LanguageManager {
      * Select a specific language
      */
     selectLanguage(langCode) {
-        console.log(`🎯 [LanguageManager] Language selected: ${langCode}`);
+        console.log(`[LanguageManager] Language selected: ${langCode}`);
         
         if (langCode === 'auto') {
             this.setMode('auto');
@@ -201,7 +201,7 @@ class LanguageManager {
         // Update speech recognition language if confident enough
         if (detection.confidence > 80 && this.app.speechRecognition && this.app.speechRecognition.recognition) {
             this.app.speechRecognition.recognition.lang = detection.lang;
-            console.log(`🗣️ [LanguageManager] Speech recognition updated to: ${detection.lang}`);
+            console.log(`[LanguageManager] Speech recognition updated to: ${detection.lang}`);
         }
     }
     

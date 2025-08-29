@@ -17,7 +17,7 @@ class TranscriptUI {
         
         this.transcriptElement = document.getElementById('transcript');
         if (!this.transcriptElement) {
-            console.error('❌ [TranscriptUI] Transcript element not found');
+            console.error('[TranscriptUI] Transcript element not found');
             return;
         }
         
@@ -26,7 +26,7 @@ class TranscriptUI {
         // Setup initial HTML structure
         this.setupTranscriptStructure();
         
-        console.log('✅ [TranscriptUI] Transcript UI ready');
+        console.log('[TranscriptUI] Transcript UI ready');
     }
     
     setupTranscriptStructure() {
@@ -63,7 +63,7 @@ class TranscriptUI {
      * Update placeholder text when audio source changes
      */
     updateAudioSource(audioSource) {
-        console.log(`🔄 [TranscriptUI] Audio source changed to: ${audioSource}`);
+        console.log(`[TranscriptUI] Audio source changed to: ${audioSource}`);
         
         // Update placeholder if no transcription is active
         const placeholder = this.sentencesContainer?.querySelector('.transcript-placeholder');
@@ -107,7 +107,7 @@ class TranscriptUI {
         if (!this.sentencesContainer) {
             this.initialize();
             if (!this.sentencesContainer) {
-                console.error(`❌ [TranscriptUI] Cannot add sentence - container not found`);
+                console.error(`[TranscriptUI] Cannot add sentence - container not found`);
                 return;
             }
         }
@@ -219,7 +219,7 @@ class TranscriptUI {
     updateInterimText(text) {
         if (!this.interimElement) return;
         
-        console.log(`🔄 [TranscriptUI] Updating interim: "${text.substring(0, 30)}..."`);
+        console.log(`[TranscriptUI] Updating interim: "${text.substring(0, 30)}..."`);
         
         if (text && text.trim()) {
             this.interimElement.innerHTML = `
@@ -263,7 +263,7 @@ class TranscriptUI {
                         <span class="listening-dot"></span>
                         <span class="listening-text">Listening for speech...</span>
                         <div style="font-size: 11px; opacity: 0.6; margin-top: 8px;">
-                            🎯 Tab audio captured - transcription should work! If not, try audio routing software.
+                            Tab audio captured - transcription should work! If not, try audio routing software.
                         </div>
                     </div>
                 `;
@@ -300,7 +300,7 @@ class TranscriptUI {
      * Show error state
      */
     showErrorState(errorMessage) {
-        console.log(`❌ [TranscriptUI] Showing error: ${errorMessage}`);
+        console.log(`[TranscriptUI] Showing error: ${errorMessage}`);
         
         // Clear interim text
         this.clearInterimText();
@@ -308,7 +308,7 @@ class TranscriptUI {
         // Show error message
         this.sentencesContainer.innerHTML = `
             <div class="transcript-placeholder error">
-                ❌ ${errorMessage}
+                ${errorMessage}
             </div>
         `;
     }

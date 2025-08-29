@@ -41,7 +41,7 @@ class TranscriptSystem {
     }
     
     initialize() {
-        console.log('📝 [TranscriptSystem] Initializing unified transcript system');
+        console.log('[TranscriptSystem] Initializing unified transcript system');
         
         // Setup UI components
         this.ui.initialize();
@@ -54,7 +54,7 @@ class TranscriptSystem {
         // Initialize with default language
         this.languageManager.setMode('auto');
         
-        console.log('✅ [TranscriptSystem] Transcript system ready');
+        console.log(' [TranscriptSystem] Transcript system ready');
         
         // Add test function for manual testing
         window.testTranscriptSystem = () => {
@@ -117,7 +117,7 @@ class TranscriptSystem {
         console.log(`📝 [TranscriptSystem] Session started: ${this.state.sessionStarted}`);
         
         if (!this.state.sessionStarted) {
-            console.log(`📝 [TranscriptSystem] ❌ Session not started, ignoring speech`);
+            console.log(`📝 [TranscriptSystem]  Session not started, ignoring speech`);
             return;
         }
         
@@ -133,21 +133,21 @@ class TranscriptSystem {
      * Called by Whisper Client with rich transcription data
      */
     async processWhisperTranscription(transcriptionData) {
-        console.log(`🎯 [TranscriptSystem] ========== INCOMING WHISPER DATA ==========`);
-        console.log(`🎯 [TranscriptSystem] Text length: ${transcriptionData.text?.length || 0}`);
-        console.log(`🎯 [TranscriptSystem] Language: ${transcriptionData.language}`);
-        console.log(`🎯 [TranscriptSystem] Words: ${transcriptionData.words?.length || 0}`);
-        console.log(`🎯 [TranscriptSystem] Segments: ${transcriptionData.segments?.length || 0}`);
-        console.log(`🎯 [TranscriptSystem] Educational: ${transcriptionData.metadata?.educational !== false}`);
-        console.log(`🎯 [TranscriptSystem] Session state: sessionStarted=${this.state.sessionStarted}`);
+        console.log(` [TranscriptSystem] ========== INCOMING WHISPER DATA ==========`);
+        console.log(` [TranscriptSystem] Text length: ${transcriptionData.text?.length || 0}`);
+        console.log(` [TranscriptSystem] Language: ${transcriptionData.language}`);
+        console.log(` [TranscriptSystem] Words: ${transcriptionData.words?.length || 0}`);
+        console.log(` [TranscriptSystem] Segments: ${transcriptionData.segments?.length || 0}`);
+        console.log(` [TranscriptSystem] Educational: ${transcriptionData.metadata?.educational !== false}`);
+        console.log(` [TranscriptSystem] Session state: sessionStarted=${this.state.sessionStarted}`);
         
         if (!this.state.sessionStarted) {
-            console.log(`🎯 [TranscriptSystem] ❌ Session not started, ignoring transcription`);
+            console.log(` [TranscriptSystem]  Session not started, ignoring transcription`);
             return;
         }
         
         if (!transcriptionData.text || transcriptionData.text.trim().length === 0) {
-            console.log(`🎯 [TranscriptSystem] ❌ Empty transcription, ignoring`);
+            console.log(` [TranscriptSystem]  Empty transcription, ignoring`);
             return;
         }
         
@@ -167,7 +167,7 @@ class TranscriptSystem {
             }
             
         } catch (error) {
-            console.error(`❌ [TranscriptSystem] Failed to process Whisper transcription:`, error);
+            console.error(` [TranscriptSystem] Failed to process Whisper transcription:`, error);
         }
     }
     
@@ -177,7 +177,7 @@ class TranscriptSystem {
     async handleWhisperSegment(segment, transcriptionData) {
         const segmentText = segment.text?.trim();
         if (!segmentText || segmentText.length < 5) {
-            console.log(`🎯 [TranscriptSystem] Skipping short segment: "${segmentText}"`);
+            console.log(` [TranscriptSystem] Skipping short segment: "${segmentText}"`);
             return;
         }
         
@@ -247,7 +247,7 @@ class TranscriptSystem {
         if (!text || text.trim().length === 0) return;
         
         const trimmedText = text.trim();
-        console.log(`✅ [TranscriptSystem] Final text: "${trimmedText.substring(0, 50)}..."`);
+        console.log(` [TranscriptSystem] Final text: "${trimmedText.substring(0, 50)}..."`);
         
         // Detect language for this text
         const languageDetection = this.detectLanguage(trimmedText);
@@ -292,7 +292,7 @@ class TranscriptSystem {
     handleInterimText(text) {
         if (text === this.state.interimText) return; // No change
         
-        console.log(`🔄 [TranscriptSystem] Interim: "${text.substring(0, 30)}..."`);
+        console.log(` [TranscriptSystem] Interim: "${text.substring(0, 30)}..."`);
         
         this.state.interimText = text;
         
@@ -311,7 +311,7 @@ class TranscriptSystem {
             return;
         }
         
-        console.log(`🎯 [TranscriptSystem] Queuing for card generation: "${sentence.text.substring(0, 30)}..."`);
+        console.log(` [TranscriptSystem] Queuing for card generation: "${sentence.text.substring(0, 30)}..."`);
         
         // Add to queue
         this.cardGenerationQueue.push(sentence);
@@ -337,7 +337,7 @@ class TranscriptSystem {
                 await this.generateCardFromSentence(sentence);
                 sentence.processed = true;
             } catch (error) {
-                console.error(`❌ [TranscriptSystem] Card generation failed:`, error);
+                console.error(` [TranscriptSystem] Card generation failed:`, error);
             }
         }
         
@@ -354,7 +354,7 @@ class TranscriptSystem {
             console.log(`🎴 [TranscriptSystem] Generating card for: "${sentence.text.substring(0, 40)}..."`);
             await this.app.cardEngine.processText(sentence.text, sentence.language);
         } else {
-            console.error('❌ [TranscriptSystem] CardEngine not available');
+            console.error(' [TranscriptSystem] CardEngine not available');
         }
     }
     
@@ -408,7 +408,7 @@ class TranscriptSystem {
         );
         
         if (hasEducationalContent) {
-            console.log(`✅ [TranscriptSystem] Educational content detected`);
+            console.log(` [TranscriptSystem] Educational content detected`);
             return true;
         }
         
@@ -423,7 +423,7 @@ class TranscriptSystem {
         );
         
         if (hasComplexStructure && wordCount > 8) {
-            console.log(`✅ [TranscriptSystem] Complex structure detected`);
+            console.log(` [TranscriptSystem] Complex structure detected`);
             return true;
         }
         
@@ -493,7 +493,7 @@ class TranscriptSystem {
      * Stop transcript session
      */
     stopSession() {
-        console.log('🛑 [TranscriptSystem] Stopping transcript session');
+        console.log(' [TranscriptSystem] Stopping transcript session');
         
         this.state.sessionStarted = false;
         
