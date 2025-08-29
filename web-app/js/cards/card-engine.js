@@ -446,6 +446,11 @@ class CardEngine {
         
         // Add to transcript UI with rejection indicator
         if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
+            // Ensure UI is initialized before adding rejected sentence
+            if (!this.app.transcriptSystem.ui.sentencesContainer) {
+                console.log('[CardEngine] Transcript UI not initialized - initializing now');
+                this.app.transcriptSystem.ui.initialize();
+            }
             this.app.transcriptSystem.ui.addRejectedSentence(rejectedSentence, reason);
         }
     }

@@ -1,0 +1,54 @@
+{
+  "cards": [
+    {
+      "id": "card_1756449951997_inxrrxge5",
+      "category": "CONCEPT",
+      "front": "Challenges posed by entanglement on locality, wave functions, interference patterns, and uncertainty relation.",
+      "back": "Entanglement challenges the principle of locality by linking particles' states regardless of distance, wave functions describe particles' behavior, interference patterns result from wave interactions, and uncertainty relation arises from the limits in precisely determining a particle's position and momentum simultaneously in quantum mechanics.",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "cardType": "flash",
+      "source": "card-engine",
+      "language": "en-US",
+      "flag": "🇺🇸",
+      "timestamp": "08:45:51",
+      "originalText": "how does entanglement challenge locality let's write wave functions and analyze interference patterns test questions defines who were position explain",
+      "time": "08:45:51"
+    },
+    {
+      "id": "card_1756449931807_b6s72il29",
+      "category": "CONCEPT",
+      "front": "Explaining quantum superposition, entanglement, and the Heisenberg uncertainty principle.",
+      "back": "Quantum superposition allows particles to be in multiple states simultaneously, while entanglement links particles' states. The Heisenberg uncertainty principle states the impossibility of precisely knowing both a particle's position and momentum simultaneously due to inherent quantum limitations.",
+      "confidence": 95,
+      "skip": false,
+      "provider": "openai",
+      "cardType": "flash",
+      "source": "card-engine",
+      "language": "en-US",
+      "flag": "🇺🇸",
+      "timestamp": "08:45:31",
+      "originalText": "today we explore quantum superposition and entanglement examining how particles can exist in Multiple States simultaneously professor life asks what i",
+      "time": "08:45:31"
+    },
+    {
+      "id": "card_1756449859232_1sb0oiqml",
+      "category": "CONCEPT",
+      "front": "Why is there a card game happening in this context?",
+      "back": "The mention of a 'card game' could be a metaphor for a situation involving strategy, decision-making, or unpredictability in the current scenario.",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "cardType": "flash",
+      "source": "card-engine",
+      "language": "en-US",
+      "flag": "🇺🇸",
+      "timestamp": "08:44:19",
+      "originalText": "so why is that that we have card going on here",
+      "time": "08:44:19"
+    }
+  ],
+  "exportDate": "2025-08-29T06:46:57.745Z",
+  "totalCards": 3
+}

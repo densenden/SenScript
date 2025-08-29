@@ -45,9 +45,9 @@ class SpeechRecognitionManager {
         console.log('[Speech] Tab audio transcription should work when systemAudioReady=true');
         
         // Add audio context for better stability
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            this.setupAudioContext();
-        }
+        // Skip automatic setup - will be done when needed
+        // This prevents double permission requests
+        console.log('[Speech] Audio context setup deferred until needed');
         
         // Event handlers
         this.recognition.onstart = () => {
@@ -109,11 +109,17 @@ class SpeechRecognitionManager {
         console.log('[Speech] Speech recognition initialized');
     }
     
-    setupAudioContext() {
+    setupAudioContext(skipPermissionRequest = false) {
         try {
             // Create audio context for better audio processing
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             console.log('[Speech] Audio context created for enhanced stability');
+            
+            // Skip permission request if already handled by audio system
+            if (skipPermissionRequest) {
+                console.log('[Speech] Skipping getUserMedia - handled by audio system');
+                return;
+            }
             
             // Request microphone permissions and setup audio processing
             navigator.mediaDevices.getUserMedia({ 

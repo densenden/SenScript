@@ -27,7 +27,8 @@ class TranscriptSystem {
             currentSegmentStart: null,
             currentSegmentText: '',
             segmentTimer: null,
-            maxSegmentDuration: this.app.settings?.rhythmSegmentDuration || 5000 // Default 5 seconds, adjustable
+            maxSegmentDuration: this.app.settings?.rhythmSegmentDuration || 12000, // Default 12 seconds - allow complete sentences
+            recentlyStopped: false  // Grace period flag for final text
         };
         
         // UI components
@@ -115,12 +116,22 @@ class TranscriptSystem {
     processIncomingSpeech(speechResult) {
         const { isFinal, transcript, confidence } = speechResult;
         
-        console.log(`[TranscriptSystem] ========== INCOMING SPEECH ==========`);
-        console.log(`[TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
-        console.log(`[TranscriptSystem] Session started: ${this.state.sessionStarted}`);
+        console.log(`🔥 [TranscriptSystem] ========== INCOMING SPEECH ==========`);
+        console.log(`🔥 [TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
+        console.log(`🔥 [TranscriptSystem] Session started: ${this.state.sessionStarted}`);
+        console.log(`🔥 [TranscriptSystem] Current segment start: ${this.state.currentSegmentStart}`);
         
+        // Allow final text to be processed even after stopping for a grace period
+        // This ensures we don't lose the last spoken words
         if (!this.state.sessionStarted) {
-            console.log(`[TranscriptSystem] Session not started, ignoring speech`);
+            if (isFinal && this.state.recentlyStopped) {
+                console.log(`⚠️ [TranscriptSystem] Processing final text after stop (grace period)`);
+                // Process this final text even though session stopped
+                this.handleFinalTextAfterStop(transcript);
+                return;
+            }
+            console.log(`🚨 [TranscriptSystem] SESSION NOT STARTED - IGNORING SPEECH!`);
+            console.log(`🚨 [TranscriptSystem] Call startSession() first!`);
             return;
         }
         
@@ -129,6 +140,37 @@ class TranscriptSystem {
         } else {
             this.handleInterimText(transcript);
         }
+    }
+    
+    /**
+     * Handle final text that arrives after session stops (grace period)
+     */
+    handleFinalTextAfterStop(text) {
+        if (!text || text.trim().length === 0) return;
+        
+        const trimmedText = text.trim();
+        console.log(` [TranscriptSystem] Processing late final text: "${trimmedText.substring(0, 50)}..."`);
+        
+        // Create a finalized segment directly without going through the full rhythm system
+        const segment = {
+            text: trimmedText,
+            duration: 1000, // Default duration for late arrivals
+            timestamp: new Date().toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            }),
+            cardCreated: false
+        };
+        
+        // Add to UI
+        this.ui.addFinalizedSegment(segment);
+        
+        // Still generate card if educational
+        this.queueCardGeneration(trimmedText);
+        
+        console.log(` [TranscriptSystem] Late final text processed and added to history`);
     }
     
     /**
@@ -245,23 +287,48 @@ class TranscriptSystem {
     
     /**
      * Handle finalized speech text (triggers rhythm segment completion)
+     * PRIORITY: Natural speech boundaries override timer boundaries
      */
     handleFinalText(text) {
         if (!text || text.trim().length === 0) return;
         
         const trimmedText = text.trim();
-        console.log(`🎵 [RhythmSegment] Final text received - completing current segment: "${trimmedText.substring(0, 50)}..."`);
+        console.log(`🎵 [RhythmSegment] Final text received - text length: ${trimmedText.length} characters`);
         
-        // Update current segment with final text
-        this.state.currentSegmentText = trimmedText;
+        // Cancel the timer since we have a natural speech boundary
+        if (this.state.segmentTimer) {
+            console.log(`🎵 [RhythmSegment] Canceling timer - natural speech boundary found`);
+            clearTimeout(this.state.segmentTimer);
+            this.state.segmentTimer = null;
+        }
         
-        // Force end current rhythm segment (speech recognition finalized)
-        if (this.state.currentSegmentStart && this.state.currentSegmentText.trim()) {
-            const segmentDuration = Date.now() - this.state.currentSegmentStart;
-            this.finalizeRhythmSegment(trimmedText, segmentDuration);
+        // Check if text is very large (>300 chars) and needs chunking
+        if (trimmedText.length > 300) {
+            console.log(`📦 [RhythmSegment] Large text block detected (${trimmedText.length} chars) - chunking into sentences`);
+            this.processLargeTextBlock(trimmedText);
+        } else {
+            // Process normally for smaller text
+            console.log(`✅ [RhythmSegment] Normal-sized text - processing as single segment`);
             
-            // Start new segment for continuing speech
-            this.startNewSegment();
+            // Update current segment with complete final text
+            this.state.currentSegmentText = trimmedText;
+            
+            // Force end current rhythm segment with complete final text (speech recognition finalized)
+            if (this.state.currentSegmentStart && this.state.currentSegmentText.trim()) {
+                const segmentDuration = Date.now() - this.state.currentSegmentStart;
+                console.log(`✅ [RhythmSegment] Finalizing segment: "${trimmedText.substring(0, 50)}..."`);
+                this.finalizeRhythmSegment(trimmedText, segmentDuration);
+                
+                // Start new segment for continuing speech
+                this.startNewSegment();
+            } else {
+                // EMERGENCY FIX: If no active segment but we have final text, create one immediately
+                console.log(`🚨 [RhythmSegment] No active segment - creating emergency segment`);
+                
+                // Create emergency segment with final text
+                this.finalizeRhythmSegment(trimmedText, 1000); // 1 second duration as fallback
+                this.startNewSegment(); // Start new segment for future speech
+            }
         }
         
         // Clear interim text
@@ -270,22 +337,99 @@ class TranscriptSystem {
     }
     
     /**
+     * Process large text blocks by chunking them into sentences
+     */
+    processLargeTextBlock(text) {
+        console.log(`📦 [RhythmSegment] Processing large text block: ${text.length} characters`);
+        
+        // Split text into sentences (improved regex for better sentence detection)
+        const sentenceRegex = /[^.!?]+[.!?]+/g;
+        let sentences = text.match(sentenceRegex) || [];
+        
+        // If no sentences found with punctuation, split by common conjunctions or length
+        if (sentences.length === 0) {
+            console.log(`📦 [RhythmSegment] No sentence punctuation found - splitting by phrases`);
+            // Split by common conjunctions and phrase boundaries
+            sentences = text.split(/(?:and|but|however|therefore|although|because|while|when|if|that|which|where|after|before|then|thus)/i)
+                .filter(s => s.trim().length > 0)
+                .map(s => s.trim());
+            
+            // If still too large, force split by character count
+            if (sentences.length === 0 || sentences.some(s => s.length > 200)) {
+                console.log(`📦 [RhythmSegment] Force-splitting by character count`);
+                sentences = [];
+                let currentChunk = '';
+                const words = text.split(/\s+/);
+                
+                for (const word of words) {
+                    if ((currentChunk + ' ' + word).length > 150) {
+                        if (currentChunk) sentences.push(currentChunk.trim());
+                        currentChunk = word;
+                    } else {
+                        currentChunk += (currentChunk ? ' ' : '') + word;
+                    }
+                }
+                if (currentChunk) sentences.push(currentChunk.trim());
+            }
+        }
+        
+        console.log(`📦 [RhythmSegment] Split into ${sentences.length} chunks`);
+        
+        // Process each sentence as a separate segment with staggered timing
+        sentences.forEach((sentence, index) => {
+            const cleanSentence = sentence.trim();
+            if (cleanSentence.length < 5) return; // Skip very short fragments
+            
+            // Add slight delay between segments for visual separation
+            setTimeout(() => {
+                console.log(`📦 [RhythmSegment] Processing chunk ${index + 1}/${sentences.length}: "${cleanSentence.substring(0, 50)}..."`);
+                
+                // Estimate duration based on text length (roughly 150 words per minute)
+                const wordCount = cleanSentence.split(/\s+/).length;
+                const estimatedDuration = Math.max(1000, Math.min(5000, wordCount * 400)); // 400ms per word, capped 1-5s
+                
+                // Finalize this chunk as a segment
+                this.finalizeRhythmSegment(cleanSentence, estimatedDuration);
+            }, index * 200); // 200ms delay between each segment for visual effect
+        });
+        
+        // Start new segment for future speech after processing all chunks
+        setTimeout(() => {
+            this.startNewSegment();
+        }, sentences.length * 200 + 100);
+    }
+    
+    /**
      * Handle interim speech text (still being recognized)
      */
     handleInterimText(text) {
         if (text === this.state.interimText) return; // No change
         
-        console.log(` [TranscriptSystem] Interim: "${text.substring(0, 30)}..."`);
+        console.log(`📝 [TranscriptSystem] Interim: "${text.substring(0, 50)}..."`);
         
+        // Store full text in state
         this.state.interimText = text;
         
         // Accumulate text in current rhythm segment
         if (this.state.currentSegmentStart) {
             this.state.currentSegmentText = text;
+            console.log(`📝 [TranscriptSystem] Updated segment text with interim: "${text.substring(0, 30)}..."`);
+        } else {
+            console.log(`⚠️ [TranscriptSystem] No active segment - starting one for interim text`);
+            this.startNewSegment();
+            this.state.currentSegmentText = text;
         }
         
-        // Update UI with flip animation
-        this.ui.updateInterimText(text);
+        // For display, limit length to prevent UI overflow
+        const maxInterimLength = 200;
+        let displayText = text;
+        if (text.length > maxInterimLength) {
+            displayText = '...' + text.substring(text.length - maxInterimLength);
+            console.log(`📝 [TranscriptSystem] Truncating display to last ${maxInterimLength} chars`);
+        }
+        
+        // Update UI with flip animation (using display text)
+        this.ui.updateInterimText(displayText);
         this.animations.triggerFlip();
     }
     
@@ -461,7 +605,7 @@ class TranscriptSystem {
      * Start a new rhythm segment
      */
     startNewSegment() {
-        console.log('🎵 [RhythmSegment] Starting new 5-second segment');
+        console.log(`🎵 [RhythmSegment] Starting new ${this.state.maxSegmentDuration/1000}-second segment`);
         
         this.state.currentSegmentStart = Date.now();
         this.state.currentSegmentText = '';
@@ -474,26 +618,42 @@ class TranscriptSystem {
         // Set rhythm-based force cutoff (adjustable duration)
         this.state.segmentTimer = setTimeout(() => {
             console.log(`⏰ [RhythmSegment] ${this.state.maxSegmentDuration}ms timer expired - forcing segment end`);
+            console.log(`⏰ [RhythmSegment] About to call forceSegmentEnd()`);
             this.forceSegmentEnd();
         }, this.state.maxSegmentDuration);
+        
+        console.log(`🎵 [RhythmSegment] Timer set for ${this.state.maxSegmentDuration}ms`);
     }
     
     /**
      * Force current segment to end (rhythm timer expired)
      */
     forceSegmentEnd() {
-        if (!this.state.currentSegmentStart || !this.state.currentSegmentText.trim()) {
-            console.log('🎵 [RhythmSegment] No active segment to force end');
+        console.log('⏰ [RhythmSegment] Timer expired - checking for content to finalize');
+        console.log(`⏰ [RhythmSegment] Current segment text: "${this.state.currentSegmentText}"`);
+        console.log(`⏰ [RhythmSegment] Interim text: "${this.state.interimText}"`);
+        
+        // Use interim text if current segment text is empty
+        const textToFinalize = this.state.currentSegmentText.trim() || this.state.interimText.trim();
+        
+        if (!this.state.currentSegmentStart || !textToFinalize) {
+            console.log('🎵 [RhythmSegment] No active segment or text to force end');
+            // Still start a new segment to keep the rhythm going
+            this.startNewSegment();
             return;
         }
         
         const segmentDuration = Date.now() - this.state.currentSegmentStart;
-        const segmentText = this.state.currentSegmentText.trim();
         
-        console.log(`🎵 [RhythmSegment] Force-ending segment after ${segmentDuration}ms: "${segmentText.substring(0, 30)}..."`);
+        console.log(`🎵 [RhythmSegment] Force-ending segment after ${segmentDuration}ms: "${textToFinalize.substring(0, 30)}..."`);
         
-        // Finalize this segment
-        this.finalizeRhythmSegment(segmentText, segmentDuration);
+        // Finalize this segment with either current segment text or interim text
+        this.finalizeRhythmSegment(textToFinalize, segmentDuration);
+        
+        // Clear both segment and interim text
+        this.state.currentSegmentText = '';
+        this.state.interimText = '';
+        this.ui.clearInterimText();
         
         // Start new segment for continuing speech
         this.startNewSegment();
@@ -503,7 +663,11 @@ class TranscriptSystem {
      * Finalize a rhythm-based segment
      */
     finalizeRhythmSegment(text, duration) {
-        console.log(`🎵 [RhythmSegment] Finalizing ${duration}ms segment: "${text.substring(0, 30)}..."`);
+        console.log(`🎵 [RhythmSegment] ========== FINALIZING SEGMENT ==========`);
+        console.log(`🎵 [RhythmSegment] Text: "${text}"`);
+        console.log(`🎵 [RhythmSegment] Duration: ${duration}ms`);
+        console.log(`🎵 [RhythmSegment] UI available: ${!!this.ui}`);
+        console.log(`🎵 [RhythmSegment] UI.addRhythmSegment available: ${!!this.ui?.addRhythmSegment}`);
         
         // Detect language for this segment
         const languageDetection = this.detectLanguage(text);
@@ -523,11 +687,22 @@ class TranscriptSystem {
         this.state.transcriptBuffer.push(segment);
         
         // Always pass language detection to LanguageManager (it will handle mode checking)
-        this.languageManager.updateDetectedLanguage(languageDetection);
+        if (this.languageManager) {
+            this.languageManager.updateDetectedLanguage(languageDetection);
+        }
         
-        // Update UI with rhythm segment
-        this.ui.addRhythmSegment(segment);
-        this.animations.triggerWobble();
+        // Update UI with rhythm segment - THIS IS CRITICAL FOR DISPLAY
+        if (this.ui && this.ui.addRhythmSegment) {
+            console.log(`🎵 [RhythmSegment] Calling UI.addRhythmSegment with segment:`, segment);
+            this.ui.addRhythmSegment(segment);
+        } else {
+            console.error(`❌ [RhythmSegment] UI or addRhythmSegment not available!`);
+        }
+        
+        // Trigger animation if available
+        if (this.animations) {
+            this.animations.triggerWobble();
+        }
         
         // Check for card generation on shorter segments
         this.queueCardGeneration(segment);
@@ -537,20 +712,25 @@ class TranscriptSystem {
             clearTimeout(this.state.segmentTimer);
             this.state.segmentTimer = null;
         }
+        
+        console.log(`🎵 [RhythmSegment] ========== SEGMENT FINALIZED ==========`);
     }
     
     /**
      * Start transcript session
      */
     startSession() {
-        console.log('[TranscriptSystem] Starting transcript session');
-        console.log('[TranscriptSystem] Previous session state:', this.state.sessionStarted);
+        console.log('🚀 [TranscriptSystem] Starting transcript session');
+        console.log('🚀 [TranscriptSystem] Previous session state:', this.state.sessionStarted);
+        console.log('🚀 [TranscriptSystem] UI available:', !!this.ui);
+        console.log('🚀 [TranscriptSystem] UI finalizedSegmentsContainer:', !!this.ui?.finalizedSegmentsContainer);
         
         this.state.sessionStarted = true;
         
         // Start first rhythm segment
         this.startNewSegment();
-        console.log('[TranscriptSystem] New session state:', this.state.sessionStarted);
+        console.log('🚀 [TranscriptSystem] New session state:', this.state.sessionStarted);
+        console.log('🚀 [TranscriptSystem] Current segment start:', this.state.currentSegmentStart);
         this.state.transcriptBuffer = [];
         this.state.finalizedSentences = [];
         this.state.interimText = '';
@@ -596,6 +776,13 @@ class TranscriptSystem {
         console.log(' [TranscriptSystem] Stopping transcript session');
         
         this.state.sessionStarted = false;
+        
+        // Set grace period flag for 2 seconds to catch final speech results
+        this.state.recentlyStopped = true;
+        setTimeout(() => {
+            this.state.recentlyStopped = false;
+            console.log(' [TranscriptSystem] Grace period expired');
+        }, 2000);
         
         // Process any remaining queued cards
         if (this.cardGenerationQueue.length > 0) {

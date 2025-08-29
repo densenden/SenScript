@@ -41,12 +41,22 @@ class AudioSystemV3 {
     }
     
     showInitialState() {
-        console.log('🎤 [AudioV3] Setting initial state: Microphone mode, requesting permission');
-        this.currentAudioSource = 'microphone';
-        this.updateToggleUI();
+        // Load saved preference or default to microphone
+        const savedSource = localStorage.getItem('preferredAudioSource') || 'microphone';
+        console.log(`🎤 [AudioV3] Setting initial state: ${savedSource} mode`);
+        this.currentAudioSource = savedSource;
         
-        // Per Perfect Audio Flow: Request microphone permission immediately on toggle
-        this.switchToMicrophone();
+        // Update ALL UI elements to ensure consistency
+        this.updateToggleUI();
+        this.updateInputSourceIndicator(savedSource);
+        
+        // Initialize with saved preference
+        if (savedSource === 'microphone') {
+            // Per Perfect Audio Flow: Request microphone permission immediately
+            this.switchToMicrophone();
+        } else {
+            console.log('🎤 [AudioV3] Starting with system audio - will request permission when needed');
+        }
     }
     
     setupToggleListeners() {
@@ -97,15 +107,18 @@ class AudioSystemV3 {
         
         // Update current source immediately (per spec: UI updates immediately)
         this.currentAudioSource = newSource;
+        
+        // Update ALL UI elements to ensure consistency
         this.updateToggleUI();
+        this.updateInputSourceIndicator(newSource);
+        
+        // Store preference
+        localStorage.setItem('preferredAudioSource', newSource);
         
         // Update TranscriptUI placeholder
         if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
             this.app.transcriptSystem.ui.updateAudioSource(newSource);
         }
-        
-        // Update input source indicator
-        this.updateInputSourceIndicator(newSource);
         
         if (newSource === 'microphone') {
             await this.switchToMicrophone();
@@ -405,16 +418,18 @@ class AudioSystemV3 {
                 console.log(' [AudioV3] ✅ Microphone stream ready for transcription');
                 return true;
             } else {
-                console.log(' [AudioV3] ❌ No active microphone stream');
-                return false;
+                console.log(' [AudioV3] ❌ No active microphone stream - requesting permission');
+                await this.switchToMicrophone();
+                return this.microphoneStream && this.microphoneStream.active;
             }
         } else if (this.currentAudioSource === 'system') {
             if (this.systemStream && this.systemStream.active) {
                 console.log(' [AudioV3] ✅ System stream ready for transcription');
                 return true;
             } else {
-                console.log(' [AudioV3] ❌ No active system stream');
-                return false;
+                console.log(' [AudioV3] ❌ No active system stream - requesting permission');
+                await this.switchToDeviceOutput();
+                return this.systemStream && this.systemStream.active;
             }
         }
         

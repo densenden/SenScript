@@ -34,6 +34,10 @@ class SimpleClerkAuth {
             return true;
         } catch (error) {
             console.error('[SimpleAuth] Failed to initialize:', error);
+            console.warn('[SimpleAuth] Running in offline mode - authentication disabled');
+            
+            // Set up fallback/demo mode
+            this.runInOfflineMode();
             return false;
         }
     }
@@ -63,6 +67,36 @@ class SimpleClerkAuth {
         });
     }
 
+    runInOfflineMode() {
+        // Set up a demo/offline mode when auth fails
+        this.user = {
+            id: 'demo-user',
+            emailAddress: 'demo@senscript.local',
+            firstName: 'Demo',
+            lastName: 'User'
+        };
+        this.isAuthenticated = false;
+        this.initialized = true;
+        
+        console.log('[SimpleAuth] Offline mode activated - using demo user');
+        console.log('[SimpleAuth] All features available except cloud sync');
+        
+        // Hide auth UI elements
+        const authElements = document.querySelectorAll('.auth-required');
+        authElements.forEach(el => el.style.display = 'none');
+        
+        // Show offline indicator if exists
+        const offlineIndicator = document.getElementById('offline-indicator');
+        if (offlineIndicator) {
+            offlineIndicator.style.display = 'block';
+        }
+        
+        // Notify listeners that we're in offline mode
+        if (this.onAuthStateChange) {
+            this.onAuthStateChange({ hasUser: true, hasSession: false });
+        }
+    }
+    
     setupAuthStateListener() {
         if (!this.clerk) return;
 

@@ -34,6 +34,7 @@ class SenScript {
         this.els = {
             recordBtn: document.getElementById('recordBtn'),
             mobileRecordBtn: document.getElementById('mobileRecordBtn'),
+            interimStartBtn: document.getElementById('interimStartBtn'),
             testTranscriptsBtn: document.getElementById('testTranscriptsBtn'),
             recordDot: document.getElementById('recordDot'),
             transcript: document.getElementById('transcript'),
@@ -101,6 +102,9 @@ class SenScript {
                 this.settings.initializeAllSettingsUI();
             }
             
+            // Setup dynamic element event listeners after transcript UI is ready
+            this.setupDynamicEventListeners();
+            
             // Language handler integrated in transcript system
         }, 1500);
     }
@@ -112,6 +116,8 @@ class SenScript {
             this.els.mobileRecordBtn.onclick = () => this.toggleListening();
         }
         
+        // Interim start button will be handled in setupDynamicEventListeners
+        
         // Export buttons
         this.els.exportBtn.onclick = () => this.exportCards();
         this.els.exportTranscriptBtn.onclick = () => this.exportTranscript();
@@ -120,6 +126,48 @@ class SenScript {
         this.els.settingsBtn.onclick = () => this.ui.showSettings();
         this.els.settingsClose.onclick = () => this.ui.closeSettings();
         this.els.saveSettings.onclick = () => this.settings.saveSettings();
+    }
+    
+    /**
+     * Setup event listeners for dynamically created elements
+     * Called after transcript UI is initialized
+     */
+    setupDynamicEventListeners() {
+        console.log('[Main] Setting up dynamic element event listeners...');
+        
+        // Interim start button (created by transcript UI)
+        const interimStartBtn = document.getElementById('interimStartBtn');
+        if (interimStartBtn) {
+            interimStartBtn.onclick = () => this.toggleListening();
+            console.log('[Main] ✅ Interim start button event listener added');
+        } else {
+            console.warn('[Main] ⚠️ Interim start button not found');
+        }
+        
+        // Transcript export button (created by transcript UI)  
+        const exportTranscriptBtn = document.getElementById('exportTranscriptBtn');
+        if (exportTranscriptBtn) {
+            exportTranscriptBtn.onclick = () => this.exportTranscript();
+            console.log('[Main] ✅ Export transcript button event listener added');
+        } else {
+            console.warn('[Main] ⚠️ Export transcript button not found');
+        }
+        
+        // Input source indicator button (created by transcript UI)
+        const inputSourceIndicator = document.getElementById('inputSourceIndicator');
+        if (inputSourceIndicator) {
+            inputSourceIndicator.onclick = () => {
+                // Toggle between microphone and system audio
+                if (this.audioSystem && this.audioSystem.switchAudioSource) {
+                    const newSource = this.audioSystem.currentAudioSource === 'microphone' ? 'system' : 'microphone';
+                    this.audioSystem.switchAudioSource(newSource);
+                    console.log(`[Main] Switching audio source to: ${newSource}`);
+                }
+            };
+            console.log('[Main] ✅ Input source indicator event listener added');
+        } else {
+            console.warn('[Main] ⚠️ Input source indicator not found');
+        }
     }
     
     toggleListening() {
@@ -149,6 +197,15 @@ class SenScript {
         }
         if (this.els.mobileRecordBtn) {
             this.els.mobileRecordBtn.classList.add('recording');
+        }
+        
+        // Update interim start button
+        if (this.els.interimStartBtn) {
+            this.els.interimStartBtn.classList.add('recording');
+            const interimStartIcon = document.getElementById('interimStartIcon');
+            if (interimStartIcon) {
+                interimStartIcon.textContent = 'pause';
+            }
         }
         
         // Update button text
@@ -222,6 +279,15 @@ class SenScript {
         }
         if (this.els.mobileRecordBtn) {
             this.els.mobileRecordBtn.classList.remove('recording');
+        }
+        
+        // Update interim start button
+        if (this.els.interimStartBtn) {
+            this.els.interimStartBtn.classList.remove('recording');
+            const interimStartIcon = document.getElementById('interimStartIcon');
+            if (interimStartIcon) {
+                interimStartIcon.textContent = 'play_arrow';
+            }
         }
         
         // Update button text
@@ -310,6 +376,14 @@ class SenScript {
     
     exposeTestFunctions() {
         try {
+            // Ensure cardEngine exists before exposing functions
+            if (!this.cardEngine) {
+                console.error('❌ Card engine not initialized yet');
+                // Retry after a delay
+                setTimeout(() => this.exposeTestFunctions(), 1000);
+                return;
+            }
+            
             window.testCards = () => this.cardEngine.runCardGenerationTests();
             window.testCheat = () => this.cardEngine.runCheatCardTests();
             window.testCardTypeDisplay = () => this.cardEngine.testCardTypeDisplay();
@@ -317,6 +391,24 @@ class SenScript {
                 if (this.transcriptSystem?.ui) {
                     this.transcriptSystem.ui.showListeningState();
                     console.log('🎵 [Test] Rhythm system started - you should see pending line animation');
+                }
+            };
+            
+            // EMERGENCY TEST: Force create a segment to verify display
+            window.testForceSegment = () => {
+                console.log('🧪 [TEST] Creating emergency test segment...');
+                if (this.transcriptSystem) {
+                    console.log('🧪 [TEST] TranscriptSystem available');
+                    const testSegment = {
+                        text: "This is a test segment to verify the display is working properly.",
+                        duration: 2000,
+                        timestamp: Date.now(),
+                        cardCreated: false
+                    };
+                    console.log('🧪 [TEST] Calling addFinalizedSegment directly...');
+                    this.transcriptSystem.ui.addFinalizedSegment(testSegment);
+                } else {
+                    console.log('🧪 [TEST] TranscriptSystem not available');
                 }
             };
             window.testToggle = () => {
@@ -501,10 +593,38 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         if (!window.senScript) {
             window.senScript = new SenScript();
+            window.app = window.senScript; // Alias for compatibility
         }
     });
 } else {
     if (!window.senScript) {
         window.senScript = new SenScript();
+        window.app = window.senScript; // Alias for compatibility
     }
 }
+
+// Manual initialization helper for test functions
+window.initTests = () => {
+    const app = window.senScript || window.senScriptApp || window.app;
+    if (app && app.cardEngine) {
+        // Directly expose test functions
+        window.testCards = () => app.cardEngine.runCardGenerationTests();
+        window.testCheat = () => app.cardEngine.runCheatCardTests();
+        window.testCardTypeDisplay = () => app.cardEngine.testCardTypeDisplay();
+        console.log('✅ Test functions initialized:');
+        console.log('  - testCards()');
+        console.log('  - testCheat()');
+        console.log('  - testCardTypeDisplay()');
+        return true;
+    } else {
+        console.error('❌ App or cardEngine not ready. Try again in a moment.');
+        return false;
+    }
+};
+
+// Auto-initialize tests after a delay
+setTimeout(() => {
+    if (!window.testCheat) {
+        window.initTests();
+    }
+}, 2000);

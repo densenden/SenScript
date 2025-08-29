@@ -17,8 +17,8 @@ class TranscriptUI {
         this.currentSegmentStart = null;
         this.pendingLine = null;
         this.segmentTimer = null;
-        this.maxSegmentDuration = 5000; // 5 seconds
-        this.maxSegments = 3; // Show last 3 segments (15 seconds)
+        this.maxSegmentDuration = 12000; // 12 seconds - allow complete sentences
+        this.maxSegments = 3; // Show last 3 segments (36 seconds total)
         this.isActivelyListening = false; // Track listening state
     }
     
@@ -60,8 +60,65 @@ class TranscriptUI {
             
             <!-- Current interim transcription (fixed bottom) -->
             <div id="interimArea" class="interim-area">
+                <div class="interim-controls">
+                    <div id="transcriptLanguageIndicator" class="control-element">
+                        <span id="transcriptLanguageFlag" class="material-symbols-outlined">language</span>
+                        <span id="langCodeTranscript">AUTO</span>
+                        <span style="font-size: 8px;">▼</span>
+                    </div>
+                    <div id="transcriptLanguageDropdown" style="
+                        position: absolute;
+                        top: -200px;
+                        left: 0;
+                        background: rgba(30, 41, 59, 0.95);
+                        backdrop-filter: blur(20px);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 12px;
+                        padding: 8px;
+                        min-width: 150px;
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        z-index: 1000;
+                        display: none;
+                    ">
+                        <div class="language-dropdown-option" data-lang="auto" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-outlined">language</span>
+                            <span>Auto-detect</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="en-US" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇺🇸</span>
+                            <span>English</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="de-DE" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇩🇪</span>
+                            <span>German</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="fr-FR" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇫🇷</span>
+                            <span>French</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="es-ES" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇪🇸</span>
+                            <span>Spanish</span>
+                        </div>
+                        <div class="language-dropdown-option" data-lang="it-IT" style="padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <span>🇮🇹</span>
+                            <span>Italian</span>
+                        </div>
+                    </div>
+                    <button id="inputSourceIndicator" class="control-element" title="Input Source">
+                        <span id="inputSourceIcon" class="material-symbols-outlined">mic</span>
+                    </button>
+                    <button id="exportTranscriptBtn" class="control-element" disabled>
+                        <span class="material-symbols-outlined">download</span>
+                    </button>
+                </div>
                 <div id="interimText" class="interim-text">
                     <!-- Live interim text appears here -->
+                </div>
+                <div class="interim-right-controls">
+                    <button id="interimStartBtn" class="start-button-mini" title="Start/Stop Recording">
+                        <span id="interimStartIcon" class="material-symbols-outlined">play_arrow</span>
+                    </button>
                 </div>
             </div>
         `;
@@ -71,6 +128,12 @@ class TranscriptUI {
         this.pendingLineArea = document.getElementById('pendingLineArea');
         this.interimArea = document.getElementById('interimArea');
         this.interimText = document.getElementById('interimText');
+        
+        console.log('🎯 [TranscriptUI] Cached elements:');
+        console.log('🎯 [TranscriptUI] finalizedSegmentsContainer:', !!this.finalizedSegmentsContainer);
+        console.log('🎯 [TranscriptUI] pendingLineArea:', !!this.pendingLineArea);
+        console.log('🎯 [TranscriptUI] interimArea:', !!this.interimArea);
+        console.log('🎯 [TranscriptUI] interimText:', !!this.interimText);
     }
     
     setupTranscriptStructure() {
@@ -175,6 +238,12 @@ class TranscriptUI {
         console.log(`[TranscriptUI] Final sentence received: "${sentence.text.substring(0, 30)}..."`);
         console.log(`[TranscriptUI] Is actively listening: ${this.isActivelyListening}`);
         
+        // Initialize if needed
+        if (!this.sentencesContainer && !this.finalizedSegmentsContainer) {
+            console.log('[TranscriptUI] Containers not initialized - initializing now');
+            this.initialize();
+        }
+        
         if (this.isActivelyListening) {
             // If we're in rhythm mode, just update the current segment text - don't force finalize
             console.log(`[TranscriptUI] Updating current segment with final sentence (rhythm mode)`);
@@ -227,8 +296,8 @@ class TranscriptUI {
     addRhythmSegment(segment) {
         console.log(`[TranscriptUI] Adding rhythm segment (${segment.duration}ms): "${segment.text.substring(0, 30)}..."`);        
         
-        // Skip segments with minimal content to avoid duplicates
-        if (!segment.text || segment.text.trim().length < 10 || segment.text.trim().split(' ').length < 3) {
+        // Skip segments with minimal content to avoid duplicates (relaxed thresholds)
+        if (!segment.text || segment.text.trim().length < 3 || segment.text.trim().split(' ').length < 1) {
             console.log(`⏭️ [TranscriptUI] Skipping minimal rhythm segment: "${segment.text}"`);            return;
         }
         
@@ -447,6 +516,12 @@ class TranscriptUI {
      * Update compact visual hierarchy (3 text sizes, smooth upward movement)
      */
     updateCompactSentenceHierarchy() {
+        // Ensure container exists before trying to query it
+        if (!this.sentencesContainer) {
+            console.warn('[TranscriptUI] sentencesContainer not initialized - skipping hierarchy update');
+            return;
+        }
+        
         const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence-compact');
         const length = sentences.length;
         
@@ -488,10 +563,9 @@ class TranscriptUI {
         // Legacy system (fallback)
         if (this.interimElement) {
             if (text && text.trim()) {
-                // Clean, prominent current line with animated letters and cursor at end
-                const animatedText = this.wrapLettersForAnimation(text);
+                // Clean, prominent current line with simple text display
                 this.interimElement.innerHTML = `
-                    <span class="interim-text-compact">${animatedText}<span class="interim-cursor-compact">▌</span></span>
+                    <span class="interim-text-compact">${text}<span class="interim-cursor-compact">▌</span></span>
                 `;
                 this.interimElement.classList.add('active-compact');
                 
@@ -612,16 +686,23 @@ class TranscriptUI {
         this.clearInterimText();
         
         // Only show placeholder if we're truly stopped and not actively listening
+        // AND there are no segments already displayed
         if (this.finalizedSegments.length === 0 && !this.isActivelyListening) {
-            console.log('📏 [TranscriptUI] Showing placeholder - stopped and no segments');
-            const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
-            const placeholderText = this.getPlaceholderText(audioSource);
-            
-            this.finalizedSegmentsContainer.innerHTML = `
-                <div class="transcript-placeholder">
-                    Ready for transcript segments (mic active, hit start to transcribe and make cards)
-                </div>
-            `;
+            // Check if there are actual DOM segments before clearing
+            const existingSegments = this.finalizedSegmentsContainer?.querySelectorAll('.finalized-segment');
+            if (!existingSegments || existingSegments.length === 0) {
+                console.log('📏 [TranscriptUI] Showing placeholder - stopped and no segments');
+                const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
+                const placeholderText = this.getPlaceholderText(audioSource);
+                
+                this.finalizedSegmentsContainer.innerHTML = `
+                    <div class="transcript-placeholder">
+                        Ready for transcript segments (mic active, hit start to transcribe and make cards)
+                    </div>
+                `;
+            } else {
+                console.log('📏 [TranscriptUI] Keeping existing segments in display');
+            }
         } else if (this.isActivelyListening) {
             console.log('📏 [TranscriptUI] Skipping placeholder - still actively listening');
         }
@@ -689,6 +770,12 @@ class TranscriptUI {
      * Manage sentence count to avoid memory issues
      */
     manageSentenceCount() {
+        // Ensure container exists before trying to query it
+        if (!this.sentencesContainer) {
+            console.warn('[TranscriptUI] sentencesContainer not initialized - skipping sentence count management');
+            return;
+        }
+        
         const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence, .transcript-sentence-compact');
         const maxSentences = 3; // Strict limit to prevent old transcript showing
         
@@ -725,8 +812,7 @@ class TranscriptUI {
         // Update the fixed bottom interim area
         if (this.interimText) {
             if (text && text.trim()) {
-                const animatedText = this.wrapLettersForAnimation(text);
-                this.interimText.innerHTML = `${animatedText}<span class="interim-cursor-compact">▌</span>`;
+                this.interimText.innerHTML = `${text}<span class="interim-cursor-compact">▌</span>`;
                 this.interimText.style.opacity = '0.9';
             } else {
                 this.interimText.innerHTML = '';
@@ -736,10 +822,10 @@ class TranscriptUI {
     }
     
     /**
-     * Start a new 5-second segment with pending line animation
+     * Start a new segment with pending line animation (12s max)
      */
     startNewSegment() {
-        console.log('📏 [TranscriptUI] Starting new 5-second segment');
+        console.log('📏 [TranscriptUI] Starting new segment (12s max)');
         console.log('📏 [TranscriptUI] Current segments count:', this.finalizedSegments.length);
         console.log('📏 [TranscriptUI] Is actively listening:', this.isActivelyListening);
         
@@ -755,7 +841,7 @@ class TranscriptUI {
             clearTimeout(this.segmentTimer);
         }
         
-        console.log('📏 [TranscriptUI] Setting 5-second timer for segment finalization');
+        console.log('📏 [TranscriptUI] Setting 12-second timer for segment finalization');
         this.segmentTimer = setTimeout(() => {
             this.finalizeCurrentSegment();
         }, this.maxSegmentDuration);
@@ -793,7 +879,7 @@ class TranscriptUI {
         const segmentDuration = Date.now() - this.currentSegmentStart;
         const hasContent = this.currentSegmentText && this.currentSegmentText.trim().length > 0;
         
-        console.log('✅ [TranscriptUI] Finalizing 5-second segment');
+        console.log('✅ [TranscriptUI] Finalizing segment (timer-based)');
         console.log(`📏 [TranscriptUI] Segment duration: ${(segmentDuration / 1000).toFixed(1)}s`);
         console.log(`📏 [TranscriptUI] Has content: ${hasContent}`);
         console.log(`📏 [TranscriptUI] Content: "${this.currentSegmentText}"`);
@@ -801,8 +887,8 @@ class TranscriptUI {
         if (hasContent) {
             console.log(`✅ [TranscriptUI] Finalizing segment with content: "${this.currentSegmentText.substring(0, 50)}..."`);            
             
-            // Skip if content is too minimal (avoid duplicates with rhythm system)
-            if (this.currentSegmentText.trim().length < 10 || this.currentSegmentText.trim().split(' ').length < 3) {
+            // Skip if content is too minimal (avoid duplicates with rhythm system) - relaxed thresholds
+            if (this.currentSegmentText.trim().length < 3 || this.currentSegmentText.trim().split(' ').length < 1) {
                 console.log(`⏭️ [TranscriptUI] Skipping minimal finalized segment: "${this.currentSegmentText}"`);                return;
             }
             
@@ -870,8 +956,29 @@ class TranscriptUI {
      * Add a finalized segment to the display
      */
     addFinalizedSegment(segment) {
-        console.log(`🎯 [TranscriptUI] Adding finalized segment: "${segment.text.substring(0, 30)}..."`);
+        console.log(`🎯 [TranscriptUI] ========= ADDING FINALIZED SEGMENT =========`);
+        console.log(`🎯 [TranscriptUI] Segment text: "${segment.text}"`);
+        console.log(`🎯 [TranscriptUI] Segment length: ${segment.text.length} chars`);
         console.log(`🎯 [TranscriptUI] Current segments count before add: ${this.finalizedSegments.length}`);
+        console.log(`🎯 [TranscriptUI] finalizedSegmentsContainer exists: ${!!this.finalizedSegmentsContainer}`);
+        
+        // TEMPORARILY DISABLE duplicate checking to debug display issues
+        // const isDuplicate = this.finalizedSegments.some(existing => 
+        //     existing.text === segment.text || 
+        //     (existing.text && segment.text && existing.text.includes(segment.text.substring(0, 20)))
+        // );
+        // 
+        // if (isDuplicate) {
+        //     console.log(`⏭️ [TranscriptUI] Skipping duplicate segment: "${segment.text.substring(0, 30)}..."`);
+        //     return;
+        // }
+        console.log(`🎯 [TranscriptUI] FORCING SEGMENT DISPLAY - bypassing duplicate check`);
+        
+        // Ensure we have the container
+        if (!this.finalizedSegmentsContainer) {
+            console.log(`🚨 [TranscriptUI] Missing finalizedSegmentsContainer - initializing...`);
+            this.initialize();
+        }
         
         // Remove placeholder if it exists
         const placeholder = this.finalizedSegmentsContainer.querySelector('.transcript-placeholder');
@@ -898,7 +1005,7 @@ class TranscriptUI {
                 <span class="segment-dots">${rhythmDots}</span>
                 <span class="segment-lang">${language.lang.split('-')[0].toUpperCase()}</span>
                 <span class="segment-duration">${(segment.duration / 1000).toFixed(1)}s</span>
-                <span class="segment-time">${segment.timestamp}</span>
+                <span class="segment-time">${this.formatTimestamp(segment.timestamp)}</span>
                 ${segment.cardCreated ? '<span class="card-icon">🃏</span>' : ''}
             </div>
         `;
@@ -914,13 +1021,14 @@ class TranscriptUI {
         // Keep last few segments visible as history (like described in PRD)
         this.finalizedSegments.push(segment);
         
-        // Keep reasonable number of segments (3-4) for context
-        if (this.finalizedSegments.length > 4) {
-            this.finalizedSegments = this.finalizedSegments.slice(-4);
+        // Keep more segments (15-20) with the extra space available for large transcriptions
+        const maxSegments = 20; // Increased from 12 to handle large text blocks better
+        if (this.finalizedSegments.length > maxSegments) {
+            this.finalizedSegments = this.finalizedSegments.slice(-maxSegments);
             
             // Remove oldest DOM elements
             const segments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
-            while (segments.length > 4) {
+            while (segments.length > maxSegments) {
                 segments[0].remove();
             }
         }
@@ -958,17 +1066,52 @@ class TranscriptUI {
     }
     
     /**
-     * Wrap letters in spans for individual animation
+     * Format timestamp to ensure consistent display format
      */
-    wrapLettersForAnimation(text) {
-        return text.split('').map((char, index) => {
-            if (char === ' ') {
-                return ' '; // Keep spaces as regular spaces
-            }
-            const delay = (index % 10) * 0.05; // Stagger animation delays
-            return `<span class="interim-letter" style="animation-delay: ${delay}s;">${char}</span>`;
-        }).join('');
+    formatTimestamp(timestamp) {
+        if (!timestamp) {
+            return new Date().toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        // If it's already a formatted time string (HH:MM:SS), return as is
+        if (typeof timestamp === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(timestamp)) {
+            return timestamp;
+        }
+        
+        // If it's a number (milliseconds), convert to Date first
+        if (typeof timestamp === 'number') {
+            timestamp = new Date(timestamp);
+        }
+        
+        // If it's a Date object or string, format it
+        try {
+            const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        } catch (error) {
+            console.warn('[TranscriptUI] Error formatting timestamp:', timestamp, error);
+            // Fallback to current time
+            return new Date().toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
     }
+    
+    /**
+     * Removed - letter animation no longer used for interim text
+     */
     
     /**
      * Update language indicator

@@ -1,0 +1,62 @@
+# Task
+Build a single, self-contained HTML file (inline CSS + tiny JS) that implements a 3-screen UI with smooth CSS transitions. Keep the code clean and production-ready. Use GPU-friendly transforms and respect `prefers-reduced-motion`. Reuse existing UI classes; do NOT invent new button/input styles.
+
+## Screens & States
+- Three sections: **Screen 1**, **Screen 2**, **Screen 3**.
+- App states via root attribute: `.app[data-state="intro"|"normal"|"menu-open"]`.
+- Initial load (`intro`): only Screen 1 is visible full-screen; Screens 2/3 are off-canvas right.
+- On **Start**: Screen 1 shrinks/morphs into a **circular chip** (top-left, fixed), 75px x 75px, app state → `normal`; Screens 2 & 3 slide/scale in from the right and take their normal positions (Screen 2 top, Screen 3 bottom). logo.svg stays visible in circle, rest of content invisible.
+- In `normal`: clicking the top-left circle toggles `menu-open` and expands Screen 1 from the circle into a **panel** (no separate modal).
+- In `menu-open`: Screens 2/3 remain visible to the right (slightly dimmed). Clicking outside or the circle closes back to `normal`.
+
+## Screen 1 specifics
+- The **circle** displays a centered **inline SVG logo** (no raster images).
+- When opened (`menu-open`), Screen 1 becomes a left-docked panel with **width = 50vw (max 720px)** on desktop, **92vw** on mobile; anchored top-left; rounded corners; `overflow:hidden`.
+- Inside this panel:
+  1) **Nav tiles row** (large image tiles as links) at the top.
+  2) **Settings** below, implemented as **ARIA tabs**:
+     - Tabs: Appearance, Account (Clerk mount), Usage (Minutes Left), Subscription (Subscribe Now), About (links: Website, About, SenDev, Imprint).
+     - Use proper ARIA roles (`tablist`/`tab`/`tabpanel`) and keyboard support (←/→, Home/End). Only selected panel is visible.
+
+## Strict component reuse
+Use existing classes only for UI elements:
+- Buttons: `.btn`, `.btn--primary`, `.btn--secondary`, `.btn--sm`, `.btn--lg`
+- Inputs/selectors/toggles: `.input`, `.select`, `.toggle`
+- Form layout: `.field`, `.field__label`, `.field__control`
+- Info chips: `.chip`, `.chip--accent`
+Do **not** redefine these; only compose layout and write animation styles around them.
+
+## Layout (high level)
+- Desktop: Screen 2 (top ~60% height) + Screen 3 (bottom ~40%) within main area to the right of Screen 1 panel when open.
+- Mobile: Screens 2/3 stack vertically; when menu open, they subtly scale/slide back to indicate background context.
+- Circle size: ~72px mobile, ~96px desktop. Z-index: circle/logo > Screen1 panel > Screens 2&3.
+
+## Animations (high level)
+- Use transitions on transform/opacity/border-radius/clip-path. No animating `left/top` if avoidable.
+- Circle ↔ Panel: scale/morph with `transform-origin: top left`.
+- Screens 2/3 enter from right with small scale+opacity.
+- Tabs: fade/slide for panel content; instant swap when reduced motion is on.
+
+## Accessibility
+- The circle is a button with `aria-expanded`.
+- Tabs follow WAI-ARIA Authoring Practices. Focus management: move focus into selected tabpanel on open; return to circle on close.
+- Respect `prefers-reduced-motion: reduce`.
+
+## Minimal JS
+- Toggle root `data-state` (`intro` → `normal` on Start; `normal` ↔ `menu-open` on circle/backdrop).
+- Manage `aria-expanded` on the circle.
+- Tabs: update `aria-selected`, `tabindex`, and show/hide panels; handle keyboard navigation.
+
+## Deliverable
+Output a single HTML file with:
+- `<style>` containing all layout and animation CSS (variables for durations/easings/sizes).
+- `<script>` with minimal state toggles and tab logic (no frameworks).
+- Minimal semantic markup for Screen 2/3 placeholders.
+- A small inline SVG logo placeholder in the circle.
+
+## Content stubs to include
+- **Minutes Left** in Usage tab as a prominent `.chip.chip--accent` (dummy value).
+- **Subscribe Now** button in Subscription tab as `.btn.btn--primary.btn--lg`.
+- About tab links as `.btn.btn--secondary.btn--sm` stacked vertically.
+
+Keep the CSS concise; Claude can infer exact values. Focus on clean semantics, smooth transitions, and component reuse.

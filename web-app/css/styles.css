@@ -34,8 +34,26 @@ body {
     font-size: var(--font-md);
 }
 
+/* Material Symbols Base Style - Consistent defaults */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: 100;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Unified button and dropdown systems removed - reverted to original styling */
+
 /* ============================================================================
-   BUTTON STYLES - All buttons use 1em
+   LEGACY BUTTON STYLES (to be gradually replaced)
    ============================================================================ */
 
 /* Circular icon buttons */
@@ -229,32 +247,15 @@ body {
 }
 
 .interim-text-compact {
-    font-size: 1.4em;       /* Bigger for interim text */
-    font-weight: 500;       /* Less bold for subtlety */
+    font-size: 1.0em;       /* Regular size as requested */
+    font-weight: 400 !important;  /* Regular font weight - override any parent */
     color: #ffffff;
     opacity: 0.95;          /* Slightly transparent */
     display: inline;
-    font-style: normal;     /* No italics */
+    font-style: normal !important;  /* No italics - force override */
 }
 
-/* Individual letter animation for interim text */
-.interim-letter {
-    display: inline-block;
-    animation: gentle-float 3s ease-in-out infinite;
-    will-change: transform;
-}
-
-.interim-letter:nth-child(odd) {
-    animation-delay: 0.1s;
-}
-
-.interim-letter:nth-child(even) {
-    animation-delay: 0.2s;
-}
-
-.interim-letter:nth-child(3n) {
-    animation-delay: 0.15s;
-}
+/* Removed letter-by-letter animation - now uses simple text display */
 
 @keyframes subtle-cursor-blink {
     0%, 70% { 
@@ -267,17 +268,7 @@ body {
     }
 }
 
-@keyframes gentle-float {
-    0%, 100% { 
-        transform: translateY(0px);
-    }
-    25% { 
-        transform: translateY(-0.5px);
-    }
-    75% { 
-        transform: translateY(0.5px);
-    }
-}
+/* Removed letter-appear animation - using simple text display now */
 
 .interim-cursor-compact {
     color: #3b82f6;
@@ -359,14 +350,14 @@ body {
    RHYTHM-BASED TRANSCRIPT SEGMENTATION STYLES
    ============================================================================ */
 
-/* Main rhythm transcript container structure */
+/* Main rhythm transcript container structure - more space for segments */
 .finalized-segments {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 16px;
+    gap: 4px; /* Reduced gap for compactness */
+    padding: 12px; /* Reduced padding */
     overflow-y: auto;
-    max-height: 200px; /* Reasonable limit */
+    max-height: 400px; /* Increased from 250px to handle large text blocks */
     min-height: 60px; /* Minimum space for content */
     flex: 1; /* Take available space */
 }
@@ -382,14 +373,15 @@ body {
     font-style: normal;
 }
 
-/* Individual finalized segment */
+/* Individual finalized segment - smaller and more compact */
 .finalized-segment {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: 6px;
+    padding: 6px 8px; /* Reduced padding for compactness */
     transition: all 0.3s ease;
     opacity: 1; /* Ensure visibility */
+    margin-bottom: 4px; /* Reduced spacing between segments */
 }
 
 /* Segment with plop animation */
@@ -412,27 +404,28 @@ body {
     }
 }
 
-/* Segment content styling */
+/* Segment content styling - more compact */
 .segment-text {
-    font-size: 0.75em;  /* Smaller for old segments */
-    line-height: 1.4;
+    font-size: 0.7em;   /* Even smaller for old segments */
+    line-height: 1.25;  /* Tighter line spacing for compactness */
     color: #ffffff;
-    margin-bottom: 8px;
-    font-style: normal;  /* No italics */
+    margin-bottom: 4px; /* Reduced bottom margin */
+    font-style: normal; /* No italics */
+    font-weight: 400;   /* Regular weight */
 }
 
 .segment-status {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.55em;
+    gap: 4px; /* Reduced gap */
+    font-size: 0.5em; /* Slightly smaller */
     color: rgba(255, 255, 255, 0.5);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-variant: small-caps;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.1px; /* Reduced letter spacing */
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 4px;
-    margin-top: 4px;
+    padding-top: 2px; /* Reduced padding */
+    margin-top: 2px; /* Reduced margin */
 }
 
 .segment-flag {
@@ -458,16 +451,22 @@ body {
     margin-left: auto;
 }
 
-/* Pending line animation area */
+/* Pending line animation area - perfectly centered behind interim area with enhanced blur */
 .pending-line-area {
-    padding: 8px 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%; /* More centered, contained within interim area */
+    height: 3px;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 20px;
-    background: transparent;
-    border: none;
-    position: relative;
+    opacity: 0.7; /* Slightly more visible */
+    z-index: -1; /* Behind interim area background */
+    pointer-events: none; /* Don't interfere with clicks */
+    filter: blur(1px); /* Enhanced blur for better background effect */
+    backdrop-filter: blur(2px); /* Additional backdrop blur */
 }
 
 /* The pending line that grows from center */
@@ -487,20 +486,21 @@ body {
     background: linear-gradient(90deg, 
         transparent 0%,
         rgba(59, 130, 246, 0.4) 10%,
-        rgba(99, 179, 237, 0.7) 30%,
-        rgba(59, 130, 246, 0.9) 50%, 
-        rgba(99, 179, 237, 0.7) 70%,
+        rgba(99, 179, 237, 0.6) 30%,
+        rgba(59, 130, 246, 0.8) 50%, 
+        rgba(99, 179, 237, 0.6) 70%,
         rgba(59, 130, 246, 0.4) 90%,
         transparent 100%
     );
     width: 0%;
-    border-radius: 1px;
+    border-radius: 1.5px;
     box-shadow: 
         0 0 8px rgba(59, 130, 246, 0.4),
         0 0 16px rgba(59, 130, 246, 0.2),
         0 0 24px rgba(59, 130, 246, 0.1);
     position: relative;
     animation: progress-fill-and-fade 5s linear infinite;
+    /* Remove individual blur since container handles it */
 }
 
 @keyframes progress-fill-and-fade {
@@ -553,34 +553,157 @@ body {
     transition: opacity 0.3s ease;
 }
 
-/* Fixed interim area at bottom */
+/* Fixed interim area at bottom - spans full width like cards container */
 .interim-area {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: calc(100% - 32px);
     padding: 12px 16px;
-    border-top: 1px solid rgba(59, 130, 246, 0.15);
-    background: rgba(59, 130, 246, 0.02);
+    background: rgba(59, 130, 246, 0.08);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
     height: 54px;
     min-height: 54px;
     display: flex;
     align-items: center;
-    position: relative;
-    backdrop-filter: blur(5px);
+    gap: 12px;
     border-radius: 27px; /* Half of height (54px ÷ 2 = 27px) for all corners */
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    /* Create stacking context for pending line to sit behind */
 }
 
+/* Light mode interim area - reduce shadow */
+.light .interim-area {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.interim-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2; /* Above the pending line */
+}
+
+.interim-controls .control-element {
+    min-width: auto;
+    padding: 6px 12px;
+    font-size: 11px;
+    height: 24px;
+    border-radius: 12px; /* radius = 1/2 height (24px ÷ 2 = 12px) - perfect pill shape */
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px; /* Add gap for icon and text */
+}
+
+.interim-controls .control-element:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Perfectly sized language icon specifically - only for language selector */
+.interim-controls .control-element #transcriptLanguageFlag.material-symbols-outlined,
+.interim-area .interim-controls #transcriptLanguageFlag.material-symbols-outlined,
+#interimArea #transcriptLanguageFlag.material-symbols-outlined {
+    font-size: 16px !important; /* Force 16px with multiple selectors for stronger override */
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Hover states handled by unified button system */
+
 .interim-text {
-    font-size: 1.3em;   /* Bigger for interim text */
+    font-size: 1.0em;   /* Regular size as requested */
     color: rgba(255, 255, 255, 0.9);
-    font-style: normal;
-    transition: all 0.3s ease;
-    font-weight: 500;
+    font-style: normal; /* No italics as requested */
+    font-weight: 400;   /* Regular font weight as requested */
     flex: 1;
     display: inline;
+    text-align: left;
+    padding-left: 8px;
+    transition: none;   /* Remove transitions for cleaner appearance */
+    position: relative;
+    z-index: 2; /* Above the pending line */
 }
 
 .interim-text:empty::before {
     content: "Listening for speech...";
     color: rgba(255, 255, 255, 0.4);
     font-style: normal;
+}
+
+/* Right side controls in interim area */
+.interim-right-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2; /* Above the pending line */
+    margin-right: -5px; /* Move 5px closer to the right edge */
+}
+
+/* Mini start button in interim area */
+.start-button-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px; /* Perfect circle */
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+}
+
+.start-button-mini:hover {
+    background: rgba(16, 185, 129, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.start-button-mini.recording {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    animation: recording-pulse-mini 1.5s ease-in-out infinite;
+}
+
+.start-button-mini.recording:hover {
+    background: rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes recording-pulse-mini {
+    0%, 100% {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
 }
 
 /* ============================================================================
@@ -949,11 +1072,37 @@ body {
    ============================================================================ */
 
 .card-source {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    margin-top: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-variant: small-caps;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* Card Answer Label - matches transcript typography */
+.card-answer-label {
+    font-weight: 600;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: auto;
+    color: rgba(255, 255, 255, 0.7);
+    margin-right: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Card separator dots between metadata items */
+.card-separator {
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 4px;
+    font-size: 10px;
 }
 
 /* CheatCard content styling - preserve emoji formatting */
@@ -991,8 +1140,12 @@ body {
     margin-bottom: 12px;
     backdrop-filter: blur(8px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Content-dependent height - NO min-height */
+    /* Content always visible on one page */
     height: auto;
+    max-height: none;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
 }
 
 .card:hover {
@@ -1011,19 +1164,27 @@ body {
 }
 
 .card-type {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.8px;
-    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.7);
     text-transform: uppercase;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    padding: 2px 6px;
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 3px;
 }
 
 .card-title {
     font-size: 14px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.95);
-    line-height: 1.4;
-    margin-bottom: 12px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border-left: 3px solid rgba(59, 130, 246, 0.5);
 }
 
 /* Card Animation States */
@@ -1074,31 +1235,43 @@ body {
 
 /* Card content styling for prominent back content display */
 .card-content {
-    font-size: 1.1em;
-    line-height: 1.5;
-    margin: 12px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 8px 0;
+    max-height: none; /* Show all content on one page */
+    overflow: visible;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* CheatCard content: emphasize emoji structure */
 .card-content.cheat-content {
-    font-size: 1.2em;
+    font-size: 13px;
     font-weight: 500;
-    line-height: 1.6;
+    line-height: 1.8;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
 }
 
 .card-content.cheat-content .card-answer-content {
     white-space: pre-line; /* Preserve line breaks */
+    display: block;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* FlashCard content: readable paragraph format */
 .card-content.flash-content {
-    font-size: 1.0em;
-    line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
 }
 
 .card-content.flash-content .card-answer-content {
     text-align: left;
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Card header styling */
@@ -1106,9 +1279,23 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    border-bottom: none;
+}
+
+/* Card metadata - matching transcript status bar style */
+.card-metadata {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-variant: small-caps;
+    letter-spacing: 0.5px;
 }
 
 .card-type {
@@ -1182,7 +1369,8 @@ body {
 
 .sentence-text-rejected {
     color: rgba(255, 255, 255, 0.7);
-    font-style: italic;
+    font-style: normal; /* Use regular font weight, no italics */
+    font-weight: 400; /* Ensure regular weight */
 }
 
 .light .card-source {
@@ -1217,8 +1405,28 @@ body {
 /* Unified language dropdown option styling */
 .language-dropdown-option {
     transition: background-color 0.2s ease;
+    color: white;
+    font-weight: 500;
 }
 
 .language-dropdown-option:hover {
     background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: translateY(-1px);
+}
+
+.language-dropdown-option:active {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(0px);
+}
+
+.light .language-dropdown-option {
+    color: #1f2937;
+}
+
+.light .language-dropdown-option:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .language-dropdown-option:active {
+    background: rgba(0, 0, 0, 0.08) !important;
 }

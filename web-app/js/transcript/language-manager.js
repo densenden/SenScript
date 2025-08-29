@@ -99,9 +99,15 @@ class LanguageManager {
     
     setupEventListeners() {
         const transcriptIndicator = document.getElementById('transcriptLanguageIndicator');
-        const dropdown = document.getElementById('inputLanguageDropdown');
+        let dropdown = document.getElementById('transcriptLanguageDropdown');
+        if (!dropdown) {
+            dropdown = document.getElementById('inputLanguageDropdown');
+        }
         
-        if (!transcriptIndicator || !dropdown) return;
+        if (!transcriptIndicator || !dropdown) {
+            console.warn('[LanguageManager] Missing elements - indicator:', !!transcriptIndicator, 'dropdown:', !!dropdown);
+            return;
+        }
         
         // Toggle dropdown on indicator click
         transcriptIndicator.addEventListener('click', (e) => {
@@ -287,7 +293,11 @@ class LanguageManager {
      * Toggle dropdown visibility
      */
     toggleDropdown() {
-        const dropdown = document.getElementById('inputLanguageDropdown');
+        // Try transcript language dropdown first (interim area), then fall back to input language dropdown
+        let dropdown = document.getElementById('transcriptLanguageDropdown');
+        if (!dropdown) {
+            dropdown = document.getElementById('inputLanguageDropdown');
+        }
         if (!dropdown) return;
         
         this.state.isDropdownOpen = !this.state.isDropdownOpen;
@@ -302,11 +312,18 @@ class LanguageManager {
      * Close dropdown
      */
     closeDropdown() {
-        const dropdown = document.getElementById('inputLanguageDropdown');
-        if (dropdown) {
-            this.state.isDropdownOpen = false;
-            dropdown.style.display = 'none';
+        // Close both possible dropdowns
+        const transcriptDropdown = document.getElementById('transcriptLanguageDropdown');
+        const inputDropdown = document.getElementById('inputLanguageDropdown');
+        
+        if (transcriptDropdown) {
+            transcriptDropdown.style.display = 'none';
         }
+        if (inputDropdown) {
+            inputDropdown.style.display = 'none';
+        }
+        
+        this.state.isDropdownOpen = false;
     }
     
     /**
