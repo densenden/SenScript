@@ -76,7 +76,7 @@ class TranscriptUI {
      * Add a finalized sentence to the transcript display
      */
     addFinalSentence(sentence) {
-        console.log(`📝 [TranscriptUI] Adding final sentence: "${sentence.text.substring(0, 30)}..."`);
+        console.log(`[TranscriptUI] Adding final sentence: "${sentence.text.substring(0, 30)}..."`);
         
         // Remove placeholder if present
         const placeholder = this.sentencesContainer.querySelector('.transcript-placeholder');

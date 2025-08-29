@@ -122,8 +122,12 @@ class SenScript {
     }
     
     toggleListening() {
-        // Whisper-only mode: Check MediaRecorder state
-        if (this.mediaRecorder && this.mediaRecorder.isRecording) {
+        // Check if any transcription system is active
+        const isRecording = (this.mediaRecorder && this.mediaRecorder.isRecording) || 
+                           (this.speechRecognition && this.speechRecognition.shouldBeListening) ||
+                           this.isListening;
+                           
+        if (isRecording) {
             this.stopListening();
         } else {
             this.startListening();
@@ -132,6 +136,9 @@ class SenScript {
     
     async startListening() {
         console.log('[Control] === START BUTTON CLICKED ===');
+        
+        // Set listening state
+        this.isListening = true;
         
         // Add recording class for button animation
         this.els.recordBtn.classList.add('recording');
@@ -144,7 +151,9 @@ class SenScript {
         // V3: Ensure audio source is ready for transcription
         const hasAudioSource = await this.audioSystem.ensureAudioSourceForTranscription();
         if (!hasAudioSource) {
-            console.error('🚀 [Control] ❌ Audio source not ready for transcription');
+            console.error('[Control] Audio source not ready for transcription');
+            // Reset state if failed
+            this.isListening = false;
             // Remove recording class if failed
             this.els.recordBtn.classList.remove('recording');
             if (this.els.mobileRecordBtn) {
@@ -196,6 +205,9 @@ class SenScript {
     
     async stopListening() {
         console.log('[Control] === STOP BUTTON CLICKED ===');
+        
+        // Reset listening state
+        this.isListening = false;
         
         // Remove recording class for button animation
         this.els.recordBtn.classList.remove('recording');

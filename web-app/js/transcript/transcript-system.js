@@ -112,12 +112,12 @@ class TranscriptSystem {
     processIncomingSpeech(speechResult) {
         const { isFinal, transcript, confidence } = speechResult;
         
-        console.log(`📝 [TranscriptSystem] ========== INCOMING SPEECH (LEGACY) ==========`);
-        console.log(`📝 [TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
-        console.log(`📝 [TranscriptSystem] Session started: ${this.state.sessionStarted}`);
+        console.log(`[TranscriptSystem] ========== INCOMING SPEECH ==========`);
+        console.log(`[TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
+        console.log(`[TranscriptSystem] Session started: ${this.state.sessionStarted}`);
         
         if (!this.state.sessionStarted) {
-            console.log(`📝 [TranscriptSystem]  Session not started, ignoring speech`);
+            console.log(`[TranscriptSystem] Session not started, ignoring speech`);
             return;
         }
         
@@ -247,7 +247,7 @@ class TranscriptSystem {
         if (!text || text.trim().length === 0) return;
         
         const trimmedText = text.trim();
-        console.log(` [TranscriptSystem] Final text: "${trimmedText.substring(0, 50)}..."`);
+        console.log(`[TranscriptSystem] Final text: "${trimmedText.substring(0, 50)}..."`);
         
         // Detect language for this text
         const languageDetection = this.detectLanguage(trimmedText);
@@ -473,11 +473,11 @@ class TranscriptSystem {
      * Start transcript session
      */
     startSession() {
-        console.log('🚀 [TranscriptSystem] Starting transcript session');
-        console.log('🚀 [TranscriptSystem] Previous session state:', this.state.sessionStarted);
+        console.log('[TranscriptSystem] Starting transcript session');
+        console.log('[TranscriptSystem] Previous session state:', this.state.sessionStarted);
         
         this.state.sessionStarted = true;
-        console.log('🚀 [TranscriptSystem] New session state:', this.state.sessionStarted);
+        console.log('[TranscriptSystem] New session state:', this.state.sessionStarted);
         this.state.transcriptBuffer = [];
         this.state.finalizedSentences = [];
         this.state.interimText = '';
