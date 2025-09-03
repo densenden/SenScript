@@ -12,13 +12,13 @@ class TranscriptUI {
         this.maxVisibleSentences = 5;
         
         // Rhythm-based segmentation state
-        this.finalizedSegments = []; // Last 3 segments max (15 seconds total)
+        this.finalizedSegments = []; // Keep significant history
         this.currentSegmentText = '';
         this.currentSegmentStart = null;
         this.pendingLine = null;
         this.segmentTimer = null;
-        this.maxSegmentDuration = 12000; // 12 seconds - allow complete sentences
-        this.maxSegments = 3; // Show last 3 segments (36 seconds total)
+        this.maxSegmentDuration = 5000; // 5 seconds per PRD spec
+        this.maxSegments = 50; // Keep much more history for visibility
         this.isActivelyListening = false; // Track listening state
     }
     
@@ -36,7 +36,17 @@ class TranscriptUI {
         // Setup rhythm-based HTML structure
         this.initializeRhythmDisplay();
         
+        // CRITICAL: Cache references to the containers we just created
+        this.finalizedSegmentsContainer = document.getElementById('finalizedSegments');
+        this.pendingLineArea = document.getElementById('pendingLineArea');
+        this.interimArea = document.getElementById('interimArea');
+        
         console.log('[TranscriptUI] Transcript UI ready with rhythm-based segmentation');
+        console.log('[TranscriptUI] Container references cached:', {
+            finalizedSegments: !!this.finalizedSegmentsContainer,
+            pendingLineArea: !!this.pendingLineArea,
+            interimArea: !!this.interimArea
+        });
     }
     
     /**
@@ -685,26 +695,25 @@ class TranscriptUI {
         // Clear interim text
         this.clearInterimText();
         
-        // Only show placeholder if we're truly stopped and not actively listening
-        // AND there are no segments already displayed
-        if (this.finalizedSegments.length === 0 && !this.isActivelyListening) {
-            // Check if there are actual DOM segments before clearing
-            const existingSegments = this.finalizedSegmentsContainer?.querySelectorAll('.finalized-segment');
-            if (!existingSegments || existingSegments.length === 0) {
-                console.log('📏 [TranscriptUI] Showing placeholder - stopped and no segments');
-                const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
-                const placeholderText = this.getPlaceholderText(audioSource);
-                
-                this.finalizedSegmentsContainer.innerHTML = `
-                    <div class="transcript-placeholder">
-                        Ready for transcript segments (mic active, hit start to transcribe and make cards)
-                    </div>
-                `;
-            } else {
-                console.log('📏 [TranscriptUI] Keeping existing segments in display');
-            }
-        } else if (this.isActivelyListening) {
-            console.log('📏 [TranscriptUI] Skipping placeholder - still actively listening');
+        // CRITICAL FIX: Check DOM segments, not just the array
+        // The array might be out of sync with the actual DOM elements
+        const existingSegments = this.finalizedSegmentsContainer?.querySelectorAll('.finalized-segment');
+        const hasVisibleSegments = existingSegments && existingSegments.length > 0;
+        
+        // Only show placeholder if we're truly stopped, not listening, AND no segments exist
+        if (!hasVisibleSegments && !this.isActivelyListening) {
+            console.log('📏 [TranscriptUI] No segments found - showing placeholder');
+            const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
+            const placeholderText = this.getPlaceholderText(audioSource);
+            
+            this.finalizedSegmentsContainer.innerHTML = `
+                <div class="transcript-placeholder">
+                    Ready for transcript segments (mic active, hit start to transcribe and make cards)
+                </div>
+            `;
+        } else {
+            console.log(`📏 [TranscriptUI] Keeping existing segments: ${existingSegments?.length || 0} visible`);
+            // NEVER clear segments that are already displayed
         }
         
         // Legacy support
@@ -744,6 +753,42 @@ class TranscriptUI {
     }
     
     /**
+     * Show system audio limitation message
+     */
+    showSystemAudioLimitation() {
+        console.log('[TranscriptUI] Showing system audio limitation message');
+        
+        // Update the finalized segments area with clear message
+        if (this.finalizedSegmentsContainer) {
+            // Only show if no segments are already displayed
+            const existingSegments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
+            if (existingSegments.length === 0) {
+                this.finalizedSegmentsContainer.innerHTML = `
+                    <div class="transcript-placeholder" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 20px; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <span style="font-size: 24px;">⚠️</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #f59e0b;">Browser Limitation Detected</span>
+                        </div>
+                        <p style="font-size: 14px; line-height: 1.5; margin-bottom: 12px;">
+                            Web browsers cannot transcribe audio from other tabs or applications due to security restrictions.
+                        </p>
+                        <p style="font-size: 13px; opacity: 0.8;">
+                            <strong>Solution:</strong> Switch to <span style="color: #3b82f6;">Microphone Mode</span> to transcribe your own speech,
+                            or use screen recording software with audio routing for system audio transcription.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Also update interim text area
+        if (this.interimText) {
+            this.interimText.style.color = '#f59e0b';
+            this.interimText.textContent = 'System audio cannot be transcribed - switch to microphone mode';
+        }
+    }
+    
+    /**
      * Auto-scroll to show latest content (only when new content is added)
      */
     scrollToBottom() {
@@ -767,7 +812,7 @@ class TranscriptUI {
     }
     
     /**
-     * Manage sentence count to avoid memory issues
+     * Manage sentence count to keep history visible
      */
     manageSentenceCount() {
         // Ensure container exists before trying to query it
@@ -777,7 +822,7 @@ class TranscriptUI {
         }
         
         const sentences = this.sentencesContainer.querySelectorAll('.transcript-sentence, .transcript-sentence-compact');
-        const maxSentences = 3; // Strict limit to prevent old transcript showing
+        const maxSentences = 50; // Keep much more history for better visibility
         
         if (sentences.length > maxSentences) {
             // Remove oldest sentences (first elements since newest are at bottom)
@@ -905,8 +950,9 @@ class TranscriptUI {
                 cardCreated: false // Will be updated when card is created
             });
             
-            // Clear interim text since it's now moved to finalized segment
-            this.clearInterimText();
+            // Don't clear interim text immediately - let it fade naturally
+            // This prevents the jarring visual jump when segments finalize
+            // this.clearInterimText();
             
         } else {
             console.log('⏭️ [TranscriptUI] No content in segment - skipping');
@@ -958,26 +1004,30 @@ class TranscriptUI {
     addFinalizedSegment(segment) {
         console.log(`🎯 [TranscriptUI] ========= ADDING FINALIZED SEGMENT =========`);
         console.log(`🎯 [TranscriptUI] Segment text: "${segment.text}"`);
-        console.log(`🎯 [TranscriptUI] Segment length: ${segment.text.length} chars`);
-        console.log(`🎯 [TranscriptUI] Current segments count before add: ${this.finalizedSegments.length}`);
-        console.log(`🎯 [TranscriptUI] finalizedSegmentsContainer exists: ${!!this.finalizedSegmentsContainer}`);
         
-        // TEMPORARILY DISABLE duplicate checking to debug display issues
-        // const isDuplicate = this.finalizedSegments.some(existing => 
-        //     existing.text === segment.text || 
-        //     (existing.text && segment.text && existing.text.includes(segment.text.substring(0, 20)))
-        // );
-        // 
-        // if (isDuplicate) {
-        //     console.log(`⏭️ [TranscriptUI] Skipping duplicate segment: "${segment.text.substring(0, 30)}..."`);
-        //     return;
-        // }
-        console.log(`🎯 [TranscriptUI] FORCING SEGMENT DISPLAY - bypassing duplicate check`);
-        
-        // Ensure we have the container
+        // CRITICAL: Ensure container exists
         if (!this.finalizedSegmentsContainer) {
-            console.log(`🚨 [TranscriptUI] Missing finalizedSegmentsContainer - initializing...`);
-            this.initialize();
+            console.log(`🚨 [TranscriptUI] Container missing - finding/creating it...`);
+            // Try to find it
+            this.finalizedSegmentsContainer = document.getElementById('finalizedSegments');
+            
+            // If still not found, create it
+            if (!this.finalizedSegmentsContainer) {
+                console.log(`🚨 [TranscriptUI] Creating container from scratch`);
+                const transcriptEl = document.getElementById('transcript');
+                if (transcriptEl) {
+                    const container = document.createElement('div');
+                    container.id = 'finalizedSegments';
+                    container.className = 'finalized-segments';
+                    transcriptEl.appendChild(container);
+                    this.finalizedSegmentsContainer = container;
+                }
+            }
+        }
+        
+        if (!this.finalizedSegmentsContainer) {
+            console.error(`❌ [TranscriptUI] CRITICAL: Cannot create container - segment lost!`);
+            return;
         }
         
         // Remove placeholder if it exists
@@ -987,60 +1037,95 @@ class TranscriptUI {
             placeholder.remove();
         }
         
-        // Create segment element with "plop" animation
+        // Create segment element - SIMPLE AND VISIBLE
         const segmentEl = document.createElement('div');
-        segmentEl.className = 'finalized-segment segment-plop';
+        segmentEl.className = 'finalized-segment';
         
-        // Language detection and flag
-        const language = this.app.languageManager?.state?.detectedLanguage || { flag: '🇺🇸', lang: 'en-US' };
+        // FORCE VISIBILITY with inline styles
+        segmentEl.style.cssText = `
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #3b82f6;
+            border-radius: 5px;
+            color: white;
+        `;
         
-        // Create rhythm dots (5 dots, filled based on duration)
-        const maxDuration = 5000;
-        const filledDots = Math.round((segment.duration / maxDuration) * 5);
-        const rhythmDots = '●'.repeat(filledDots) + '○'.repeat(5 - filledDots);
-        
+        // Simple content - just text and timestamp
         segmentEl.innerHTML = `
-            <div class="segment-text">${segment.text}</div>
-            <div class="segment-status">
-                <span class="segment-dots">${rhythmDots}</span>
-                <span class="segment-lang">${language.lang.split('-')[0].toUpperCase()}</span>
-                <span class="segment-duration">${(segment.duration / 1000).toFixed(1)}s</span>
-                <span class="segment-time">${this.formatTimestamp(segment.timestamp)}</span>
-                ${segment.cardCreated ? '<span class="card-icon">🃏</span>' : ''}
+            <div style="font-size: 14px; margin-bottom: 5px;">${segment.text}</div>
+            <div style="font-size: 11px; opacity: 0.6;">
+                ${segment.timestamp || new Date().toLocaleTimeString()}
             </div>
         `;
         
         // Add to container (newest at bottom)
         this.finalizedSegmentsContainer.appendChild(segmentEl);
         
-        // Remove "plop" class after animation
-        setTimeout(() => {
-            segmentEl.classList.remove('segment-plop');
-        }, 600);
+        // Force container to be visible
+        this.finalizedSegmentsContainer.style.display = 'block';
+        this.finalizedSegmentsContainer.style.visibility = 'visible';
         
-        // Keep last few segments visible as history (like described in PRD)
+        // Scroll to show new segment
+        segmentEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        
+        // Keep last segments visible as history
         this.finalizedSegments.push(segment);
         
-        // Keep more segments (15-20) with the extra space available for large transcriptions
-        const maxSegments = 20; // Increased from 12 to handle large text blocks better
+        // Keep history with much longer retention for visibility
+        const maxSegments = this.maxSegments; // Use class property
         if (this.finalizedSegments.length > maxSegments) {
             this.finalizedSegments = this.finalizedSegments.slice(-maxSegments);
             
-            // Remove oldest DOM elements
+            // Remove oldest DOM elements only when we exceed the limit
             const segments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
-            while (segments.length > maxSegments) {
-                segments[0].remove();
+            if (segments.length > maxSegments) {
+                // Remove only the excess elements
+                const toRemove = segments.length - maxSegments;
+                for (let i = 0; i < toRemove; i++) {
+                    segments[i].remove();
+                }
             }
         }
         
         console.log(`🎯 [TranscriptUI] Added segment, now have ${this.finalizedSegments.length} visible segments`);
         
-        // Add visual fade for older segments
-        const segments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
-        segments.forEach((seg, index) => {
-            // Older segments get more transparent but stay visible
-            const opacity = Math.max(0.4, 1 - (segments.length - index - 1) * 0.15);
-            seg.style.opacity = opacity;
+        // Add visual hierarchy with gradual fade for older segments
+        const allSegments = this.finalizedSegmentsContainer.querySelectorAll('.finalized-segment');
+        allSegments.forEach((seg, index) => {
+            // Calculate age-based opacity
+            const totalSegments = allSegments.length;
+            const position = totalSegments - index; // 1 = newest, higher = older
+            
+            // First 10 segments stay fully visible
+            // Next 20 segments fade gradually
+            // Rest maintain minimum visibility
+            let opacity = 1;
+            if (position > 10) {
+                opacity = Math.max(0.4, 1 - ((position - 10) * 0.02));
+            }
+            
+            // Ensure animation completes before adjusting opacity
+            if (seg.classList.contains('segment-plop')) {
+                setTimeout(() => {
+                    seg.classList.remove('segment-plop');
+                    seg.style.opacity = opacity;
+                }, 400);
+            } else {
+                seg.style.opacity = opacity;
+            }
+            
+            // Also adjust font size for visual hierarchy
+            if (position === 1) {
+                seg.style.fontSize = '15px';
+            } else if (position === 2) {
+                seg.style.fontSize = '14px';
+            } else {
+                seg.style.fontSize = '13px';
+            }
         });
     }
     

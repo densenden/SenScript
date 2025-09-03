@@ -384,9 +384,18 @@ class SenScript {
                 return;
             }
             
+            // Card test functions
             window.testCards = () => this.cardEngine.runCardGenerationTests();
             window.testCheat = () => this.cardEngine.runCheatCardTests();
             window.testCardTypeDisplay = () => this.cardEngine.testCardTypeDisplay();
+            
+            // Transcript test functions - EXPOSE THE NEW COMPREHENSIVE TESTS
+            if (this.transcriptSystem?.tests) {
+                window.tt = this.transcriptSystem.tests;
+                window.transcriptTests = this.transcriptSystem.tests;
+                console.log('🎯 Transcript tests ready! Use: tt.help()');
+            }
+            
             window.testTranscriptRhythm = () => {
                 if (this.transcriptSystem?.ui) {
                     this.transcriptSystem.ui.showListeningState();

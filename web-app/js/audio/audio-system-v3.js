@@ -41,22 +41,20 @@ class AudioSystemV3 {
     }
     
     showInitialState() {
-        // Load saved preference or default to microphone
-        const savedSource = localStorage.getItem('preferredAudioSource') || 'microphone';
-        console.log(`🎤 [AudioV3] Setting initial state: ${savedSource} mode`);
-        this.currentAudioSource = savedSource;
+        // ALWAYS default to microphone, ignore saved preference for initial state
+        const defaultSource = 'microphone';
+        console.log(`🎤 [AudioV3] Setting initial state: ${defaultSource} mode (default)`);
+        this.currentAudioSource = defaultSource;
         
         // Update ALL UI elements to ensure consistency
         this.updateToggleUI();
-        this.updateInputSourceIndicator(savedSource);
+        this.updateInputSourceIndicator(defaultSource);
         
-        // Initialize with saved preference
-        if (savedSource === 'microphone') {
-            // Per Perfect Audio Flow: Request microphone permission immediately
-            this.switchToMicrophone();
-        } else {
-            console.log('🎤 [AudioV3] Starting with system audio - will request permission when needed');
-        }
+        // DON'T request permission on load - wait for user action
+        console.log('🎤 [AudioV3] Microphone mode ready - permission will be requested when needed');
+        
+        // Clear any stale saved preference
+        localStorage.removeItem('preferredAudioSource');
     }
     
     setupToggleListeners() {
@@ -97,8 +95,8 @@ class AudioSystemV3 {
         
         
         if (newSource === this.currentAudioSource) {
-            console.log(`🎤 [AudioV3] Already on ${newSource}, but ensuring stream is ready`);
-            // Don't ignore - ensure the stream is active for current source
+            console.log(`🎤 [AudioV3] Already on ${newSource}`);
+            return; // No need to switch if already on this source
         }
         
         this.lastSwitchTime = now;
@@ -112,14 +110,12 @@ class AudioSystemV3 {
         this.updateToggleUI();
         this.updateInputSourceIndicator(newSource);
         
-        // Store preference
-        localStorage.setItem('preferredAudioSource', newSource);
-        
         // Update TranscriptUI placeholder
         if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
             this.app.transcriptSystem.ui.updateAudioSource(newSource);
         }
         
+        // Now request permissions for the new source
         if (newSource === 'microphone') {
             await this.switchToMicrophone();
         } else if (newSource === 'system') {
@@ -132,6 +128,23 @@ class AudioSystemV3 {
     
     async switchToMicrophone() {
         console.log('🎤 [AudioV3] === SWITCHING TO MICROPHONE ===');
+        
+        // Mark that we're requesting permission
+        this.microphonePermissionRequested = true;
+        
+        // Reset system stream flag when switching away
+        this.systemStreamRequestedOnce = false;
+        
+        // Clean up system stream if it exists
+        if (this.systemStream) {
+            console.log('🎤 [AudioV3] Cleaning up system stream before switching');
+            try {
+                this.systemStream.getTracks().forEach(track => track.stop());
+            } catch (e) {
+                console.warn('🎤 [AudioV3] Error stopping system stream tracks:', e);
+            }
+            this.systemStream = null;
+        }
         
         // Check if we have cached microphone stream
         if (this.microphoneStream && this.microphoneStream.active) {
@@ -189,6 +202,17 @@ class AudioSystemV3 {
     
     async switchToDeviceOutput() {
         console.log('🖥️ [AudioV3] === SWITCHING TO DEVICE OUTPUT ===');
+        
+        // Clean up microphone stream if it exists to prevent multiple streams
+        if (this.microphoneStream) {
+            console.log('🖥️ [AudioV3] Cleaning up microphone stream before switching');
+            try {
+                this.microphoneStream.getTracks().forEach(track => track.stop());
+            } catch (e) {
+                console.warn('🖥️ [AudioV3] Error stopping microphone stream tracks:', e);
+            }
+            this.microphoneStream = null;
+        }
         
         // Check if we have a cached and active system stream
         if (this.systemStream && this.systemStream.active) {
@@ -418,18 +442,27 @@ class AudioSystemV3 {
                 console.log(' [AudioV3] ✅ Microphone stream ready for transcription');
                 return true;
             } else {
-                console.log(' [AudioV3] ❌ No active microphone stream - requesting permission');
-                await this.switchToMicrophone();
-                return this.microphoneStream && this.microphoneStream.active;
+                console.log(' [AudioV3] ⚠️ No active microphone stream');
+                // Request permission ONLY if not already requested
+                if (!this.microphonePermissionRequested) {
+                    console.log(' [AudioV3] First time - requesting microphone permission');
+                    this.microphonePermissionRequested = true;
+                    await this.switchToMicrophone();
+                    return this.microphoneStream && this.microphoneStream.active;
+                } else {
+                    console.log(' [AudioV3] Permission should have been requested when switching - check stream');
+                    return false;
+                }
             }
         } else if (this.currentAudioSource === 'system') {
             if (this.systemStream && this.systemStream.active) {
                 console.log(' [AudioV3] ✅ System stream ready for transcription');
                 return true;
             } else {
-                console.log(' [AudioV3] ❌ No active system stream - requesting permission');
-                await this.switchToDeviceOutput();
-                return this.systemStream && this.systemStream.active;
+                console.log(' [AudioV3] ⚠️ No active system stream');
+                // System stream should have been requested when switching
+                console.log(' [AudioV3] System stream should be active from switching - not requesting again');
+                return false;
             }
         }
         

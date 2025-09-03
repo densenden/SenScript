@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcript System Test - Improved</title>
+    <style>
+        body {
+            background: #1e293b;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #3b82f6;
+            margin-bottom: 30px;
+        }
+        .test-controls {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .test-button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .test-button:active {
+            transform: translateY(0);
+        }
+        .test-status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .transcript-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            height: 500px;
+            padding: 20px;
+            overflow: hidden;
+        }
+        .test-section {
+            margin-bottom: 20px;
+        }
+        .test-section h3 {
+            color: #60a5fa;
+            margin-bottom: 10px;
+        }
+        .test-description {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Transcript System Test Suite</h1>
+    
+    <div class="test-controls">
+        <div class="test-section">
+            <h3>Test 1: History Retention</h3>
+            <p class="test-description">
+                This test will simulate multiple speech segments to verify that transcript history
+                is properly retained and displayed. Should maintain 50 segments with gradual opacity fade.
+            </p>
+            <button class="test-button" onclick="testHistoryRetention()">
+                Run History Test (50 segments)
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: PRD Pending Line Animation</h3>
+            <p class="test-description">
+                Tests the pending line animation that grows from center over 5 seconds per PRD spec.
+                Line should be 1-2px thick with theme accent color at 25-40% opacity.
+            </p>
+            <button class="test-button" onclick="testPendingLine()">
+                Test Pending Line (5s growth)
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Plop Animation</h3>
+            <p class="test-description">
+                Tests the plop animation when segments finalize. Segments should scale from 0.9 to 1.0
+                with opacity transition per PRD requirements.
+            </p>
+            <button class="test-button" onclick="testPlopAnimation()">
+                Test Plop Animation
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 4: Real-time Speech Simulation</h3>
+            <p class="test-description">
+                Simulates realistic speech patterns with interim text updates and finalizations.
+                Tests the complete flow including card generation triggers.
+            </p>
+            <button class="test-button" onclick="testRealisticSpeech()">
+                Simulate Real Speech (30s)
+            </button>
+        </div>
+
+        <div class="test-status" id="testStatus">
+            Test status will appear here...
+        </div>
+    </div>
+
+    <div class="transcript-container">
+        <iframe src="index.html" width="100%" height="100%" frameborder="0"></iframe>
+    </div>
+
+    <script>
+        const status = document.getElementById('testStatus');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 3
+            });
+            status.textContent += `[${timestamp}] ${message}\n`;
+            status.scrollTop = status.scrollHeight;
+        }
+
+        async function getAppInstance() {
+            const iframe = document.querySelector('iframe');
+            return iframe.contentWindow.app;
+        }
+
+        async function testHistoryRetention() {
+            log('Starting history retention test...');
+            const app = await getAppInstance();
+            
+            if (!app?.transcriptSystem) {
+                log('❌ Transcript system not found!');
+                return;
+            }
+            
+            // Start session
+            app.transcriptSystem.startSession();
+            log('✓ Session started');
+            
+            // Generate 50 test segments
+            const testPhrases = [
+                "Understanding machine learning fundamentals",
+                "Neural networks process information in layers",
+                "Backpropagation optimizes weight parameters",
+                "Gradient descent minimizes loss functions",
+                "Convolutional layers detect visual features",
+                "Recurrent networks handle sequential data",
+                "Transformers revolutionized NLP processing",
+                "Attention mechanisms focus on relevant information",
+                "Embeddings represent words as vectors",
+                "Fine-tuning adapts models to specific tasks"
+            ];
+            
+            for (let i = 0; i < 50; i++) {
+                const phrase = testPhrases[i % testPhrases.length] + ` - Segment ${i + 1}`;
+                
+                // Simulate final text
+                app.transcriptSystem.processIncomingSpeech({
+                    isFinal: true,
+                    transcript: phrase,
+                    confidence: 0.85 + Math.random() * 0.15
+                });
+                
+                log(`Added segment ${i + 1}/50: "${phrase.substring(0, 30)}..."`);
+                
+                // Small delay between segments
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            log('✓ History retention test complete - check transcript window');
+            log(`Total segments displayed: ${app.transcriptSystem.ui.finalizedSegments.length}`);
+        }
+
+        async function testPendingLine() {
+            log('Starting pending line animation test...');
+            const app = await getAppInstance();
+            
+            if (!app?.transcriptSystem?.ui) {
+                log('❌ Transcript UI not found!');
+                return;
+            }
+            
+            // Start session if not started
+            if (!app.transcriptSystem.state.sessionStarted) {
+                app.transcriptSystem.startSession();
+                log('✓ Session started');
+            }
+            
+            // Trigger a new segment with pending line
+            app.transcriptSystem.ui.startNewSegment();
+            log('✓ Pending line started - watch for 5 second growth from center');
+            
+            // Monitor the line progress
+            let checkCount = 0;
+            const checkInterval = setInterval(() => {
+                const pendingLine = app.document.querySelector('.line-progress');
+                if (pendingLine) {
+                    const width = pendingLine.style.width || '0%';
+                    log(`Line progress: ${width}`);
+                    checkCount++;
+                    
+                    if (checkCount >= 6) { // Check for 6 seconds
+                        clearInterval(checkInterval);
+                        log('✓ Pending line test complete');
+                    }
+                }
+            }, 1000);
+        }
+
+        async function testPlopAnimation() {
+            log('Starting plop animation test...');
+            const app = await getAppInstance();
+            
+            if (!app?.transcriptSystem) {
+                log('❌ Transcript system not found!');
+                return;
+            }
+            
+            // Start session
+            if (!app.transcriptSystem.state.sessionStarted) {
+                app.transcriptSystem.startSession();
+                log('✓ Session started');
+            }
+            
+            // Add segments with visible plop animation
+            const testTexts = [
+                "This segment should plop into view",
+                "Watch the scale animation carefully",
+                "Notice the opacity transition effect"
+            ];
+            
+            for (let i = 0; i < testTexts.length; i++) {
+                app.transcriptSystem.processIncomingSpeech({
+                    isFinal: true,
+                    transcript: testTexts[i],
+                    confidence: 0.9
+                });
+                
+                log(`✓ Added segment with plop: "${testTexts[i]}"`);
+                
+                // Wait for animation to complete
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+            
+            log('✓ Plop animation test complete');
+        }
+
+        async function testRealisticSpeech() {
+            log('Starting realistic speech simulation (30 seconds)...');
+            const app = await getAppInstance();
+            
+            if (!app?.transcriptSystem) {
+                log('❌ Transcript system not found!');
+                return;
+            }
+            
+            // Start session
+            app.transcriptSystem.startSession();
+            log('✓ Session started - simulating natural speech patterns');
+            
+            // Simulate a realistic conversation
+            const speechScript = [
+                { interim: "So today we're going to", delay: 500 },
+                { interim: "So today we're going to talk about", delay: 500 },
+                { interim: "So today we're going to talk about machine learning", delay: 800 },
+                { final: "So today we're going to talk about machine learning and how it works in practice.", delay: 1000 },
+                
+                { interim: "Machine learning is", delay: 400 },
+                { interim: "Machine learning is essentially", delay: 400 },
+                { interim: "Machine learning is essentially a way for computers", delay: 600 },
+                { final: "Machine learning is essentially a way for computers to learn patterns from data without explicit programming.", delay: 1200 },
+                
+                { interim: "There are three main", delay: 300 },
+                { interim: "There are three main types", delay: 400 },
+                { interim: "There are three main types of machine learning", delay: 700 },
+                { final: "There are three main types of machine learning: supervised, unsupervised, and reinforcement learning.", delay: 1000 },
+                
+                { interim: "Supervised learning", delay: 400 },
+                { interim: "Supervised learning uses labeled", delay: 500 },
+                { interim: "Supervised learning uses labeled data to train", delay: 600 },
+                { final: "Supervised learning uses labeled data to train models that can make predictions on new, unseen data.", delay: 1200 },
+                
+                { interim: "For example", delay: 300 },
+                { interim: "For example, image classification", delay: 500 },
+                { interim: "For example, image classification systems learn", delay: 700 },
+                { final: "For example, image classification systems learn to recognize objects by training on thousands of labeled images.", delay: 1500 }
+            ];
+            
+            // Execute the speech script
+            for (const item of speechScript) {
+                if (item.interim) {
+                    app.transcriptSystem.processIncomingSpeech({
+                        isFinal: false,
+                        transcript: item.interim,
+                        confidence: 0.5
+                    });
+                    log(`► Interim: "${item.interim.substring(0, 40)}..."`);
+                } else if (item.final) {
+                    app.transcriptSystem.processIncomingSpeech({
+                        isFinal: true,
+                        transcript: item.final,
+                        confidence: 0.9
+                    });
+                    log(`✓ Final: "${item.final.substring(0, 40)}..."`);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, item.delay));
+            }
+            
+            log('✓ Realistic speech simulation complete');
+            log('Check transcript window for segments and card generation');
+        }
+        
+        // Auto-start with basic test
+        window.addEventListener('load', () => {
+            log('Test suite loaded - select a test to begin');
+            log('Transcript window embedded below');
+        });
+    </script>
+</body>
+</html>

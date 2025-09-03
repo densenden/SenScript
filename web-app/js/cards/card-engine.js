@@ -202,7 +202,11 @@ class CardEngine {
                 return;
             }
             
-            console.log(`🃏 [CardEngine] ${card.cardType === 'cheat' ? 'CheatCard' : 'FlashCard'} created successfully:`, card);
+            // CRITICAL DEBUG: Log the entire card structure
+            console.log(`🃏 [CardEngine] ${card.cardType === 'cheat' ? 'CheatCard' : 'FlashCard'} created successfully:`);
+            console.log('🔍 [CardEngine] CARD FRONT VALUE:', card.front);
+            console.log('🔍 [CardEngine] CARD BACK VALUE:', card.back);
+            console.log('🔍 [CardEngine] FULL CARD DATA:', JSON.stringify(card, null, 2));
             
             // === SOPHISTICATED CARD BIRTH PROCESS (from legacy) ===
             await this.createUnifiedCardWithBirthAnimation(card);
@@ -325,7 +329,10 @@ class CardEngine {
             front: cardData.front?.substring(0, 50),
             back: cardData.back?.substring(0, 100),
             cardType: cardData.cardType,
+            hasFront: !!cardData.front,
             hasBack: !!cardData.back,
+            frontLength: cardData.front?.length,
+            backLength: cardData.back?.length,
             fullData: cardData
         });
         
@@ -340,33 +347,40 @@ class CardEngine {
         // Format the back content based on card type
         let formattedBack = content;
         if (isCheatCard) {
-            // CheatCards should preserve emoji formatting (🎯, ⚡, 📝)
-            formattedBack = formattedBack.replace(/\n/g, '<br>');
+            // CheatCards - parse into visual boxes
+            formattedBack = this.formatCheatCardAsBoxes(content);
         } else {
-            // FlashCards should show as paragraphs
+            // FlashCards show as paragraphs
             formattedBack = formattedBack.replace(/\n/g, '<br>');
         }
         
+        // Unified layout with minimal typography
+        const questionOrTitle = isCheatCard 
+            ? (cardData.front || cardData.category || 'Tip')
+            : (cardData.front || cardData.question || 'Question');
+        
         return `
-            <div class="card-header">
-                <div class="card-type">${cardData.category || 'CONCEPT'}</div>
-                <div class="metadata" style="display: flex; align-items: center; gap: 8px; font-size: 11px; opacity: 0.7;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 6px; margin-bottom: 8px;">
+                <div class="card-question" style="flex: 0 0 75%; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.8); line-height: 1.4; padding-right: 8px;">
+                    ${questionOrTitle}
+                </div>
+                <div class="metadata card-metadata" style="flex: 0 0 25%; display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 10px; opacity: 0.5;">
                     ${sourceCircle}
                     <span>${cardData.flag || '🌐'}</span>
-                    <span class="card-type-indicator" style="font-weight: 600; color: ${isCheatCard ? '#f59e0b' : '#3b82f6'};">${cardTypeDisplay}</span>
-                    <span>${timeDisplay}</span>
+                    <span class="card-type-indicator" style="font-weight: 500; color: ${isCheatCard ? '#f59e0b' : '#3b82f6'};">${cardTypeDisplay}</span>
                 </div>
             </div>
             
-            <div class="card-content ${isCheatCard ? 'cheat-content' : 'flash-content'}">
-                ${isCheatCard ? '' : '<strong style="font-size: 0.9em; color: rgba(255,255,255,0.8); margin-bottom: 8px; display: block;">Answer:</strong>'}
-                <div class="card-answer-content">
+            <div class="card-content ${isCheatCard ? 'cheat-content' : 'flash-content'}" style="padding: 0; margin: 0;">
+                <div class="card-answer-content" style="${isCheatCard ? '' : 'font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.95); font-weight: 400;'}">
                     ${formattedBack || 'Content is being generated...'}
                 </div>
             </div>
             
-            <div class="card-source" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; opacity: 0.6;">
-                ${cardData.provider ? `${cardData.provider} • ` : ''}${cardData.source || 'AI'}${cardData.originalText ? ` • "${cardData.originalText.substring(0, 40)}..."` : ''}
+            <div class="card-source" style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 6px; margin-top: 8px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.4;">
+                    "${cardData.originalText || 'No original text available'}" • ${timeDisplay} • ${cardData.provider || 'AI'}
+                </div>
             </div>
         `;
     }
@@ -378,6 +392,101 @@ class CardEngine {
         // Cards now show all content by default - no need for flipping
         // Could add other interactions here if needed (like copy, star, etc.)
         cardElement.style.cursor = 'default';
+    }
+    
+    /**
+     * Format CheatCard content into visual boxes with smart layout
+     */
+    formatCheatCardAsBoxes(content) {
+        if (!content) return 'No content available';
+        
+        // Split content by lines
+        const lines = content.split('\n').filter(line => line.trim());
+        
+        // Parse into boxes based on emoji patterns or bullet points
+        const boxes = [];
+        
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            
+            // Check if line starts with emoji or bullet
+            const emojiMatch = trimmed.match(/^([🌀-🏿]|[🐀-🙏]|[🚀-🛿]|[\u2600-\u26ff]|[\u2700-\u27bf]|\u2022|\u2023|\u2043|\u204c|\u2049|\u3030|•|-|\*|\d+\.)\s*(.+)/);
+            
+            if (emojiMatch) {
+                boxes.push({
+                    icon: emojiMatch[1],
+                    text: emojiMatch[2]
+                });
+            } else {
+                // No emoji/bullet - use as plain text box
+                boxes.push({
+                    icon: '🔹', // Small blue diamond as default
+                    text: trimmed
+                });
+            }
+        });
+        
+        // If no boxes parsed, treat entire content as one box
+        if (boxes.length === 0) {
+            boxes.push({ icon: '📄', text: content });
+        }
+        
+        // Determine optimal layout based on number of boxes
+        let columnsClass = 'two-columns';
+        if (boxes.length <= 2) {
+            columnsClass = 'two-columns';
+        } else if (boxes.length <= 4) {
+            columnsClass = 'two-columns';
+        } else if (boxes.length <= 6) {
+            columnsClass = 'three-columns';
+        } else {
+            columnsClass = 'four-columns';
+        }
+        
+        // Generate flexbox HTML with visual hierarchy
+        return `
+            <div class="cheat-boxes-container ${columnsClass}" style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                width: 100%;
+                margin: 0;
+            ">
+                ${boxes.map((box, index) => {
+                    // Give visual priority to first few boxes
+                    const isPrimary = index < 2;
+                    const isSecondary = index >= 2 && index < 4;
+                    
+                    return `
+                    <div class="cheat-box ${isPrimary ? 'primary' : isSecondary ? 'secondary' : 'tertiary'}" style="
+                        flex: 1 1 ${boxes.length > 4 ? 'calc(50% - 3px)' : boxes.length > 2 ? 'calc(50% - 3px)' : 'calc(50% - 3px)'};
+                        min-width: 100px;
+                        padding: 6px 8px;
+                        background: ${isPrimary ? 'rgba(59, 130, 246, 0.08)' : 'rgba(255, 255, 255, 0.04)'};
+                        border: 1px solid ${isPrimary ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.08)'};
+                        border-radius: 5px;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 6px;
+                        transition: all 0.2s ease;
+                    ">
+                        ${box.icon ? `<span style="
+                            font-size: ${isPrimary ? '15px' : '14px'};
+                            flex-shrink: 0;
+                            opacity: ${isPrimary ? '0.9' : '0.7'};
+                        ">${box.icon}</span>` : ''}
+                        <span style="
+                            font-size: ${isPrimary ? '13px' : '12px'};
+                            line-height: 1.4;
+                            color: rgba(255,255,255,${isPrimary ? '0.95' : '0.85'});
+                            flex: 1;
+                            font-weight: ${isPrimary ? '500' : '400'};
+                        ">${box.text}</span>
+                    </div>
+                `}).join('')}
+            </div>
+        `;
     }
     
     extractCheatCategory(text) {

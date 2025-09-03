@@ -60,9 +60,10 @@ class SpeechRecognitionManager {
             console.log('[Speech] Recognition ended');
             this.isListening = false;
             
-            // Only restart if we're truly meant to be listening (not background)
+            // Only restart if we're meant to be listening
             if (this.shouldBeListening && !this.restartPending) {
                 this.restartPending = true;
+                console.log('[Speech] Will auto-restart in 1 second...');
                 setTimeout(() => {
                     this.restartPending = false;
                     if (this.shouldBeListening && !this.isListening) {
@@ -70,10 +71,15 @@ class SpeechRecognitionManager {
                         try {
                             this.recognition.start();
                         } catch (error) {
-                            console.log('[Speech] Auto-restart failed:', error);
+                            if (error.message && error.message.includes('already started')) {
+                                console.log('[Speech] Recognition already running');
+                                this.isListening = true;
+                            } else {
+                                console.log('[Speech] Auto-restart failed:', error);
+                            }
                         }
                     }
-                }, 500);
+                }, 1000); // Give it a second to settle
             }
             this.updateUI();
         };
@@ -87,19 +93,37 @@ class SpeechRecognitionManager {
             
             // Handle specific error types
             if (event.error === 'aborted') {
-                console.log('[Speech] Recognition aborted - likely tab switch or page blur');
-                // Don't restart if manually stopped
+                console.log('[Speech] Recognition aborted');
+                
+                // Only try to restart if we should be listening and not already restarting
                 if (this.shouldBeListening && !this.isTabInactive) {
-                    setTimeout(() => {
-                        if (this.shouldBeListening) {
-                            console.log('[Speech] Restarting after abort');
-                            try {
-                                this.recognition.start();
-                            } catch (error) {
-                                console.log('[Speech] Restart after abort failed:', error);
-                            }
+                    // Check if recognition is already running
+                    if (!this.isListening) {
+                        // Add a flag to prevent multiple restart attempts
+                        if (!this.restartAttemptInProgress) {
+                            this.restartAttemptInProgress = true;
+                            console.log('[Speech] Will attempt restart after abort in 3 seconds...');
+                            setTimeout(() => {
+                                this.restartAttemptInProgress = false;
+                                if (this.shouldBeListening && !this.isListening) {
+                                    console.log('[Speech] Attempting restart after abort');
+                                    try {
+                                        this.recognition.start();
+                                    } catch (error) {
+                                        console.log('[Speech] Restart failed, will retry:', error);
+                                        // If it fails, try again later
+                                        if (error.message.includes('already started')) {
+                                            console.log('[Speech] Recognition already running - no restart needed');
+                                        }
+                                    }
+                                }
+                            }, 3000); // Longer delay to let things settle
+                        } else {
+                            console.log('[Speech] Restart already in progress - skipping');
                         }
-                    }, 1000);
+                    } else {
+                        console.log('[Speech] Recognition still listening - no restart needed');
+                    }
                 }
             } else {
                 this.handleRecognitionError(event);
@@ -249,27 +273,48 @@ class SpeechRecognitionManager {
             return;
         }
         
-        console.log('[Speech] System stream available, setting up audio processing...');
+        console.log('[Speech] System stream available, attempting to use Web Speech API...');
         
-        // CRITICAL FIX: Web Speech API cannot use system audio directly
-        // We need to implement a workaround using Web Audio API or MediaRecorder
-        
+        // Try to start recognition even in system mode - it can work!
         try {
-            // Method 1: Try to create a virtual microphone using Web Audio API
-            this.setupSystemAudioBridge(systemStream);
+            // Stop any existing recognition first to prevent conflicts
+            if (this.isListening) {
+                console.log('[Speech] Stopping existing recognition before restart');
+                this.recognition.stop();
+                // Wait a bit before restarting
+                setTimeout(() => {
+                    this.startRecognitionForSystemAudio();
+                }, 500);
+            } else {
+                this.startRecognitionForSystemAudio();
+            }
         } catch (error) {
-            console.error('[Speech] Failed to setup system audio bridge:', error);
-            // Fallback: Show user that system audio transcription is not available
-            console.log('[Speech] System audio transcription requires server-side processing');
+            console.error('[Speech] Failed to start system audio recognition:', error);
             this.shouldBeListening = false;
             
-            // Update UI to show limitation
+            // Only show limitation message if it truly fails
             if (this.app.transcriptSystem?.ui) {
-                this.app.transcriptSystem.ui.updatePlaceholder(
-                    'System Audio Limitation',
-                    'Web Speech API cannot process system audio directly. Switch to microphone mode for transcript generation.'
-                );
+                const interimText = document.getElementById('interimText');
+                if (interimText) {
+                    interimText.innerHTML = `
+                        <div style="color: #f59e0b; font-size: 14px; padding: 8px;">
+                            ⚠️ Recognition error - trying to reconnect...
+                        </div>
+                    `;
+                }
             }
+        }
+    }
+    
+    startRecognitionForSystemAudio() {
+        console.log('[Speech] Starting recognition for system audio');
+        try {
+            this.recognition.start();
+            this.app.startMinuteCounting();
+            console.log('[Speech] Web Speech API started for system audio');
+        } catch (error) {
+            console.error('[Speech] Failed to start recognition for system audio:', error);
+            this.shouldBeListening = false;
         }
     }
     
@@ -433,7 +478,19 @@ class SpeechRecognitionManager {
             console.log(`[Speech] Result ${i}: "${text}" (final: ${result.isFinal}, confidence: ${confidence.toFixed(2)})`);
             
             if (result.isFinal && text.length > 0) {
-                final += text + ' ';
+                // CRITICAL FIX: Process each final result immediately
+                // Don't accumulate - send each one separately
+                console.log('[Speech] 🎯 FINAL RESULT DETECTED - sending immediately:', text);
+                
+                if (this.app.transcriptSystem) {
+                    this.app.transcriptSystem.processIncomingSpeech({
+                        isFinal: true,
+                        transcript: text,
+                        confidence: confidence
+                    });
+                }
+                
+                final += text + ' '; // Still accumulate for legacy systems
                 console.log('[Speech] Added to final transcript:', text);
             } else if (!result.isFinal && text.length > 0) {
                 interim = text;
@@ -469,16 +526,8 @@ class SpeechRecognitionManager {
         if (this.shouldBeListening) {
             // Use new unified transcript system if available
             if (this.app.transcriptSystem) {
-                // Handle final text
-                if (final.trim()) {
-                    this.app.transcriptSystem.processIncomingSpeech({
-                        isFinal: true,
-                        transcript: final.trim(),
-                        confidence: 0.85 // Default confidence
-                    });
-                }
-                
-                // Handle interim text
+                // Final text already processed immediately in the loop above
+                // Only need to handle interim text here
                 if (interim) {
                     this.app.transcriptSystem.processIncomingSpeech({
                         isFinal: false,

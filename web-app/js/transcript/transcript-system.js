@@ -60,43 +60,231 @@ class TranscriptSystem {
         
         console.log(' [TranscriptSystem] Transcript system ready');
         
-        // Add test function for manual testing
-        window.testTranscriptSystem = () => {
-            console.log('🧪 [TranscriptSystem] Testing transcript system...');
+        // Add comprehensive test functions for console testing
+        // Create test object and attach to both window and the transcript system
+        const transcriptTests = {
+            // Quick test with a few segments
+            quick: () => {
+                console.log('🧪 Running quick transcript test...');
+                if (!this.state.sessionStarted) {
+                    this.startSession();
+                }
+                
+                const phrases = [
+                    'Testing the transcript system with some initial text',
+                    'Machine learning is a subset of artificial intelligence',
+                    'Neural networks process information through layers',
+                    'This should create visible segments in the transcript window'
+                ];
+                
+                phrases.forEach((phrase, i) => {
+                    setTimeout(() => {
+                        this.processIncomingSpeech({
+                            isFinal: true,
+                            transcript: phrase,
+                            confidence: 0.85 + Math.random() * 0.15
+                        });
+                        console.log(`✓ Added: "${phrase.substring(0, 40)}..."`);;
+                    }, i * 500);
+                });
+                
+                console.log('🧪 Quick test started - segments will appear over 2 seconds');
+                return 'Test running...';
+            },
             
-            // Start session if not already started
-            if (!this.state.sessionStarted) {
-                console.log('🧪 [TranscriptSystem] Starting test session...');
-                this.startSession();
+            // Test history retention with many segments
+            history: () => {
+                console.log('🧪 Testing history retention (50 segments)...');
+                if (!this.state.sessionStarted) {
+                    this.startSession();
+                }
+                
+                const templates = [
+                    'Understanding {}',
+                    '{} is a key concept',
+                    'The {} algorithm works by',
+                    'In practice, {} means',
+                    'Applications of {} include'
+                ];
+                
+                const topics = [
+                    'machine learning', 'neural networks', 'gradient descent',
+                    'backpropagation', 'convolution', 'transformers', 'attention',
+                    'embeddings', 'optimization', 'regularization'
+                ];
+                
+                // Keep session active during the test
+                const keepAlive = setInterval(() => {
+                    if (this.state.sessionStarted) {
+                        console.log('🔄 Keeping session alive during test...');
+                    }
+                }, 1000);
+                
+                for (let i = 0; i < 50; i++) {
+                    const template = templates[i % templates.length];
+                    const topic = topics[i % topics.length];
+                    const text = template.replace('{}', topic) + ` [Segment ${i + 1}]`;
+                    
+                    setTimeout(() => {
+                        // Ensure session stays active
+                        if (!this.state.sessionStarted) {
+                            console.log('⚠️ Session stopped - restarting...');
+                            this.startSession();
+                        }
+                        
+                        this.processIncomingSpeech({
+                            isFinal: true,
+                            transcript: text,
+                            confidence: 0.9
+                        });
+                        if (i % 10 === 0) {
+                            console.log(`📝 Added ${i + 1}/50 segments...`);
+                        }
+                        
+                        // Clear keep-alive after last segment
+                        if (i === 49) {
+                            clearInterval(keepAlive);
+                            console.log('✅ History test complete - segments should remain visible');
+                        }
+                    }, i * 100);
+                }
+                
+                console.log('🧪 History test started - 50 segments over 5 seconds');
+                return 'Adding 50 segments...';
+            },
+            
+            // Test realistic speech with interim updates
+            realistic: () => {
+                console.log('🧪 Simulating realistic speech patterns...');
+                if (!this.state.sessionStarted) {
+                    this.startSession();
+                }
+                
+                const speechFlow = [
+                    { type: 'interim', text: 'So today', delay: 300 },
+                    { type: 'interim', text: 'So today we are', delay: 300 },
+                    { type: 'interim', text: 'So today we are going to discuss', delay: 400 },
+                    { type: 'interim', text: 'So today we are going to discuss how', delay: 300 },
+                    { type: 'final', text: 'So today we are going to discuss how machine learning works in production environments.', delay: 800 },
+                    
+                    { type: 'interim', text: 'The key', delay: 400 },
+                    { type: 'interim', text: 'The key difference', delay: 300 },
+                    { type: 'interim', text: 'The key difference between', delay: 300 },
+                    { type: 'interim', text: 'The key difference between development and production', delay: 400 },
+                    { type: 'final', text: 'The key difference between development and production is scale and reliability requirements.', delay: 1000 },
+                    
+                    { type: 'interim', text: 'You need', delay: 300 },
+                    { type: 'interim', text: 'You need to consider', delay: 400 },
+                    { type: 'interim', text: 'You need to consider things like', delay: 400 },
+                    { type: 'final', text: 'You need to consider things like monitoring, versioning, and rollback strategies.', delay: 800 }
+                ];
+                
+                let totalDelay = 0;
+                speechFlow.forEach(item => {
+                    totalDelay += item.delay;
+                    setTimeout(() => {
+                        this.processIncomingSpeech({
+                            isFinal: item.type === 'final',
+                            transcript: item.text,
+                            confidence: item.type === 'final' ? 0.9 : 0.5
+                        });
+                        console.log(`${item.type === 'final' ? '✓' : '◌'} ${item.type}: "${item.text.substring(0, 40)}..."`);;
+                    }, totalDelay);
+                });
+                
+                console.log(`🧪 Realistic speech test started - ${totalDelay/1000}s total`);
+                return 'Simulating natural speech...';
+            },
+            
+            // Test pending line animation
+            pendingLine: () => {
+                console.log('🧪 Testing pending line animation...');
+                if (!this.state.sessionStarted) {
+                    this.startSession();
+                }
+                
+                // Force start a new segment to see the line
+                if (this.ui) {
+                    this.ui.startNewSegment();
+                    console.log('✓ Pending line started - watch for 5 second growth from center');
+                    console.log('  The line should grow symmetrically from center outward');
+                    console.log('  After 5 seconds, it will finalize or fade');
+                    
+                    // Add some text after 3 seconds
+                    setTimeout(() => {
+                        this.processIncomingSpeech({
+                            isFinal: false,
+                            transcript: 'Speaking while the line animates...',
+                            confidence: 0.5
+                        });
+                    }, 3000);
+                    
+                    // Finalize after 6 seconds
+                    setTimeout(() => {
+                        this.processIncomingSpeech({
+                            isFinal: true,
+                            transcript: 'This text appears when the line completes its animation cycle.',
+                            confidence: 0.9
+                        });
+                    }, 6000);
+                }
+                
+                return 'Pending line animation started...';
+            },
+            
+            // Clear all segments
+            clear: () => {
+                console.log('🧹 Clearing transcript...');
+                if (this.ui && this.ui.finalizedSegmentsContainer) {
+                    this.ui.finalizedSegmentsContainer.innerHTML = '';
+                    this.ui.finalizedSegments = [];
+                    this.state.finalizedSentences = [];
+                    this.state.transcriptBuffer = [];
+                    console.log('✓ Transcript cleared');
+                }
+                return 'Cleared';
+            },
+            
+            // Get current stats
+            stats: () => {
+                const stats = this.getSessionStats();
+                console.log('📊 Transcript Statistics:');
+                console.log(`  • Session Active: ${stats.sessionActive}`);
+                console.log(`  • Total Sentences: ${stats.totalSentences}`);
+                console.log(`  • Total Words: ${stats.totalWords}`);
+                console.log(`  • Visible Segments: ${this.ui?.finalizedSegments?.length || 0}`);
+                console.log(`  • Pending Generation: ${stats.pendingGeneration}`);
+                return stats;
+            },
+            
+            // Help message
+            help: () => {
+                console.log('📚 Transcript Test Commands:');
+                console.log('  testTranscript.quick()     - Add a few test segments');
+                console.log('  testTranscript.history()   - Test with 50 segments (history retention)');
+                console.log('  testTranscript.realistic() - Simulate natural speech with interim text');
+                console.log('  testTranscript.pendingLine() - Test the pending line animation');
+                console.log('  testTranscript.clear()     - Clear all transcript segments');
+                console.log('  testTranscript.stats()     - Show current statistics');
+                console.log('  testTranscript.help()      - Show this help message');
+                return 'Commands listed above';
             }
-            
-            // Test interim text
-            this.processIncomingSpeech({
-                isFinal: false,
-                transcript: 'Testing interim text...',
-                confidence: 0.5
-            });
-            
-            setTimeout(() => {
-                // Test final text
-                this.processIncomingSpeech({
-                    isFinal: true,
-                    transcript: 'This is a test sentence for transcript processing and card generation.',
-                    confidence: 0.85
-                });
-            }, 1000);
-            
-            setTimeout(() => {
-                // Test another final text
-                this.processIncomingSpeech({
-                    isFinal: true,
-                    transcript: 'What is machine learning and how does it work in practice?',
-                    confidence: 0.90
-                });
-            }, 2000);
-            
-            console.log('🧪 [TranscriptSystem] Test completed - check transcript display and cards');
         };
+        
+        // Expose test functions in multiple ways to avoid conflicts
+        window.tt = transcriptTests;  // Short alias for easy console access
+        window.transcriptTests = transcriptTests;  // Full name
+        this.tests = transcriptTests;  // Attached to transcript system
+        
+        // Also keep the simple version for backward compatibility
+        window.testTranscriptSystem = transcriptTests.quick;
+        
+        // Log availability
+        console.log('📚 Transcript tests loaded! Use any of these:');
+        console.log('  tt.quick()     - Quick test');
+        console.log('  tt.history()   - History retention test');
+        console.log('  tt.realistic() - Realistic speech');
+        console.log('  tt.help()      - Show all commands');
     }
     
     setupEventListeners() {
@@ -119,20 +307,11 @@ class TranscriptSystem {
         console.log(`🔥 [TranscriptSystem] ========== INCOMING SPEECH ==========`);
         console.log(`🔥 [TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
         console.log(`🔥 [TranscriptSystem] Session started: ${this.state.sessionStarted}`);
-        console.log(`🔥 [TranscriptSystem] Current segment start: ${this.state.currentSegmentStart}`);
         
-        // Allow final text to be processed even after stopping for a grace period
-        // This ensures we don't lose the last spoken words
+        // AUTO-START SESSION if not started
         if (!this.state.sessionStarted) {
-            if (isFinal && this.state.recentlyStopped) {
-                console.log(`⚠️ [TranscriptSystem] Processing final text after stop (grace period)`);
-                // Process this final text even though session stopped
-                this.handleFinalTextAfterStop(transcript);
-                return;
-            }
-            console.log(`🚨 [TranscriptSystem] SESSION NOT STARTED - IGNORING SPEECH!`);
-            console.log(`🚨 [TranscriptSystem] Call startSession() first!`);
-            return;
+            console.log(`🚨 [TranscriptSystem] Session not started - AUTO-STARTING NOW!`);
+            this.startSession();
         }
         
         if (isFinal) {
@@ -293,47 +472,52 @@ class TranscriptSystem {
         if (!text || text.trim().length === 0) return;
         
         const trimmedText = text.trim();
-        console.log(`🎵 [RhythmSegment] Final text received - text length: ${trimmedText.length} characters`);
+        console.log(`📝 [TRANSCRIPT] ========== FINAL TEXT RECEIVED ==========`);
+        console.log(`📝 [TRANSCRIPT] Text: "${trimmedText}"`);
+        console.log(`📝 [TRANSCRIPT] Length: ${trimmedText.length} characters`);
         
-        // Cancel the timer since we have a natural speech boundary
-        if (this.state.segmentTimer) {
-            console.log(`🎵 [RhythmSegment] Canceling timer - natural speech boundary found`);
-            clearTimeout(this.state.segmentTimer);
-            this.state.segmentTimer = null;
+        // SIMPLIFIED APPROACH: Every final text becomes a visible segment immediately
+        // No complex rhythm system, no timers, just direct display
+        
+        const timestamp = new Date().toLocaleTimeString('en-US', { 
+            hour12: false, 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        // Create segment data
+        const segment = {
+            text: trimmedText,
+            timestamp: timestamp,
+            duration: 1000, // Default duration
+            isFinalized: true,
+            id: `segment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        };
+        
+        console.log(`📝 [TRANSCRIPT] Creating segment with ID: ${segment.id}`);
+        
+        // Add directly to UI - this is the ONLY path for segments
+        if (this.ui && this.ui.addFinalizedSegment) {
+            console.log(`📝 [TRANSCRIPT] Adding segment to UI`);
+            this.ui.addFinalizedSegment(segment);
+        } else {
+            console.error(`❌ [TRANSCRIPT] UI not available to display segment!`);
         }
         
-        // Check if text is very large (>300 chars) and needs chunking
-        if (trimmedText.length > 300) {
-            console.log(`📦 [RhythmSegment] Large text block detected (${trimmedText.length} chars) - chunking into sentences`);
-            this.processLargeTextBlock(trimmedText);
-        } else {
-            // Process normally for smaller text
-            console.log(`✅ [RhythmSegment] Normal-sized text - processing as single segment`);
-            
-            // Update current segment with complete final text
-            this.state.currentSegmentText = trimmedText;
-            
-            // Force end current rhythm segment with complete final text (speech recognition finalized)
-            if (this.state.currentSegmentStart && this.state.currentSegmentText.trim()) {
-                const segmentDuration = Date.now() - this.state.currentSegmentStart;
-                console.log(`✅ [RhythmSegment] Finalizing segment: "${trimmedText.substring(0, 50)}..."`);
-                this.finalizeRhythmSegment(trimmedText, segmentDuration);
-                
-                // Start new segment for continuing speech
-                this.startNewSegment();
-            } else {
-                // EMERGENCY FIX: If no active segment but we have final text, create one immediately
-                console.log(`🚨 [RhythmSegment] No active segment - creating emergency segment`);
-                
-                // Create emergency segment with final text
-                this.finalizeRhythmSegment(trimmedText, 1000); // 1 second duration as fallback
-                this.startNewSegment(); // Start new segment for future speech
-            }
+        // Also queue for card generation if worthy
+        if (this.isTextWorthyOfCard(trimmedText)) {
+            console.log(`🎴 [TRANSCRIPT] Text worthy of card - queuing`);
+            this.queueCardGeneration(segment);
         }
         
         // Clear interim text
         this.state.interimText = '';
-        this.ui.clearInterimText();
+        if (this.ui) {
+            this.ui.clearInterimText();
+        }
+        
+        console.log(`📝 [TRANSCRIPT] ========== SEGMENT PROCESSED ==========`);
     }
     
     /**
@@ -605,24 +789,10 @@ class TranscriptSystem {
      * Start a new rhythm segment
      */
     startNewSegment() {
-        console.log(`🎵 [RhythmSegment] Starting new ${this.state.maxSegmentDuration/1000}-second segment`);
-        
-        this.state.currentSegmentStart = Date.now();
-        this.state.currentSegmentText = '';
-        
-        // Clear any existing timer
-        if (this.state.segmentTimer) {
-            clearTimeout(this.state.segmentTimer);
-        }
-        
-        // Set rhythm-based force cutoff (adjustable duration)
-        this.state.segmentTimer = setTimeout(() => {
-            console.log(`⏰ [RhythmSegment] ${this.state.maxSegmentDuration}ms timer expired - forcing segment end`);
-            console.log(`⏰ [RhythmSegment] About to call forceSegmentEnd()`);
-            this.forceSegmentEnd();
-        }, this.state.maxSegmentDuration);
-        
-        console.log(`🎵 [RhythmSegment] Timer set for ${this.state.maxSegmentDuration}ms`);
+        // DISABLED: Using direct segment creation from final text
+        // No timers, no rhythm segments - just direct display
+        console.log('🎵 [RhythmSegment] DISABLED - segments created directly');
+        return;
     }
     
     /**
@@ -727,19 +897,25 @@ class TranscriptSystem {
         
         this.state.sessionStarted = true;
         
-        // Start first rhythm segment
-        this.startNewSegment();
-        console.log('🚀 [TranscriptSystem] New session state:', this.state.sessionStarted);
-        console.log('🚀 [TranscriptSystem] Current segment start:', this.state.currentSegmentStart);
+        // SIMPLIFIED: No rhythm segments, just direct transcript processing
+        console.log('🚀 [TranscriptSystem] Session started - ready for speech');
+        
+        // Clear state
         this.state.transcriptBuffer = [];
         this.state.finalizedSentences = [];
         this.state.interimText = '';
         
         // Trigger fade-in animation
-        this.animations.fadeInTranscript();
+        if (this.animations) {
+            this.animations.fadeInTranscript();
+        }
         
         // Show initial state
-        this.ui.showListeningState();
+        if (this.ui) {
+            this.ui.showListeningState();
+        }
+        
+        console.log('🚀 [TranscriptSystem] Session ready');
     }
     
     /**

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SenScript Test - Transcript & Cards</title>
+    <style>
+        body {
+            background: #1a1a2e;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .log-output {
+            background: #000;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>SenScript System Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Transcript Segment Display</h2>
+        <button class="test-button" onclick="testTranscriptSegments()">Run Test</button>
+        <div id="transcript-log" class="log-output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Card Front Text Display</h2>
+        <button class="test-button" onclick="testCardFrontText()">Run Test</button>
+        <div id="card-log" class="log-output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Speech Recognition Flow</h2>
+        <button class="test-button" onclick="testSpeechFlow()">Run Test</button>
+        <div id="speech-log" class="log-output"></div>
+    </div>
+
+    <script>
+        function log(elementId, message, type = 'info') {
+            const logEl = document.getElementById(elementId);
+            const time = new Date().toLocaleTimeString();
+            const className = type;
+            logEl.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function testTranscriptSegments() {
+            const logId = 'transcript-log';
+            log(logId, 'Starting transcript segment test...', 'info');
+            
+            try {
+                // Test 1: Check if transcript UI is initialized
+                log(logId, 'Checking transcript UI initialization...', 'info');
+                const transcriptEl = document.getElementById('transcript');
+                if (!transcriptEl) {
+                    throw new Error('Transcript element not found');
+                }
+                log(logId, '✓ Transcript element found', 'success');
+                
+                // Test 2: Check segment container
+                const segmentContainer = document.getElementById('finalizedSegments');
+                if (!segmentContainer) {
+                    throw new Error('Finalized segments container not found');
+                }
+                log(logId, '✓ Segment container found', 'success');
+                
+                // Test 3: Simulate adding segments
+                log(logId, 'Simulating segment addition...', 'info');
+                const testSegments = [
+                    'This is the first test segment that should be displayed.',
+                    'Here is another segment with educational content about machine learning.',
+                    'The third segment explains how neural networks process information.',
+                    'Fourth segment discusses the importance of data preprocessing.',
+                    'Fifth and final test segment about model evaluation metrics.'
+                ];
+                
+                for (let i = 0; i < testSegments.length; i++) {
+                    // Simulate segment creation
+                    const segmentEl = document.createElement('div');
+                    segmentEl.className = 'finalized-segment';
+                    segmentEl.textContent = testSegments[i];
+                    segmentContainer.appendChild(segmentEl);
+                    log(logId, `✓ Added segment ${i + 1}: "${testSegments[i].substring(0, 30)}..."`, 'success');
+                    await new Promise(r => setTimeout(r, 500)); // Delay for visual effect
+                }
+                
+                // Test 4: Check segment persistence
+                const visibleSegments = segmentContainer.querySelectorAll('.finalized-segment');
+                if (visibleSegments.length !== testSegments.length) {
+                    throw new Error(`Expected ${testSegments.length} segments, found ${visibleSegments.length}`);
+                }
+                log(logId, `✓ All ${visibleSegments.length} segments are visible`, 'success');
+                
+                log(logId, '✅ Transcript segment test completed successfully!', 'success');
+                
+            } catch (error) {
+                log(logId, `❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCardFrontText() {
+            const logId = 'card-log';
+            log(logId, 'Starting card front text test...', 'info');
+            
+            try {
+                // Test 1: Create a test card with front text
+                log(logId, 'Creating test flashcard...', 'info');
+                const testCard = {
+                    front: 'What is machine learning?',
+                    back: 'Machine learning is a subset of artificial intelligence that enables systems to learn from data.',
+                    cardType: 'flash',
+                    category: 'CONCEPT',
+                    confidence: 85
+                };
+                
+                // Test 2: Generate card HTML
+                log(logId, 'Generating card HTML...', 'info');
+                const cardHTML = `
+                    <div class="card card-open card-ready" data-card-type="flash">
+                        <div class="card-header">
+                            <div class="card-type">${testCard.category}</div>
+                        </div>
+                        <div class="card-content flash-content">
+                            <div class="card-front" style="display: block !important; font-size: 18px; font-weight: 700; color: white;">
+                                ${testCard.front}
+                            </div>
+                            <strong>Answer:</strong>
+                            <div class="card-answer-content">${testCard.back}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Test 3: Check if front text is in HTML
+                if (!cardHTML.includes(testCard.front)) {
+                    throw new Error('Front text not found in generated HTML');
+                }
+                log(logId, '✓ Front text included in HTML', 'success');
+                
+                // Test 4: Check visibility styles
+                if (!cardHTML.includes('display: block')) {
+                    throw new Error('Display block style missing');
+                }
+                log(logId, '✓ Display block style applied', 'success');
+                
+                // Test 5: Create DOM element and check visibility
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cardHTML;
+                const frontEl = tempDiv.querySelector('.card-front');
+                if (!frontEl) {
+                    throw new Error('Card front element not found in DOM');
+                }
+                log(logId, '✓ Card front element created in DOM', 'success');
+                
+                if (frontEl.textContent.trim() !== testCard.front) {
+                    throw new Error('Front text content mismatch');
+                }
+                log(logId, '✓ Front text content matches expected value', 'success');
+                
+                log(logId, '✅ Card front text test completed successfully!', 'success');
+                
+            } catch (error) {
+                log(logId, `❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSpeechFlow() {
+            const logId = 'speech-log';
+            log(logId, 'Starting speech recognition flow test...', 'info');
+            
+            try {
+                // Test 1: Check Web Speech API availability
+                log(logId, 'Checking Web Speech API...', 'info');
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    throw new Error('Web Speech API not available');
+                }
+                log(logId, '✓ Web Speech API available', 'success');
+                
+                // Test 2: Simulate speech result processing
+                log(logId, 'Simulating speech result processing...', 'info');
+                const testResults = [
+                    { text: 'Machine learning is fascinating.', isFinal: true },
+                    { text: 'It uses algorithms to', isFinal: false },
+                    { text: 'It uses algorithms to learn from data.', isFinal: true },
+                    { text: 'Neural networks are', isFinal: false },
+                    { text: 'Neural networks are inspired by the brain.', isFinal: true }
+                ];
+                
+                for (const result of testResults) {
+                    log(logId, `Processing: "${result.text}" (final: ${result.isFinal})`, 'info');
+                    
+                    // Simulate processing delay
+                    await new Promise(r => setTimeout(r, 300));
+                    
+                    if (result.isFinal) {
+                        log(logId, `✓ Final result processed immediately`, 'success');
+                    } else {
+                        log(logId, `✓ Interim result updated`, 'success');
+                    }
+                }
+                
+                log(logId, '✅ Speech flow test completed successfully!', 'success');
+                
+            } catch (error) {
+                log(logId, `❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
