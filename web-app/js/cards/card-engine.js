@@ -411,7 +411,8 @@ class CardEngine {
             if (!trimmed) return;
             
             // Check if line starts with emoji or bullet
-            const emojiMatch = trimmed.match(/^([🌀-🏿]|[🐀-🙏]|[🚀-🛿]|[\u2600-\u26ff]|[\u2700-\u27bf]|\u2022|\u2023|\u2043|\u204c|\u2049|\u3030|•|-|\*|\d+\.)\s*(.+)/);
+            // Simplified regex for bullets and common symbols
+            const emojiMatch = trimmed.match(/^([•‣⁃⁌⁉〰▪▫▶◀⭐✨]|�[�-�]|�[�-�]|•|-|\*|\d+\.)\s*(.+)/);
             
             if (emojiMatch) {
                 boxes.push({

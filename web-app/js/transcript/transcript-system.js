@@ -196,40 +196,10 @@ class TranscriptSystem {
                 return 'Simulating natural speech...';
             },
             
-            // Test pending line animation
+            // Pending line animation removed - no longer available
             pendingLine: () => {
-                console.log('🧪 Testing pending line animation...');
-                if (!this.state.sessionStarted) {
-                    this.startSession();
-                }
-                
-                // Force start a new segment to see the line
-                if (this.ui) {
-                    this.ui.startNewSegment();
-                    console.log('✓ Pending line started - watch for 5 second growth from center');
-                    console.log('  The line should grow symmetrically from center outward');
-                    console.log('  After 5 seconds, it will finalize or fade');
-                    
-                    // Add some text after 3 seconds
-                    setTimeout(() => {
-                        this.processIncomingSpeech({
-                            isFinal: false,
-                            transcript: 'Speaking while the line animates...',
-                            confidence: 0.5
-                        });
-                    }, 3000);
-                    
-                    // Finalize after 6 seconds
-                    setTimeout(() => {
-                        this.processIncomingSpeech({
-                            isFinal: true,
-                            transcript: 'This text appears when the line completes its animation cycle.',
-                            confidence: 0.9
-                        });
-                    }, 6000);
-                }
-                
-                return 'Pending line animation started...';
+                console.log('⚠️ Pending line functionality has been removed');
+                return 'Pending line animation has been removed from the application';
             },
             
             // Clear all segments
@@ -263,7 +233,7 @@ class TranscriptSystem {
                 console.log('  testTranscript.quick()     - Add a few test segments');
                 console.log('  testTranscript.history()   - Test with 50 segments (history retention)');
                 console.log('  testTranscript.realistic() - Simulate natural speech with interim text');
-                console.log('  testTranscript.pendingLine() - Test the pending line animation');
+                console.log('  testTranscript.pendingLine() - [REMOVED - no longer available]');
                 console.log('  testTranscript.clear()     - Clear all transcript segments');
                 console.log('  testTranscript.stats()     - Show current statistics');
                 console.log('  testTranscript.help()      - Show this help message');

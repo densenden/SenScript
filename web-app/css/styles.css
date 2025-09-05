@@ -19,6 +19,15 @@
     --font-xs: 0.8em;     /* Transcript text */
     --font-sm: 1em;       /* Buttons */
     --font-md: 1.2em;     /* Standard text */
+    
+    /* Glassmorphism System - Reduce redundancy */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-bg-hover: rgba(255, 255, 255, 0.2);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+    --glass-blur: blur(20px);
+    --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+    --glass-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
+    --glass-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================================================
@@ -64,17 +73,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
     color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--glass-transition);
     font-size: var(--font-sm);
 }
 
 .icon-button:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--glass-bg-hover);
     transform: scale(1.1);
 }
 
@@ -99,20 +108,20 @@ body {
 }
 
 .glass-button {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
     border-radius: var(--radius-lg);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: var(--glass-transition);
+    box-shadow: var(--glass-shadow);
     font-size: var(--font-sm);
 }
 
 .glass-button:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--glass-bg-hover);
     transform: scale(1.02);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--glass-shadow-hover);
 }
 
 .export-button {
@@ -128,18 +137,18 @@ body {
 .save-button {
     width: 100%;
     padding: 16px 24px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
     border-radius: var(--radius-lg);
     color: white;
     font-size: var(--font-sm);
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--glass-transition);
     margin-top: 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--glass-shadow);
 }
 
 .model-button {

@@ -15,7 +15,7 @@ class TranscriptUI {
         this.finalizedSegments = []; // Keep significant history
         this.currentSegmentText = '';
         this.currentSegmentStart = null;
-        this.pendingLine = null;
+        // pendingLine removed - no longer needed
         this.segmentTimer = null;
         this.maxSegmentDuration = 5000; // 5 seconds per PRD spec
         this.maxSegments = 50; // Keep much more history for visibility
@@ -38,13 +38,11 @@ class TranscriptUI {
         
         // CRITICAL: Cache references to the containers we just created
         this.finalizedSegmentsContainer = document.getElementById('finalizedSegments');
-        this.pendingLineArea = document.getElementById('pendingLineArea');
         this.interimArea = document.getElementById('interimArea');
         
         console.log('[TranscriptUI] Transcript UI ready with rhythm-based segmentation');
         console.log('[TranscriptUI] Container references cached:', {
             finalizedSegments: !!this.finalizedSegmentsContainer,
-            pendingLineArea: !!this.pendingLineArea,
             interimArea: !!this.interimArea
         });
     }
@@ -63,10 +61,6 @@ class TranscriptUI {
                 </div>
             </div>
             
-            <!-- Pending line animation area -->
-            <div id="pendingLineArea" class="pending-line-area">
-                <!-- Line will be dynamically added here -->
-            </div>
             
             <!-- Current interim transcription (fixed bottom) -->
             <div id="interimArea" class="interim-area">
@@ -135,13 +129,11 @@ class TranscriptUI {
         
         // Cache the new elements
         this.finalizedSegmentsContainer = document.getElementById('finalizedSegments');
-        this.pendingLineArea = document.getElementById('pendingLineArea');
         this.interimArea = document.getElementById('interimArea');
         this.interimText = document.getElementById('interimText');
         
         console.log('🎯 [TranscriptUI] Cached elements:');
         console.log('🎯 [TranscriptUI] finalizedSegmentsContainer:', !!this.finalizedSegmentsContainer);
-        console.log('🎯 [TranscriptUI] pendingLineArea:', !!this.pendingLineArea);
         console.log('🎯 [TranscriptUI] interimArea:', !!this.interimArea);
         console.log('🎯 [TranscriptUI] interimText:', !!this.interimText);
     }
@@ -686,11 +678,7 @@ class TranscriptUI {
             this.segmentTimer = null;
         }
         
-        // Remove pending line
-        if (this.pendingLine) {
-            this.pendingLine.remove();
-            this.pendingLine = null;
-        }
+        // Pending line functionality removed
         
         // Clear interim text
         this.clearInterimText();
@@ -893,28 +881,12 @@ class TranscriptUI {
     }
     
     /**
-     * Create and animate the pending line
+     * Create and animate the pending line - REMOVED
+     * This functionality has been removed as the pendingLineArea no longer exists
      */
     createPendingLine() {
-        if (this.pendingLine) {
-            this.pendingLine.remove();
-        }
-        
-        console.log('⏱️ [TranscriptUI] Creating new pending line for metronome');
-        
-        this.pendingLine = document.createElement('div');
-        this.pendingLine.className = 'pending-line';
-        this.pendingLine.innerHTML = '<div class="line-progress"></div>';
-        
-        this.pendingLineArea.appendChild(this.pendingLine);
-        
-        // Force reflow to reset animation
-        const progressBar = this.pendingLine.querySelector('.line-progress');
-        progressBar.style.animation = 'none';
-        progressBar.offsetHeight; // Force reflow
-        progressBar.style.animation = null; // Restore CSS animation
-        
-        console.log('⏱️ [TranscriptUI] Pending line animation restarted');
+        // Pending line functionality has been removed
+        console.log('⏱️ [TranscriptUI] Pending line creation skipped - functionality removed');
     }
     
     /**
@@ -958,16 +930,7 @@ class TranscriptUI {
             console.log('⏭️ [TranscriptUI] No content in segment - skipping');
         }
         
-        // Remove pending line
-        if (this.pendingLine) {
-            this.pendingLine.classList.add('finalizing');
-            setTimeout(() => {
-                if (this.pendingLine) {
-                    this.pendingLine.remove();
-                    this.pendingLine = null;
-                }
-            }, 300);
-        }
+        // Pending line functionality removed
         
         // Reset segment state
         this.currentSegmentText = '';

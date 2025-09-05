@@ -230,10 +230,13 @@ class AudioSystemV3 {
         // No cached stream - request fresh system stream
         console.log('🖥️ [AudioV3] 🔐 No cached system stream - requesting permission');
         this.permissionRequestInProgress = true;
-        // this.updateTranscriptUI('Device Output Mode', 'Select tab or window to capture audio...'); // Disabled: TranscriptUI now manages this
+        
+        // Show helpful guidance for system audio
+        this.showSystemAudioGuidance();
         
         try {
             console.log('🖥️ [AudioV3] 📞 Calling getDisplayMedia...');
+            console.log('🖥️ [AudioV3] ⚠️ Remember to CHECK "Share audio" checkbox!');
             
             // Request with more explicit audio requirements
             this.systemStream = await navigator.mediaDevices.getDisplayMedia({
@@ -247,7 +250,8 @@ class AudioSystemV3 {
                     width: { ideal: 1 }, 
                     height: { ideal: 1 },
                     frameRate: { ideal: 1 }
-                }
+                },
+                preferCurrentTab: false  // Always show full picker
             });
             
             console.log('🖥️ [AudioV3] ✅ System audio permission granted!');
@@ -255,14 +259,27 @@ class AudioSystemV3 {
             console.log('🖥️ [AudioV3] Audio tracks:', this.systemStream.getAudioTracks().length);
             console.log('🖥️ [AudioV3] Video tracks:', this.systemStream.getVideoTracks().length);
             
+            // Hide the guidance overlay
+            this.hideSystemAudioGuidance();
+            
             // Check if we actually have audio tracks
             const audioTracks = this.systemStream.getAudioTracks();
             if (audioTracks.length === 0) {
-                console.error('🖥️ [AudioV3] ❌ No audio tracks in system stream - falling back to microphone');
+                console.error('🖥️ [AudioV3] ❌ No audio tracks in system stream');
+                console.log('🖥️ [AudioV3] 📌 User likely forgot to check "Share audio"');
+                
+                // Show helpful message
+                this.showNoAudioMessage();
+                
+                // Clean up video-only stream
+                if (this.systemStream) {
+                    this.systemStream.getTracks().forEach(track => track.stop());
+                }
                 this.systemStream = null;
+                
+                // Fall back to microphone
                 this.currentAudioSource = 'microphone';
                 this.updateToggleUI();
-                // this.updateTranscriptUI('System Audio Failed', 'No audio track available - switched to microphone'); // Disabled: TranscriptUI manages this
                 await this.switchToMicrophone();
                 return;
             }
@@ -329,12 +346,16 @@ class AudioSystemV3 {
             
             if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
                 console.log('🖥️ [AudioV3] User cancelled system audio permission');
+                if (error.name === 'NotAllowedError') {
+                    this.showPermissionDeniedMessage();
+                }
             } else {
                 console.log('🖥️ [AudioV3] System audio failed, falling back to microphone');
             }
             
         } finally {
             this.permissionRequestInProgress = false;
+            this.hideSystemAudioGuidance();
             console.log('🖥️ [AudioV3] 🔓 Permission request completed');
         }
     }
@@ -725,6 +746,130 @@ class AudioSystemV3 {
                 indicator.style.color = '#3b82f6'; // Blue for microphone
             }
         }
+    }
+    
+    /**
+     * Show guidance for system audio permissions
+     */
+    showSystemAudioGuidance() {
+        // Create or update a guidance element
+        let guidance = document.getElementById('systemAudioGuidance');
+        if (!guidance) {
+            guidance = document.createElement('div');
+            guidance.id = 'systemAudioGuidance';
+            guidance.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(30, 41, 59, 0.98);
+                border: 2px solid #3b82f6;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                color: white;
+                font-size: 14px;
+                max-width: 400px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            `;
+            document.body.appendChild(guidance);
+        }
+        
+        guidance.innerHTML = `
+            <div style="margin-bottom: 15px; font-size: 16px; font-weight: 600;">
+                📢 System Audio Setup
+            </div>
+            <div style="margin-bottom: 10px;">
+                <strong>Step 1:</strong> Select the tab or window you want to capture
+            </div>
+            <div style="margin-bottom: 10px; padding: 10px; background: rgba(59, 130, 246, 0.2); border-radius: 6px;">
+                <strong>⚠️ Step 2:</strong> CHECK the "Share audio" checkbox before clicking Share!
+            </div>
+            <div style="font-size: 12px; opacity: 0.8;">
+                Chrome requires both steps for audio capture to work.
+            </div>
+        `;
+        
+        guidance.style.display = 'block';
+    }
+    
+    /**
+     * Hide system audio guidance
+     */
+    hideSystemAudioGuidance() {
+        const guidance = document.getElementById('systemAudioGuidance');
+        if (guidance) {
+            guidance.style.display = 'none';
+        }
+    }
+    
+    /**
+     * Show message when no audio track is detected
+     */
+    showNoAudioMessage() {
+        // Create a temporary message
+        const message = document.createElement('div');
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 10001;
+            max-width: 350px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        `;
+        
+        message.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 8px;">⚠️ No Audio Detected</div>
+            <div style="font-size: 14px;">
+                The "Share audio" checkbox was not selected. 
+                Please try again and make sure to check "Share audio" before clicking Share.
+            </div>
+        `;
+        
+        document.body.appendChild(message);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            message.remove();
+        }, 5000);
+    }
+    
+    /**
+     * Show permission denied message
+     */
+    showPermissionDeniedMessage() {
+        const message = document.createElement('div');
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 10001;
+            max-width: 350px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        `;
+        
+        message.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 8px;">🚫 Permission Denied</div>
+            <div style="font-size: 14px;">
+                Screen sharing was denied. Switching back to microphone input.
+                You can try again by clicking the Device Output toggle.
+            </div>
+        `;
+        
+        document.body.appendChild(message);
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            message.remove();
+        }, 4000);
     }
 }
 
