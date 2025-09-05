@@ -688,8 +688,9 @@ class TranscriptUI {
         const existingSegments = this.finalizedSegmentsContainer?.querySelectorAll('.finalized-segment');
         const hasVisibleSegments = existingSegments && existingSegments.length > 0;
         
-        // Only show placeholder if we're truly stopped, not listening, AND no segments exist
-        if (!hasVisibleSegments && !this.isActivelyListening) {
+        // CRITICAL FIX: Only show placeholder if NO segments exist at all
+        // Do NOT clear segments just because recording stopped
+        if (!hasVisibleSegments) {
             console.log('📏 [TranscriptUI] No segments found - showing placeholder');
             const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
             const placeholderText = this.getPlaceholderText(audioSource);
@@ -701,7 +702,7 @@ class TranscriptUI {
             `;
         } else {
             console.log(`📏 [TranscriptUI] Keeping existing segments: ${existingSegments?.length || 0} visible`);
-            // NEVER clear segments that are already displayed
+            // NEVER clear segments that are already displayed - this is the key fix
         }
         
         // Legacy support
@@ -1090,6 +1091,18 @@ class TranscriptUI {
                 seg.style.fontSize = '13px';
             }
         });
+        
+        // Enable download button now that we have content
+        this.enableDownloadButton();
+    }
+    
+    enableDownloadButton() {
+        const downloadBtn = document.getElementById('exportTranscriptBtn');
+        if (downloadBtn && downloadBtn.disabled) {
+            downloadBtn.disabled = false;
+            downloadBtn.title = 'Download transcript';
+            console.log('📥 [TranscriptUI] Download button enabled');
+        }
     }
     
     /**

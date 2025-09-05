@@ -15,6 +15,12 @@ class SpeechRecognitionManager {
         this.restartPending = false;
         this.isTabInactive = false;
         
+        // Sentence buffering to prevent fragmentation
+        this.sentenceBuffer = '';
+        this.bufferTimeout = null;
+        this.bufferTimeoutDuration = 8000; // 8 seconds to allow complete sentences
+        this.lastBufferFlush = 0; // Track when we last flushed to prevent duplicates
+        
         this.setupSpeechRecognition();
         this.setupTabFocusHandlers();
         
@@ -139,13 +145,22 @@ class SpeechRecognitionManager {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             console.log('[Speech] Audio context created for enhanced stability');
             
+            // Use shared microphone stream from AudioSystem to prevent double permission prompt
+            if (this.app.audioSystem && this.app.audioSystem.microphoneStream) {
+                console.log('[Speech] Using shared microphone stream from AudioSystem');
+                this.setupAudioProcessingWithStream(this.app.audioSystem.microphoneStream);
+                return;
+            }
+            
             // Skip permission request if already handled by audio system
             if (skipPermissionRequest) {
                 console.log('[Speech] Skipping getUserMedia - handled by audio system');
                 return;
             }
             
-            // Request microphone permissions and setup audio processing
+            // Fallback: Only request permission if AudioSystem hasn't already done so
+            // This should rarely happen in normal flow
+            console.warn('[Speech] AudioSystem stream not available - requesting fallback permission');
             navigator.mediaDevices.getUserMedia({ 
                 audio: {
                     echoCancellation: true,
@@ -155,19 +170,8 @@ class SpeechRecognitionManager {
                 } 
             })
             .then(stream => {
-                console.log('[Speech] Microphone stream acquired with enhanced settings');
-                this.mediaStream = stream;
-                
-                // Create audio processing nodes for better signal quality
-                this.source = this.audioContext.createMediaStreamSource(stream);
-                this.analyser = this.audioContext.createAnalyser();
-                this.analyser.fftSize = 2048;
-                this.analyser.smoothingTimeConstant = 0.8;
-                
-                // Connect nodes for audio processing
-                this.source.connect(this.analyser);
-                
-                console.log('[Speech] Audio processing pipeline established');
+                console.log('[Speech] Fallback microphone stream acquired');
+                this.setupAudioProcessingWithStream(stream);
             })
             .catch(error => {
                 console.warn('[Speech] Microphone permission denied or unavailable:', error);
@@ -178,6 +182,22 @@ class SpeechRecognitionManager {
             console.warn('[Speech] Audio context creation failed:', error);
             // Continue without audio context - basic recognition will still work
         }
+    }
+    
+    setupAudioProcessingWithStream(stream) {
+        console.log('[Speech] Setting up audio processing with provided stream');
+        this.mediaStream = stream;
+        
+        // Create audio processing nodes for better signal quality
+        this.source = this.audioContext.createMediaStreamSource(stream);
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = 2048;
+        this.analyser.smoothingTimeConstant = 0.8;
+        
+        // Connect nodes for audio processing
+        this.source.connect(this.analyser);
+        
+        console.log('[Speech] Audio processing pipeline established with shared stream');
     }
     
     setupTabFocusHandlers() {
@@ -250,8 +270,15 @@ class SpeechRecognitionManager {
         this.updateUI();
     }
     
-    startMicrophoneProcessing() {
+    async startMicrophoneProcessing() {
         console.log('[Speech] Starting microphone processing with Web Speech API');
+        
+        // Ensure audio context is set up with shared stream before starting recognition
+        if (!this.audioContext) {
+            console.log('[Speech] Setting up audio context before starting recognition');
+            this.setupAudioContext();
+        }
+        
         try {
             this.recognition.start();
             this.app.startMinuteCounting();
@@ -404,6 +431,12 @@ class SpeechRecognitionManager {
         this.shouldBeListening = false;
         this.restartPending = false;
         
+        // Flush any remaining buffered content before stopping
+        if (this.sentenceBuffer && this.sentenceBuffer.trim()) {
+            console.log('[Speech] 🔄 Flushing remaining buffer content on stop');
+            this.flushSentenceBuffer();
+        }
+        
         if (this.recognition) {
             try {
                 this.recognition.stop();
@@ -478,17 +511,9 @@ class SpeechRecognitionManager {
             console.log(`[Speech] Result ${i}: "${text}" (final: ${result.isFinal}, confidence: ${confidence.toFixed(2)})`);
             
             if (result.isFinal && text.length > 0) {
-                // CRITICAL FIX: Process each final result immediately
-                // Don't accumulate - send each one separately
-                console.log('[Speech] 🎯 FINAL RESULT DETECTED - sending immediately:', text);
-                
-                if (this.app.transcriptSystem) {
-                    this.app.transcriptSystem.processIncomingSpeech({
-                        isFinal: true,
-                        transcript: text,
-                        confidence: confidence
-                    });
-                }
+                // IMPROVED: Add to sentence buffer instead of sending immediately
+                console.log('[Speech] 🎯 FINAL RESULT - adding to sentence buffer:', text);
+                this.addToSentenceBuffer(text, confidence);
                 
                 final += text + ' '; // Still accumulate for legacy systems
                 console.log('[Speech] Added to final transcript:', text);
@@ -547,6 +572,93 @@ class SpeechRecognitionManager {
                 this.app.currentInterim = interim;
                 this.updateTranscriptDisplay();
             }
+        }
+    }
+    
+    addToSentenceBuffer(text, confidence) {
+        console.log('[Speech] Adding to sentence buffer:', text, 'confidence:', confidence);
+        
+        // CRITICAL FIX: Ignore very short fragments unless they're complete words
+        if (text.trim().length < 3 && !text.includes('.') && !text.includes('!') && !text.includes('?')) {
+            console.log('[Speech] Ignoring short fragment:', text);
+            return;
+        }
+        
+        // Add space if buffer has content and doesn't end with space
+        if (this.sentenceBuffer && !this.sentenceBuffer.endsWith(' ')) {
+            this.sentenceBuffer += ' ';
+        }
+        
+        this.sentenceBuffer += text;
+        console.log('[Speech] Current buffer:', this.sentenceBuffer);
+        
+        // Clear any existing timeout
+        if (this.bufferTimeout) {
+            clearTimeout(this.bufferTimeout);
+            this.bufferTimeout = null;
+        }
+        
+        // Check if we have a complete sentence (ends with punctuation)
+        const completeSentencePattern = /[.!?]\s*$/;
+        if (completeSentencePattern.test(this.sentenceBuffer.trim())) {
+            console.log('[Speech] 📝 Complete sentence detected - flushing buffer');
+            this.flushSentenceBuffer(confidence);
+        } else {
+            // Set timeout to flush incomplete sentence after delay
+            this.bufferTimeout = setTimeout(() => {
+                console.log('[Speech] ⏰ Buffer timeout - flushing incomplete sentence');
+                this.flushSentenceBuffer(confidence);
+            }, this.bufferTimeoutDuration);
+        }
+    }
+    
+    flushSentenceBuffer(confidence = 0.7) {
+        if (!this.sentenceBuffer.trim()) {
+            return; // Nothing to flush
+        }
+        
+        const completeSentence = this.sentenceBuffer.trim();
+        
+        // CRITICAL FIX: Don't flush very short sentences unless they're complete
+        if (completeSentence.length < 10 && !/[.!?]\s*$/.test(completeSentence)) {
+            console.log('[Speech] ⚠️ Sentence too short and incomplete - not flushing:', completeSentence);
+            return;
+        }
+        
+        const now = Date.now();
+        
+        // Prevent duplicate flushes of the same content
+        if (now - this.lastBufferFlush < 500) {
+            console.log('[Speech] ⚠️ Preventing duplicate flush (too recent)');
+            return;
+        }
+        
+        console.log('[Speech] 🚀 Flushing sentence buffer:', completeSentence);
+        console.log('[Speech] 📊 Buffer stats:', {
+            length: completeSentence.length,
+            wordCount: completeSentence.split(' ').length,
+            endsWithPunctuation: /[.!?]\s*$/.test(completeSentence)
+        });
+        
+        // Clear buffer and timeout
+        this.sentenceBuffer = '';
+        this.lastBufferFlush = now;
+        if (this.bufferTimeout) {
+            clearTimeout(this.bufferTimeout);
+            this.bufferTimeout = null;
+        }
+        
+        // Send complete sentence to transcript system with enhanced logging
+        if (this.app.transcriptSystem) {
+            console.log('[Speech] 📤 Sending buffered sentence to transcript system');
+            this.app.transcriptSystem.processIncomingSpeech({
+                isFinal: true,
+                transcript: completeSentence,
+                confidence: confidence,
+                buffered: true // Mark as buffered for debugging
+            });
+        } else {
+            console.error('[Speech] ❌ TranscriptSystem not available for buffered sentence');
         }
     }
     

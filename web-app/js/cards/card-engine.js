@@ -359,28 +359,16 @@ class CardEngine {
             ? (cardData.front || cardData.category || 'Tip')
             : (cardData.front || cardData.question || 'Question');
         
+        // Use Material Symbols instead of diamonds and extra lines
+        const typeIcon = isCheatCard ? 'tips_and_updates' : 'psychology';
+        const typeColor = isCheatCard ? '#f59e0b' : '#3b82f6';
+        
         return `
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 6px; margin-bottom: 8px;">
-                <div class="card-question" style="flex: 0 0 75%; font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.8); line-height: 1.4; padding-right: 8px;">
-                    ${questionOrTitle}
-                </div>
-                <div class="metadata card-metadata" style="flex: 0 0 25%; display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 10px; opacity: 0.5;">
-                    ${sourceCircle}
-                    <span>${cardData.flag || '🌐'}</span>
-                    <span class="card-type-indicator" style="font-weight: 500; color: ${isCheatCard ? '#f59e0b' : '#3b82f6'};">${cardTypeDisplay}</span>
-                </div>
-            </div>
-            
-            <div class="card-content ${isCheatCard ? 'cheat-content' : 'flash-content'}" style="padding: 0; margin: 0;">
-                <div class="card-answer-content" style="${isCheatCard ? '' : 'font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.95); font-weight: 400;'}">
-                    ${formattedBack || 'Content is being generated...'}
-                </div>
-            </div>
-            
-            <div class="card-source" style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 6px; margin-top: 8px;">
-                <div style="font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.4;">
-                    "${cardData.originalText || 'No original text available'}" • ${timeDisplay} • ${cardData.provider || 'AI'}
-                </div>
+            <div class="card-question">${questionOrTitle}</div>
+            <div class="card-answer-content">${formattedBack || 'Content is being generated...'}</div>
+            <div class="card-source">
+                <span class="card-type">${cardTypeDisplay}</span>
+                <span class="card-time">${timeDisplay}</span>
             </div>
         `;
     }
@@ -422,7 +410,7 @@ class CardEngine {
             } else {
                 // No emoji/bullet - use as plain text box
                 boxes.push({
-                    icon: '🔹', // Small blue diamond as default
+                    icon: '', // No icon/bullet
                     text: trimmed
                 });
             }

@@ -61,18 +61,42 @@ class AudioSystemV3 {
         const toggle = this.app.els.audioSourceSwitch;
         if (!toggle) {
             console.error('🎤 [AudioV3] ❌ Audio source toggle not found!');
+            console.error('🎤 [AudioV3] Available elements:', Object.keys(this.app.els));
             return;
         }
         
+        console.log('🎤 [AudioV3] Toggle element found:', toggle);
+        console.log('🎤 [AudioV3] Toggle HTML:', toggle.outerHTML);
+        
         const options = toggle.querySelectorAll('.toggle-option');
         console.log(`🎤 [AudioV3] Found ${options.length} toggle options`);
+        
+        // Debug: Check if options are visible and clickable
+        options.forEach((option, index) => {
+            const rect = option.getBoundingClientRect();
+            const computed = window.getComputedStyle(option);
+            console.log(`🎤 [AudioV3] Option ${index + 1}:`, {
+                dataset: option.dataset,
+                visible: rect.width > 0 && rect.height > 0,
+                pointerEvents: computed.pointerEvents,
+                zIndex: computed.zIndex,
+                position: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+            });
+        });
         
         options.forEach((option, index) => {
             const source = option.dataset.value;
             console.log(`🎤 [AudioV3] Setting up toggle listener ${index + 1}: ${source}`);
             
-            option.addEventListener('click', async () => {
+            option.addEventListener('click', async (event) => {
                 console.log(`🎤 [AudioV3] === TOGGLE CLICKED: ${source} ===`);
+                console.log(`🎤 [AudioV3] Click event target:`, event.target);
+                console.log(`🎤 [AudioV3] Current audio source:`, this.currentAudioSource);
+                
+                // Prevent any potential event bubbling issues
+                event.preventDefault();
+                event.stopPropagation();
+                
                 await this.switchAudioSource(source);
             });
         });
@@ -185,6 +209,10 @@ class AudioSystemV3 {
             
             // Set up microphone for speech recognition
             this.setupMicrophoneProcessing();
+            
+            // CRITICAL FIX: Update input source indicator after permission granted
+            this.updateInputSourceIndicator('microphone');
+            console.log('🎤 [AudioV3] UI toggles updated after permission granted');
             
             // Notify the app that microphone audio is ready
             if (this.app.onAudioSystemReady) {
@@ -314,6 +342,10 @@ class AudioSystemV3 {
             
             this.connectAudioVisualization(this.systemStream);
             // this.updateTranscriptUI('Device Output Ready', 'Audio levels active - Click Start to transcribe'); // Disabled: TranscriptUI now manages this
+            
+            // CRITICAL FIX: Update input source indicator after permission granted
+            this.updateInputSourceIndicator('system');
+            console.log('🖥️ [AudioV3] UI toggles updated after system permission granted');
             
             // Update transcript UI with new system stream information
             if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {

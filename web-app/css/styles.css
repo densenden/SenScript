@@ -349,22 +349,22 @@ body {
     color: rgba(16, 185, 129, 0.6);
 }
 
-/* Rhythm segment specific styling */
+/* Rhythm segment specific styling - borderless like cards */
 .rhythm-segment {
-    border-left: 2px solid rgba(16, 185, 129, 0.3);
-    padding-left: 6px;
+    border-left: none; /* Remove accent border to match cards */
+    padding-left: 0; /* Remove extra padding */
 }
 
 /* ============================================================================
    RHYTHM-BASED TRANSCRIPT SEGMENTATION STYLES
    ============================================================================ */
 
-/* Main rhythm transcript container structure - more space for segments */
+/* Main rhythm transcript container structure - reduce spacing */
 .finalized-segments {
     display: flex;
     flex-direction: column;
-    gap: 4px; /* Reduced gap for compactness */
-    padding: 12px; /* Reduced padding */
+    gap: 8px; /* Match card spacing */
+    padding: 0; /* Remove extra padding - parent already has 20px */
     overflow-y: auto;
     max-height: 400px; /* Increased from 250px to handle large text blocks */
     min-height: 60px; /* Minimum space for content */
@@ -382,15 +382,16 @@ body {
     font-style: normal;
 }
 
-/* Individual finalized segment - smaller and more compact */
+/* Individual finalized segment - clean text only */
 .finalized-segment {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
-    padding: 6px 8px; /* Reduced padding for compactness */
-    transition: all 0.3s ease;
+    background: none; /* No background */
+    border: none; /* No border */
+    border-radius: 0; /* No radius */
+    padding: 0; /* Zero padding - parent provides spacing */
+    transition: none; /* No transitions */
     opacity: 1; /* Ensure visibility */
-    margin-bottom: 4px; /* Reduced spacing between segments */
+    width: 100%; /* Full width */
+    backdrop-filter: none; /* No backdrop blur */
 }
 
 /* Segment with plop animation */
@@ -413,12 +414,12 @@ body {
     }
 }
 
-/* Segment content styling - more compact */
+/* Segment content styling - matching card readability */
 .segment-text {
-    font-size: 0.7em;   /* Even smaller for old segments */
-    line-height: 1.25;  /* Tighter line spacing for compactness */
-    color: #ffffff;
-    margin-bottom: 4px; /* Reduced bottom margin */
+    font-size: 1.0em;   /* Readable size like cards */
+    line-height: 1.4;   /* Better line spacing */
+    color: rgba(255, 255, 255, 0.95); /* Match card text visibility */
+    margin-bottom: 8px; /* Better spacing */
     font-style: normal; /* No italics */
     font-weight: 400;   /* Regular weight */
 }
@@ -760,15 +761,15 @@ body {
    ============================================================================ */
 
 .transcript-sentence {
-    padding: 12px 16px;
-    margin: 6px 0;
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.1);
-    border-left: 3px solid #3b82f6;
-    color: #ffffff;
-    font-size: var(--font-xs);
-    line-height: 1.6;
-    opacity: 0.85;
+    padding: 0; /* Zero padding - parent provides spacing */
+    margin: 8px 0; /* Spacing between lines */
+    border-radius: 0; 
+    background: none; /* No background */
+    border: none; /* No borders */
+    color: rgba(255, 255, 255, 0.95); /* Text color only */
+    font-size: 1.0em; /* Standard text size */
+    line-height: 1.4; /* Readable line height */
+    opacity: 1; /* Full visibility */
     display: block;
 }
 
@@ -857,6 +858,8 @@ body {
     gap: 16px;
     justify-content: center;
     align-items: center;
+    position: relative;
+    z-index: 1001; /* Above interim area to ensure clickability */
 }
 
 .audio-circle {
@@ -1130,23 +1133,58 @@ body {
    CARD STYLING & ANIMATIONS
    ============================================================================ */
 
-/* Base card styling with FORCED text visibility */
+/* Base card styling - original simple layout */
 .card {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 10px; /* Reduced padding for compactness */
-    margin-bottom: 8px; /* Reduced margin between cards */
+    padding: 16px;
+    margin-bottom: 12px;
     backdrop-filter: blur(8px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Content always visible on one page */
-    height: auto;
-    max-height: none;
-    /* FORCE text visibility */
-    color: rgba(255, 255, 255, 0.95) !important;
-    overflow: visible;
     display: flex;
     flex-direction: column;
+    min-height: 80px;
+    color: rgba(255, 255, 255, 0.95) !important;
+    overflow: visible;
+}
+
+/* Simple card elements */
+.card-question {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.card-answer-content {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.5;
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+.card-source {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 8px;
+    margin-top: auto;
+}
+
+.card-type {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-time {
+    opacity: 0.8;
 }
 
 .card:hover {
@@ -1156,37 +1194,7 @@ body {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Card header styling */
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.card-type {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    padding: 2px 6px;
-    background: rgba(59, 130, 246, 0.2);
-    border-radius: 3px;
-}
-
-.card-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.95);
-    line-height: 1.5;
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    border-left: 3px solid rgba(59, 130, 246, 0.5);
-}
+/* Legacy card styles - keeping for compatibility but unused in 3-box layout */
 
 /* Card Animation States */
 .card-birth {
@@ -1266,19 +1274,20 @@ body {
     width: 100% !important;
 }
 
-/* CheatCard individual boxes */
+/* CheatCard individual boxes - 33% width with larger text */
 .cheat-box {
-    flex: 1 1 calc(50% - 4px);
+    flex: 1 1 calc(33.33% - 8px);
     min-width: 120px;
-    max-width: calc(50% - 4px);
-    padding: 8px;
+    max-width: calc(33.33% - 8px);
+    padding: 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: 8px;
     transition: all 0.2s ease;
+    font-size: 1.3em; /* 1.3x larger font size */
 }
 
 .cheat-box:hover {
@@ -1298,25 +1307,19 @@ body {
     border-color: rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive boxes - 2-4 depending on width */
-@media (max-width: 400px) {
+/* Responsive boxes - 33% default, single column on mobile */
+@media (max-width: 600px) {
     .cheat-box {
         flex: 1 1 100%;
         max-width: 100%;
     }
 }
 
-@media (min-width: 600px) {
+/* 33% width maintained for larger screens */
+@media (min-width: 601px) {
     .cheat-box {
-        flex: 1 1 calc(33.33% - 5px);
-        max-width: calc(33.33% - 5px);
-    }
-}
-
-@media (min-width: 800px) {
-    .cheat-box {
-        flex: 1 1 calc(25% - 6px);
-        max-width: calc(25% - 6px);
+        flex: 1 1 calc(33.33% - 8px);
+        max-width: calc(33.33% - 8px);
     }
 }
 
