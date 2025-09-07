@@ -118,9 +118,15 @@ class SenScript {
         
         // Interim start button will be handled in setupDynamicEventListeners
         
-        // Export buttons
-        this.els.exportBtn.onclick = () => this.exportCards();
-        this.els.exportTranscriptBtn.onclick = () => this.exportTranscript();
+        // Export buttons - with null checks
+        if (this.els.exportBtn) {
+            this.els.exportBtn.onclick = () => this.exportCards();
+        }
+        if (this.els.exportTranscriptBtn) {
+            this.els.exportTranscriptBtn.onclick = () => this.exportTranscript();
+        } else {
+            console.warn('[Main] exportTranscriptBtn not found in DOM');
+        }
         
         // Settings
         this.els.settingsBtn.onclick = () => this.ui.showSettings();
@@ -227,11 +233,12 @@ class SenScript {
         // Start transcript session  
         this.transcriptSystem.startSession();
         
-        // Start Web Speech API (primary transcription)
+        // STREAMLINED: Start Web Speech API (primary transcription)
+        // Permission already granted by AudioSystem, no double request
         if (this.speechRecognition) {
             try {
                 this.speechRecognition.startListening();
-                console.log('[Control] Web Speech API started successfully');
+                console.log('[Control] Web Speech API started successfully (using shared permission)');
             } catch (speechError) {
                 console.error('[Control] Web Speech API failed to start:', speechError);
             }
@@ -244,8 +251,9 @@ class SenScript {
             console.log('[Control] Starting optional Whisper transcription (user enabled)');
             
             try {
+                // STREAMLINED: MediaRecorder will reuse AudioSystem's stream
                 await this.mediaRecorder.startRecording();
-                console.log('[Control] Whisper transcription started successfully');
+                console.log('[Control] Whisper transcription started (shared stream from AudioSystem)');
                 
                 // Show cost tracking display
                 this.showCostTracking();
@@ -329,8 +337,13 @@ class SenScript {
     }
     
     exportTranscript() {
+        console.log('[Main] Export transcript button clicked');
         // Implementation moved to UI module
-        this.ui.exportTranscript();
+        if (this.ui && this.ui.exportTranscript) {
+            this.ui.exportTranscript();
+        } else {
+            console.error('[Main] UI manager or exportTranscript method not available');
+        }
     }
     
     startMinuteCounting() {

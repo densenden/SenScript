@@ -398,6 +398,15 @@ class AudioSystemV3 {
         console.log('🎵 [AudioV3] Stream being connected:', stream === this.microphoneStream ? 'microphone' : stream === this.systemStream ? 'system' : 'unknown');
         
         try {
+            // Disconnect previous source if exists
+            if (this.currentAudioSource) {
+                try {
+                    this.currentAudioSource.disconnect();
+                } catch (e) {
+                    // Ignore disconnect errors
+                }
+            }
+            
             // Setup audio context if needed
             if (!this.audioContext) {
                 console.log('🎵 [AudioV3] 🔧 Creating audio context...');
@@ -411,8 +420,21 @@ class AudioSystemV3 {
             console.log('🎵 [AudioV3] 🔌 Connecting stream to analyser...');
             console.log('🎵 [AudioV3] Stream active:', stream.active);
             console.log('🎵 [AudioV3] Stream tracks:', stream.getTracks().length);
+            
+            // Create new source and store reference
             const source = this.audioContext.createMediaStreamSource(stream);
-            source.connect(this.audioAnalyser);
+            this.currentAudioSourceNode = source; // Store for later disconnect
+            
+            // Ensure analyser is not already connected
+            try {
+                source.connect(this.audioAnalyser);
+            } catch (error) {
+                console.warn('🎵 [AudioV3] Connection warning:', error.message);
+                // Try to create a new analyser if connection failed
+                this.audioAnalyser = this.audioContext.createAnalyser();
+                this.audioAnalyser.fftSize = 256;
+                source.connect(this.audioAnalyser);
+            }
             console.log('🎵 [AudioV3] ✅ Source connected to analyser');
             
             // Start visual feedback (levels animation)

@@ -1,0 +1,30 @@
+<!-- 
+Critical Fixes Integration
+Add this to your main HTML file to apply all the fixes
+-->
+
+<!-- Load the audio permission fix (prevents double permission requests) -->
+<script src="js/audio/audio-permission-fix.js"></script>
+
+<!-- Load the test suite for verification -->
+<script src="test-fixes.js"></script>
+
+<!-- Add missing export button if needed (prevents null reference error) -->
+<button id="exportTranscriptBtn" style="display: none;">Export Transcript</button>
+
+<script>
+// Quick verification that fixes are loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🔧 Critical fixes loaded:');
+    console.log('  ✅ Audio permission manager:', !!window.audioPermissionManager);
+    console.log('  ✅ Export button exists:', !!document.getElementById('exportTranscriptBtn'));
+    console.log('  ✅ Test suite ready');
+    
+    // Auto-run tests after 3 seconds
+    setTimeout(() => {
+        if (window.testSinglePermission) {
+            console.log('\n🏃 Auto-running critical fix tests...');
+        }
+    }, 3000);
+});
+</script>

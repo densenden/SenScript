@@ -111,6 +111,7 @@ class LanguageManager {
         
         // Toggle dropdown on indicator click
         transcriptIndicator.addEventListener('click', (e) => {
+            console.log('🌐 [LanguageManager] Language indicator clicked');
             e.stopPropagation();
             this.toggleDropdown();
         });
@@ -293,15 +294,22 @@ class LanguageManager {
      * Toggle dropdown visibility
      */
     toggleDropdown() {
+        console.log('🌐 [LanguageManager] Toggling dropdown...');
+        
         // Try transcript language dropdown first (interim area), then fall back to input language dropdown
         let dropdown = document.getElementById('transcriptLanguageDropdown');
         if (!dropdown) {
             dropdown = document.getElementById('inputLanguageDropdown');
         }
-        if (!dropdown) return;
+        
+        if (!dropdown) {
+            console.error('🌐 [LanguageManager] No dropdown element found!');
+            return;
+        }
         
         this.state.isDropdownOpen = !this.state.isDropdownOpen;
         dropdown.style.display = this.state.isDropdownOpen ? 'block' : 'none';
+        console.log('🌐 [LanguageManager] Dropdown display:', dropdown.style.display);
         
         if (this.state.isDropdownOpen) {
             this.updateDropdownSelection();

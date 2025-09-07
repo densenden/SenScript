@@ -53,6 +53,13 @@ class TranscriptUI {
     initializeRhythmDisplay() {
         if (!this.transcriptElement) return;
         
+        // FIXED: Check if segments already exist before reinitializing
+        const existingContainer = document.getElementById('finalizedSegments');
+        if (existingContainer && existingContainer.querySelectorAll('.finalized-segment').length > 0) {
+            console.log('[TranscriptUI] Preserving existing segments during initialization');
+            return; // Don't reinitialize if we have segments
+        }
+        
         this.transcriptElement.innerHTML = `
             <!-- Finalized segments area (last 3x5-second segments) -->
             <div id="finalizedSegments" class="finalized-segments">
@@ -690,16 +697,21 @@ class TranscriptUI {
         
         // CRITICAL FIX: Only show placeholder if NO segments exist at all
         // Do NOT clear segments just because recording stopped
-        if (!hasVisibleSegments) {
+        if (!hasVisibleSegments && this.finalizedSegments.length === 0) {
             console.log('📏 [TranscriptUI] No segments found - showing placeholder');
             const audioSource = this.app.audioSystem?.currentAudioSource || 'microphone';
             const placeholderText = this.getPlaceholderText(audioSource);
             
-            this.finalizedSegmentsContainer.innerHTML = `
-                <div class="transcript-placeholder">
-                    Ready for transcript segments (mic active, hit start to transcribe and make cards)
-                </div>
-            `;
+            // FIXED: Only set placeholder if container is truly empty
+            // Double-check to prevent race conditions
+            const recheckSegments = this.finalizedSegmentsContainer?.querySelectorAll('.finalized-segment');
+            if (!recheckSegments || recheckSegments.length === 0) {
+                this.finalizedSegmentsContainer.innerHTML = `
+                    <div class="transcript-placeholder">
+                        Ready for transcript segments (mic active, hit start to transcribe and make cards)
+                    </div>
+                `;
+            }
         } else {
             console.log(`📏 [TranscriptUI] Keeping existing segments: ${existingSegments?.length || 0} visible`);
             // NEVER clear segments that are already displayed - this is the key fix
@@ -980,11 +992,18 @@ class TranscriptUI {
                 console.log(`🚨 [TranscriptUI] Creating container from scratch`);
                 const transcriptEl = document.getElementById('transcript');
                 if (transcriptEl) {
+                    // FIXED: Preserve any existing segments when recreating container
+                    const existingSegments = transcriptEl.querySelectorAll('.finalized-segment');
                     const container = document.createElement('div');
                     container.id = 'finalizedSegments';
                     container.className = 'finalized-segments';
+                    
+                    // Re-attach any existing segments that might be orphaned
+                    existingSegments.forEach(seg => container.appendChild(seg));
+                    
                     transcriptEl.appendChild(container);
                     this.finalizedSegmentsContainer = container;
+                    console.log(`✅ [TranscriptUI] Created container, preserved ${existingSegments.length} segments`);
                 }
             }
         }

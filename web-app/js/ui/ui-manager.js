@@ -164,41 +164,149 @@ class UIManager {
     exportTranscript() {
         console.log('[UI] Exporting transcript...');
         
-        if (!this.app.transcript.trim()) {
-            alert('No transcript to export!');
+        // Get transcript from actual displayed segments instead of stale app.transcript
+        const transcriptText = this.collectTranscriptFromSegments();
+        
+        if (!transcriptText.trim()) {
+            alert('No transcript to export! Start recording to generate transcript content.');
             return;
         }
         
-        // Create transcript export
+        console.log(`[UI] Collected transcript: ${transcriptText.length} characters`);
+        
+        // Create both text and JSON versions
+        const timestamp = new Date().toISOString();
+        const wordCount = transcriptText.split(/\s+/).filter(word => word.length > 0).length;
+        
+        // Create JSON export with metadata
         const exportData = {
-            transcript: this.app.transcript,
-            exportDate: new Date().toISOString(),
-            language: this.app.currentLang,
-            wordCount: this.app.transcript.split(' ').length
+            transcript: transcriptText,
+            exportDate: timestamp,
+            language: this.app.currentLang || 'auto',
+            wordCount: wordCount,
+            segments: this.collectSegmentData()
         };
         
-        // Create and download file
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-            type: 'application/json'
+        // Ask user preference for format
+        const userChoice = confirm('Export as plain text? (Cancel for detailed JSON)');
+        
+        if (userChoice) {
+            // Export as plain text
+            this.downloadFile(transcriptText, `senscript-transcript-${Date.now()}.txt`, 'text/plain');
+        } else {
+            // Export as JSON with metadata
+            this.downloadFile(
+                JSON.stringify(exportData, null, 2), 
+                `senscript-transcript-${Date.now()}.json`, 
+                'application/json'
+            );
+        }
+        
+        console.log('✅ Transcript exported successfully');
+    }
+    
+    collectTranscriptFromSegments() {
+        const segments = [];
+        
+        console.log('[UI] Collecting transcript from segments...');
+        
+        // Debug: Check what elements exist
+        const allSegments = document.querySelectorAll('.finalized-segment');
+        const segmentTexts = document.querySelectorAll('.segment-text');
+        
+        console.log(`[UI] Found ${allSegments.length} .finalized-segment elements`);
+        console.log(`[UI] Found ${segmentTexts.length} .segment-text elements`);
+        
+        // Try to get segments from TranscriptSystem first
+        if (this.app.transcriptSystem && this.app.transcriptSystem.ui) {
+            const segmentElements = document.querySelectorAll('.finalized-segment .segment-text');
+            console.log(`[UI] Found ${segmentElements.length} combined .finalized-segment .segment-text elements`);
+            
+            segmentElements.forEach((element, index) => {
+                const text = element.textContent.trim();
+                console.log(`[UI] Segment ${index}: "${text.substring(0, 50)}..."`);
+                if (text) segments.push(text);
+            });
+        }
+        
+        // Fallback: try different selectors
+        if (segments.length === 0) {
+            console.log('[UI] No segments found with primary selector, trying alternatives...');
+            
+            // Try just .segment-text
+            const textElements = document.querySelectorAll('.segment-text');
+            textElements.forEach((element, index) => {
+                const text = element.textContent.trim();
+                console.log(`[UI] Alternative segment ${index}: "${text.substring(0, 50)}..."`);
+                if (text) segments.push(text);
+            });
+        }
+        
+        // Fallback to legacy transcript if no segments found
+        if (segments.length === 0 && this.app.transcript && this.app.transcript.trim()) {
+            console.log('[UI] Fallback to legacy transcript data');
+            return this.app.transcript.trim();
+        }
+        
+        // Additional fallback: check for any transcript content in the DOM
+        if (segments.length === 0) {
+            const transcriptContainer = document.querySelector('.finalized-segments');
+            if (transcriptContainer && transcriptContainer.textContent.trim()) {
+                const text = transcriptContainer.textContent.trim();
+                // Filter out placeholder text
+                if (!text.includes('Ready for transcript segments') && 
+                    !text.includes('No transcript available') &&
+                    text.length > 10) {
+                    console.log('[UI] Using DOM text content as fallback');
+                    return text;
+                }
+            }
+        }
+        
+        const result = segments.join(' ');
+        console.log(`[UI] Final result: ${result.length} characters`);
+        return result;
+    }
+    
+    collectSegmentData() {
+        const segments = [];
+        const segmentElements = document.querySelectorAll('.finalized-segment');
+        
+        segmentElements.forEach((element, index) => {
+            const textElement = element.querySelector('.segment-text');
+            const timeElement = element.querySelector('.segment-time');
+            
+            if (textElement) {
+                segments.push({
+                    id: index + 1,
+                    text: textElement.textContent.trim(),
+                    timestamp: timeElement ? timeElement.textContent.trim() : '',
+                    wordCount: textElement.textContent.trim().split(/\s+/).length
+                });
+            }
         });
         
+        return segments;
+    }
+    
+    downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `senscript-transcript-${Date.now()}.json`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
-        console.log('✅ Transcript exported');
     }
     
     exportUnified() {
         console.log('[UI] Exporting transcript and cards...');
         
-        // Check if we have content to export
-        const hasTranscript = this.app.transcript.trim();
+        // Check if we have content to export using improved data collection
+        const transcriptText = this.collectTranscriptFromSegments();
+        const hasTranscript = transcriptText.trim().length > 0;
         const hasCards = this.app.cards.length > 0;
         
         if (!hasTranscript && !hasCards) {
@@ -206,17 +314,18 @@ class UIManager {
             return;
         }
         
-        // Create unified export data
+        // Create unified export data with improved transcript collection
         const exportData = {
             exportDate: new Date().toISOString(),
             exportType: 'unified',
             session: {
-                language: this.app.currentLang,
+                language: this.app.currentLang || 'auto',
                 duration: Date.now() - (this.app.startTime || Date.now())
             },
             transcript: hasTranscript ? {
-                content: this.app.transcript,
-                wordCount: this.app.transcript.split(' ').length
+                content: transcriptText,
+                wordCount: transcriptText.split(/\s+/).filter(word => word.length > 0).length,
+                segments: this.collectSegmentData()
             } : null,
             cards: hasCards ? {
                 data: this.app.cards,

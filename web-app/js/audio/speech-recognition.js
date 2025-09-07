@@ -152,31 +152,14 @@ class SpeechRecognitionManager {
                 return;
             }
             
-            // Skip permission request if already handled by audio system
-            if (skipPermissionRequest) {
-                console.log('[Speech] Skipping getUserMedia - handled by audio system');
+            // FIXED: Never request permission here - AudioSystem always handles it
+            if (skipPermissionRequest || !this.app.audioSystem?.microphoneStream) {
+                console.log('[Speech] Skipping getUserMedia - handled by audio system or not ready');
                 return;
             }
             
-            // Fallback: Only request permission if AudioSystem hasn't already done so
-            // This should rarely happen in normal flow
-            console.warn('[Speech] AudioSystem stream not available - requesting fallback permission');
-            navigator.mediaDevices.getUserMedia({ 
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                    sampleRate: 16000
-                } 
-            })
-            .then(stream => {
-                console.log('[Speech] Fallback microphone stream acquired');
-                this.setupAudioProcessingWithStream(stream);
-            })
-            .catch(error => {
-                console.warn('[Speech] Microphone permission denied or unavailable:', error);
-                // Fallback to basic speech recognition without audio context
-            });
+            // This code should never execute in normal flow
+            console.error('[Speech] UNEXPECTED: No stream available and permission not skipped');
             
         } catch (error) {
             console.warn('[Speech] Audio context creation failed:', error);

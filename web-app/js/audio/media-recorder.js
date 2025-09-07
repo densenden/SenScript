@@ -73,9 +73,17 @@ class MediaRecorderManager {
         
         console.log(' [MediaRecorder] === STARTING RECORDING ===');
         
+        // FIXED: Try to use existing stream first before getting new one
+        if (!this.currentStream && this.app?.audioSystem?.microphoneStream) {
+            console.log('🎙️ [MediaRecorder] Using AudioSystem stream to avoid double permission');
+            this.currentStream = this.app.audioSystem.microphoneStream;
+        }
+        
         try {
-            // Get current audio stream from audio system
-            this.currentStream = await this.getCurrentAudioStream();
+            // Get current audio stream from audio system only if we don't have one
+            if (!this.currentStream) {
+                this.currentStream = await this.getCurrentAudioStream();
+            }
             if (!this.currentStream) {
                 throw new Error('No audio stream available');
             }
@@ -275,6 +283,12 @@ class MediaRecorderManager {
      */
     async requestMicrophoneStream() {
         try {
+            // FIXED: Check if AudioSystem already has a stream to avoid double permission
+            if (this.app?.audioSystem?.microphoneStream) {
+                console.log('🎙️ [MediaRecorder] Using existing microphone stream from AudioSystem');
+                return this.app.audioSystem.microphoneStream;
+            }
+            
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: false,
