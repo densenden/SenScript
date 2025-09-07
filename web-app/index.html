@@ -127,13 +127,175 @@
             transform: translateY(0);
         }
         
+        /* ========================================
+           INTRO SCREEN SYSTEM - Fixed Implementation
+        ======================================== */
+        
+        :root {
+            --circle-size: 96px;
+            --transition-duration: 0.3s;
+            --transition-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            :root {
+                --transition-duration: 0.1s;
+            }
+        }
+        
+        /* App state management */
+        .app {
+            transition: all var(--transition-duration) var(--transition-easing);
+        }
+        
+        /* Screen-1 always has transitions */
+        .screen-1 {
+            transition: all var(--transition-duration) var(--transition-easing);
+        }
+        
+        /* App-content transitions */
+        .app-content {
+            transition: opacity var(--transition-duration) var(--transition-easing),
+                        transform var(--transition-duration) var(--transition-easing);
+        }
+        
+        /* Intro state: Screen-1 takes full width, others hidden */
+        .app[data-state="intro"] .screen-1 {
+            flex: 1;
+            min-width: 100%;
+            border-radius: 16px;
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .app[data-state="intro"] .app-content {
+            opacity: 0;
+            transform: translateX(100px);
+            pointer-events: none;
+        }
+        
+        /* Normal state: Screen-1 collapses to circle, others visible */
+        .app[data-state="normal"] .screen-1 {
+            flex: 0 0 var(--circle-size);
+            width: var(--circle-size);
+            height: var(--circle-size);
+            min-height: var(--circle-size);
+            max-height: var(--circle-size);
+            border-radius: 50%;
+            overflow: visible; /* Allow logo shadow to show properly */
+            position: relative;
+            opacity: 1;
+            transform: scale(1);
+            transition: all var(--transition-duration) var(--transition-easing);
+            cursor: pointer; /* Make entire circle clickable as backup */
+        }
+        
+        .app[data-state="normal"] .app-content {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+        
+        /* Menu-open state: Screen-1 expanded, others pushed right */
+        .app[data-state="menu-open"] .screen-1 {
+            flex: 0 0 400px;
+            min-height: 100vh;
+            border-radius: 0 16px 16px 0;
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .app[data-state="menu-open"] .app-content {
+            opacity: 0.8;
+            transform: translateX(0) scale(0.95);
+            pointer-events: auto;
+        }
+        
+        /* Circle logo styling */
+        .circle-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            z-index: 1000; /* High z-index to ensure clickability */
+            transition: all 0.2s ease;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .circle-logo:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+        
+        /* Hide/show content based on state */
+        .app[data-state="normal"] .screen-1-full-content {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-duration) var(--transition-easing);
+        }
+        
+        .app[data-state="intro"] .screen-1-full-content,
+        .app[data-state="menu-open"] .screen-1-full-content {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity var(--transition-duration) var(--transition-easing);
+        }
+        
+        .app[data-state="normal"] .circle-logo {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .app[data-state="intro"] .circle-logo,
+        .app[data-state="menu-open"] .circle-logo {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Circle background enhancement - Better contrast for white logo */
+        .app[data-state="normal"] .screen-1.glass-dark {
+            background: linear-gradient(145deg, rgba(31, 41, 55, 0.95), rgba(17, 24, 39, 0.98));
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Hide settings button during intro mode */
+        .app[data-state="intro"] #settingsBtn {
+            display: none;
+        }
+        
         /* Mobile-first responsive design - APP-LIKE LAYOUT */
         .container {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             min-height: 100vh;
-            padding: 0 0 120px 0; /* Bottom padding for round navbar + overlap space */
-            gap: 0; /* Remove gaps for seamless app feel */
+            padding: 0;
+            gap: 0;
+        }
+        
+        /* App content container for screen-2 and screen-3 */
+        .app-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 100vh;
+        }
+        
+        /* Fix screen-2 and screen-3 heights within app-content */
+        .app-content .screen-2 {
+            flex: 1;
+            min-height: 60vh;
+        }
+        
+        .app-content .screen-3 {
+            flex: 1;
+            min-height: 40vh;
         }
         
         /* Mobile Portrait: Move navbar to bottom with overlap space */
@@ -4505,76 +4667,84 @@
     </div>
 
 
-    <div class="container">
-        <!-- Screen 1: Main Control Panel (Desktop Sidebar / Mobile Header Content) -->
+    <div class="container app" data-state="intro">
+        <!-- Screen 1: Main Control Panel with Three States -->
         <div class="screen-1 glass-dark" id="screen1">
-            <div class="logo-section">
-                <img id="logo" src="assets/images/logo-white.svg" alt="SenScript">
-                <div class="logo-text">
-                    <h1>SenScript</h1>
-                    <p>Smart Meeting Companion</p>
-                </div>
-            </div>
+            <!-- Circle Logo: Only visible in 'normal' state -->
+            <img id="circleLogo" class="circle-logo" src="assets/images/logo-white.svg" alt="SenScript" onclick="toggleMenu()">
             
-            <div class="controls-section">
-                <!-- Simplified Audio Source Toggle - Two Circles -->
-                <div class="audio-source-toggle">
-                    <div id="audioSourceSwitch" class="audio-toggle-circles">
-                        <button class="audio-circle toggle-option active" data-value="microphone" title="Microphone">
-                            <span class="material-symbols-outlined">mic</span>
-                        </button>
-                        <button class="audio-circle toggle-option" data-value="system" title="Screen Audio">
-                            <span class="material-symbols-outlined">desktop_windows</span>
+            <!-- Invisible click area as backup -->
+            
+            <!-- Full Content: Visible in 'intro' and 'menu-open' states -->
+            <div class="screen-1-full-content">
+                <!-- Logo Section -->
+                <div class="logo-section">
+                    <img id="logo" src="assets/images/logo-white.svg" alt="SenScript">
+                    <div class="logo-text">
+                        <h1>SenScript</h1>
+                        <p>Smart Meeting Companion</p>
+                    </div>
+                </div>
+                
+                <!-- Controls Section (intro mode) -->
+                <div class="controls-section">
+                    <!-- Audio Source Toggle -->
+                    <div class="audio-source-toggle">
+                        <div id="audioSourceSwitch" class="audio-toggle-circles">
+                            <button class="audio-circle toggle-option active" data-value="microphone" title="Microphone">
+                                <span class="material-symbols-outlined">mic</span>
+                            </button>
+                            <button class="audio-circle toggle-option" data-value="system" title="Screen Audio">
+                                <span class="material-symbols-outlined">desktop_windows</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Level Meter -->
+                    <div class="level-meter-container" id="levelMeterContainer">
+                        <div class="audio-level-dots" id="activeLevelDots">
+                            <div class="level-dot"></div>
+                            <div class="level-dot"></div>
+                            <div class="level-dot"></div>
+                            <div class="level-dot"></div>
+                            <div class="level-dot"></div>
+                            <div class="level-dot"></div>
+                            <div class="level-dot"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Start Button -->
+                    <div class="start-button-container">
+                        <button id="recordBtn" class="record-button-large glass-button">
+                            <span id="recordIcon" class="material-symbols-outlined record-icon">play_arrow</span>
                         </button>
                     </div>
                 </div>
                 
-                <!-- Level Meter - Between audio selector and start button -->
-                <div class="level-meter-container" id="levelMeterContainer">
-                    <div class="audio-level-dots" id="activeLevelDots">
-                        <div class="level-dot"></div>
-                        <div class="level-dot"></div>
-                        <div class="level-dot"></div>
-                        <div class="level-dot"></div>
-                        <div class="level-dot"></div>
-                        <div class="level-dot"></div>
-                        <div class="level-dot"></div>
+                <!-- Features List (intro mode) -->
+                <div class="integrated-status desktop-only" style="margin-top: auto; padding: 0; margin: 0; display: flex; flex-direction: column;">
+                    <div class="features-list" style="margin-bottom: 20px; border-radius: 20px;">
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li>• Real-time transcription</li>
+                            <li>• Auto language detection</li>
+                            <li>• AI flashcard generation</li>
+                            <li>• System audio capture</li>
+                            <li>• Export to JSON</li>
+                        </ul>
                     </div>
                 </div>
                 
-                <!-- Start Button -->
-                <div class="start-button-container">
-                    <button id="recordBtn" class="record-button-large glass-button">
-                        <span id="recordIcon" class="material-symbols-outlined record-icon">play_arrow</span>
+                <!-- User avatar and Settings button (menu-open mode) -->
+                <div style="margin-top: auto; display: flex; align-items: center; gap: 12px;">
+                    <!-- User Avatar Circle -->
+                    <div id="clerk-user-button" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"></div>
+                    
+                    <!-- Settings Button -->
+                    <button id="settingsBtn" class="icon-button" title="Settings">
+                        <span class="material-symbols-outlined">more_vert</span>
                     </button>
                 </div>
-            </div>
-            
-            
-            <!-- Status & Features (desktop only) -->
-            <div class="integrated-status desktop-only" style="margin-top: auto; padding: 0; margin: 0; display: flex; flex-direction: column;">
-                <div class="features-list" style="margin-bottom: 20px; border-radius: 20px;">
-                    <h4>Key Features</h4>
-                    <ul>
-                        <li>• Real-time transcription</li>
-                        <li>• Auto language detection</li>
-                        <li>• AI flashcard generation</li>
-                        <li>• System audio capture</li>
-                        <li>• Export to JSON</li>
-                    </ul>
-                </div>
-            </div>
-            
-
-            <!-- User avatar and Settings button at absolute bottom -->
-            <div style="margin-top: auto; display: flex; align-items: center; gap: 12px;">
-                <!-- User Avatar Circle -->
-                <div id="clerk-user-button" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"></div>
-                
-                <!-- Settings Button (Round) -->
-                <button id="settingsBtn" class="icon-button" title="Settings">
-                    <span class="material-symbols-outlined">more_vert</span>
-                </button>
             </div>
         </div>
         
@@ -6026,6 +6196,115 @@
                 console.log('[CardLanguage] Loaded saved language:', savedLanguage);
             }
         });
+    </script>
+    
+    <!-- Intro Screen System JavaScript -->
+    <script>
+        // ========================================
+        // INTRO SCREEN SYSTEM - Simplified State Management
+        // ========================================
+        
+        let currentAppState = 'intro';
+        
+        // App State Management
+        function setAppState(newState) {
+            console.log(`[IntroScreen] State transition: ${currentAppState} → ${newState}`);
+            
+            const app = document.querySelector('.app');
+            if (app) {
+                app.setAttribute('data-state', newState);
+                currentAppState = newState;
+            }
+        }
+        
+        // Start Button Handler - transitions from intro to normal
+        function handleStartClick() {
+            console.log('[IntroScreen] Start button clicked - transitioning to normal');
+            setAppState('normal');
+        }
+        
+        // Circle/Panel Toggle - toggles between normal and menu-open
+        function toggleMenu() {
+            console.log('[IntroScreen] Circle clicked - toggling menu');
+            if (currentAppState === 'normal') {
+                setAppState('menu-open');
+            } else if (currentAppState === 'menu-open') {
+                setAppState('normal');
+            }
+        }
+        
+        // Close menu when clicking outside
+        function handleBackdropClick(event) {
+            if (currentAppState !== 'menu-open') return;
+            
+            const screen1 = document.getElementById('screen1');
+            if (screen1 && !screen1.contains(event.target)) {
+                setAppState('normal');
+            }
+        }
+        
+        // Initialize System
+        function initializeIntroScreen() {
+            console.log('[IntroScreen] Initializing intro screen system');
+            
+            // Set up event listeners
+            const circleLogo = document.getElementById('circleLogo');
+            const recordBtn = document.getElementById('recordBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            
+            if (circleLogo) {
+                circleLogo.addEventListener('click', toggleMenu);
+                console.log('[IntroScreen] Circle logo click handler attached');
+            }
+            
+            // Also add click handler to screen1 for when it's in circle mode
+            const screen1 = document.getElementById('screen1');
+            if (screen1) {
+                screen1.addEventListener('click', (event) => {
+                    if (currentAppState === 'normal') {
+                        console.log('[IntroScreen] Screen1 circle clicked - opening menu');
+                        event.preventDefault();
+                        event.stopPropagation();
+                        toggleMenu();
+                    }
+                });
+            }
+            
+            if (recordBtn) {
+                recordBtn.addEventListener('click', handleStartClick);
+            }
+            
+            // Settings button opens existing settings modal (only when not in intro)
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', () => {
+                    if (currentAppState === 'intro') return; // Prevent settings access during intro
+                    
+                    const settingsModal = document.getElementById('settingsModal');
+                    if (settingsModal) {
+                        settingsModal.style.display = 'flex';
+                    }
+                });
+            }
+            
+            // Backdrop click to close menu
+            document.addEventListener('click', handleBackdropClick);
+            
+            // Escape key to close menu
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && currentAppState === 'menu-open') {
+                    setAppState('normal');
+                }
+            });
+            
+            console.log('[IntroScreen] ✅ Intro screen system initialized');
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeIntroScreen);
+        
+        // Make functions available globally
+        window.setAppState = setAppState;
+        window.toggleMenu = toggleMenu;
     </script>
     
 </body>
