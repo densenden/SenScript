@@ -41,14 +41,14 @@ class AudioSystemV3 {
     }
     
     showInitialState() {
-        // ALWAYS default to microphone, ignore saved preference for initial state
-        const defaultSource = 'microphone';
-        console.log(`🎤 [AudioV3] Setting initial state: ${defaultSource} mode (default)`);
-        this.currentAudioSource = defaultSource;
+        // Check saved preference from settings manager
+        const savedSource = this.app.settings?.settings?.audioSource || 'microphone';
+        console.log(`🎤 [AudioV3] Setting initial state: ${savedSource} mode (from settings)`);
+        this.currentAudioSource = savedSource;
         
         // Update ALL UI elements to ensure consistency
         this.updateToggleUI();
-        this.updateInputSourceIndicator(defaultSource);
+        this.updateInputSourceIndicator(savedSource);
         
         // DON'T request permission on load - wait for user action
         console.log('🎤 [AudioV3] Microphone mode ready - permission will be requested when needed');

@@ -616,16 +616,18 @@ body {
     transform: translateY(-1px);
 }
 
-/* Perfectly sized language icon specifically - only for language selector */
+/* Smaller world language icon specifically - only for language selector */
 .interim-controls .control-element #transcriptLanguageFlag.material-symbols-outlined,
 .interim-area .interim-controls #transcriptLanguageFlag.material-symbols-outlined,
-#interimArea #transcriptLanguageFlag.material-symbols-outlined {
-    font-size: 16px !important; /* Force 16px with multiple selectors for stronger override */
+#interimArea #transcriptLanguageFlag.material-symbols-outlined,
+#cardLanguageFlag.material-symbols-outlined {
+    font-size: 12px !important; /* FIXED: Smaller world icon (was 16px) */
     line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 16px !important;
+    width: 12px !important;
+    height: 12px !important;
     height: 16px !important;
 }
 
@@ -1621,4 +1623,25 @@ body {
 
 .light .language-dropdown-option:active {
     background: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* FIXED: Language dropdown positioning - override inline styles */
+#transcriptLanguageDropdown,
+#inputLanguageDropdown {
+    position: absolute !important;
+    top: calc(100% + 5px) !important; /* Position below the indicator, not -200px */
+    left: 0 !important;
+    z-index: 1000 !important;
+    min-width: 180px !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 8px !important;
+}
+
+/* Ensure dropdown is visible when display:block is set */
+#transcriptLanguageDropdown[style*="display: block"],
+#inputLanguageDropdown[style*="display: block"] {
+    visibility: visible !important;
+    opacity: 1 !important;
 }

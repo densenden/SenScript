@@ -278,6 +278,21 @@ class TranscriptSystem {
         console.log(`🔥 [TranscriptSystem] Final: ${isFinal}, Text: "${transcript}", Confidence: ${confidence}`);
         console.log(`🔥 [TranscriptSystem] Session started: ${this.state.sessionStarted}`);
         
+        // FIXED: Route to intelligent segmentation if available
+        if (this.intelligentSegmentation) {
+            console.log(`🧠 [TranscriptSystem] Using intelligent segmentation`);
+            this.intelligentSegmentation.processSpeechInput({
+                text: transcript,
+                isFinal,
+                confidence,
+                timestamp: Date.now()
+            });
+            return;
+        }
+        
+        // Fallback: Legacy processing
+        console.log(`⚠️ [TranscriptSystem] Using legacy rhythm segmentation`);
+        
         // AUTO-START SESSION if not started
         if (!this.state.sessionStarted) {
             console.log(`🚨 [TranscriptSystem] Session not started - AUTO-STARTING NOW!`);

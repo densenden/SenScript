@@ -32,6 +32,16 @@ class SettingsManager {
             
             // Card settings
             interviewMode: false,
+            cardSensitivity: 3, // 1=Conservative, 3=Normal, 5=Very Sensitive
+            captureQuestions: true, // Extract cards from questions asked
+            captureExamples: true, // Extract cards from examples given
+            captureNumbers: true, // Extract cards from statistics/numbers
+            captureDefinitions: true, // Extract cards from definitions
+            captureComparisons: true, // Extract cards from comparisons
+            minimumWordThreshold: 15, // Minimum words before considering for card
+            
+            // Audio settings
+            audioSource: 'microphone', // 'microphone', 'system', 'both'
             
             // AI settings
             selectedModel: 'auto',
@@ -135,6 +145,48 @@ class SettingsManager {
         }
         if (this.app.els.exampleComplexity) {
             this.app.els.exampleComplexity.value = this.settings.exampleComplexity;
+        }
+        
+        // Update card sensitivity settings
+        const cardSensitivity = document.getElementById('cardSensitivity');
+        if (cardSensitivity) {
+            cardSensitivity.value = this.settings.cardSensitivity;
+        }
+        
+        const captureQuestions = document.getElementById('captureQuestions');
+        if (captureQuestions) {
+            captureQuestions.checked = this.settings.captureQuestions;
+        }
+        
+        const captureExamples = document.getElementById('captureExamples');
+        if (captureExamples) {
+            captureExamples.checked = this.settings.captureExamples;
+        }
+        
+        const captureNumbers = document.getElementById('captureNumbers');
+        if (captureNumbers) {
+            captureNumbers.checked = this.settings.captureNumbers;
+        }
+
+        const captureDefinitions = document.getElementById('captureDefinitions');
+        if (captureDefinitions) {
+            captureDefinitions.checked = this.settings.captureDefinitions;
+        }
+
+        const captureComparisons = document.getElementById('captureComparisons');
+        if (captureComparisons) {
+            captureComparisons.checked = this.settings.captureComparisons;
+        }
+
+        const minimumWordThreshold = document.getElementById('minimumWordThreshold');
+        if (minimumWordThreshold) {
+            minimumWordThreshold.value = this.settings.minimumWordThreshold;
+        }
+
+        // Audio source setting
+        const audioSource = document.getElementById('audioSource');
+        if (audioSource) {
+            audioSource.value = this.settings.audioSource;
         }
         
         // Update API key fields
@@ -257,6 +309,57 @@ class SettingsManager {
         }
         if (this.app.els.exampleComplexity) {
             this.settings.exampleComplexity = parseInt(this.app.els.exampleComplexity.value);
+        }
+        
+        // Card sensitivity settings
+        const cardSensitivity = document.getElementById('cardSensitivity');
+        if (cardSensitivity) {
+            this.settings.cardSensitivity = parseInt(cardSensitivity.value);
+        }
+        
+        const captureQuestions = document.getElementById('captureQuestions');
+        if (captureQuestions) {
+            this.settings.captureQuestions = captureQuestions.checked;
+        }
+        
+        const captureExamples = document.getElementById('captureExamples');
+        if (captureExamples) {
+            this.settings.captureExamples = captureExamples.checked;
+        }
+        
+        const captureNumbers = document.getElementById('captureNumbers');
+        if (captureNumbers) {
+            this.settings.captureNumbers = captureNumbers.checked;
+        }
+
+        const captureDefinitions = document.getElementById('captureDefinitions');
+        if (captureDefinitions) {
+            this.settings.captureDefinitions = captureDefinitions.checked;
+        }
+
+        const captureComparisons = document.getElementById('captureComparisons');
+        if (captureComparisons) {
+            this.settings.captureComparisons = captureComparisons.checked;
+        }
+
+        const minimumWordThreshold = document.getElementById('minimumWordThreshold');
+        if (minimumWordThreshold) {
+            this.settings.minimumWordThreshold = parseInt(minimumWordThreshold.value);
+        }
+
+        // Audio source setting
+        const audioSource = document.getElementById('audioSource');
+        if (audioSource) {
+            const oldValue = this.settings.audioSource;
+            this.settings.audioSource = audioSource.value;
+            
+            // If audio source changed, update the audio system immediately
+            if (oldValue !== this.settings.audioSource && this.app?.audioSystem) {
+                console.log(`[Settings] Audio source changed: ${oldValue} → ${this.settings.audioSource}`);
+                this.app.audioSystem.currentAudioSource = this.settings.audioSource;
+                this.app.audioSystem.updateToggleUI();
+                this.app.audioSystem.updateInputSourceIndicator(this.settings.audioSource);
+            }
         }
         
         // AI model selection
@@ -520,6 +623,26 @@ class SettingsManager {
         
         // Initialize rhythm duration slider
         this.initializeRhythmDurationSlider();
+        
+        // Audio source dropdown change listener
+        const audioSourceEl = document.getElementById('audioSource');
+        if (audioSourceEl) {
+            audioSourceEl.addEventListener('change', () => {
+                const oldValue = this.settings.audioSource;
+                this.settings.audioSource = audioSourceEl.value;
+                console.log(`[Settings] Audio source changed: ${oldValue} → ${audioSourceEl.value}`);
+                
+                // Update audio system immediately
+                if (this.app?.audioSystem) {
+                    this.app.audioSystem.currentAudioSource = audioSourceEl.value;
+                    this.app.audioSystem.updateToggleUI();
+                    this.app.audioSystem.updateInputSourceIndicator(audioSourceEl.value);
+                }
+                
+                // Save settings immediately
+                this.saveSettings();
+            });
+        }
     }
     
     /**

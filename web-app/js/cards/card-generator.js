@@ -249,19 +249,29 @@ class CardGenerator {
     }
     
     getOutputLanguage(detectedLanguage) {
-        // Check app settings for output language preference
-        if (this.app.settings && !this.app.settings.autoLanguage) {
-            // Use fixed output language
-            const outputLanguage = this.app.settings.cardOutputLanguage || 'en-US';
+        // FIXED: Check both settings object structures
+        const settings = this.app.settings?.settings || this.app.settings || {};
+        
+        console.log('🌐 [CardGenerator] Language settings check:');
+        console.log('  settings.autoLanguage:', settings.autoLanguage);
+        console.log('  settings.cardOutputLanguage:', settings.cardOutputLanguage);
+        
+        // Use fixed output language if not auto
+        if (!settings.autoLanguage && settings.cardOutputLanguage && settings.cardOutputLanguage !== 'auto') {
+            const outputLanguage = settings.cardOutputLanguage;
             const flagMap = {
                 'de-DE': '🇩🇪', 'en-US': '🇺🇸', 'fr-FR': '🇫🇷', 'es-ES': '🇪🇸',
-                'it-IT': '🇮🇹', 'pt-PT': '🇵🇹', 'nl-NL': '🇳🇱', 'ru-RU': '🇷🇺'
+                'it-IT': '🇮🇹', 'pt-PT': '🇵🇹', 'nl-NL': '🇳🇱', 'ru-RU': '🇷🇺',
+                'zh-CN': '🇨🇳', 'ja-JP': '🇯🇵', 'ko-KR': '🇰🇷', 'ar-SA': '🇸🇦',
+                'el-GR': '🇬🇷'
             };
             const outputFlag = flagMap[outputLanguage] || '🌐';
             
+            console.log(`🌐 [CardGenerator] Using FIXED language: ${outputLanguage} ${outputFlag}`);
             return { outputLanguage, outputFlag };
         } else {
-            // Use auto-detected language
+            // Use auto-detected language from speech
+            console.log(`🌐 [CardGenerator] Using AUTO-DETECTED language: ${detectedLanguage.lang} ${detectedLanguage.flag}`);
             return {
                 outputLanguage: detectedLanguage.lang,
                 outputFlag: detectedLanguage.flag
@@ -275,6 +285,61 @@ class CardGenerator {
         if (statusElement) {
             statusElement.className = `status-${type} status-${status}`;
         }
+    }
+    
+    /**
+     * Get word threshold based on sensitivity setting
+     */
+    getWordThresholdBySensitivity(sensitivity) {
+        const thresholds = {
+            1: 25, // Conservative: Only substantial content
+            2: 20, // Below Normal
+            3: 15, // Normal: Balanced approach
+            4: 10, // Above Normal: More sensitive
+            5: 5   // Very Sensitive: Almost everything
+        };
+        return thresholds[sensitivity] || 15;
+    }
+    
+    /**
+     * Check if text should generate a card based on content and sensitivity
+     */
+    shouldGenerateCard(text, settings = {}) {
+        const sensitivity = settings.cardSensitivity || 3;
+        const wordCount = text.trim().split(/\s+/).length;
+        const minThreshold = this.getWordThresholdBySensitivity(sensitivity);
+        
+        console.log(`🎯 [CardGenerator] Sensitivity check: ${wordCount} words, threshold: ${minThreshold}, sensitivity: ${sensitivity}`);
+        
+        // Basic word count check
+        if (wordCount < minThreshold) {
+            return { generate: false, reason: `Too short (${wordCount} < ${minThreshold} words)` };
+        }
+        
+        // High sensitivity mode - additional content pattern checks
+        if (sensitivity >= 4) {
+            // Questions: "What is...?", "How does...?", "Why...?"
+            if (settings.captureQuestions && /\b(what|how|why|when|where|who)\b.*\?/i.test(text)) {
+                return { generate: true, reason: 'Question detected (high sensitivity)' };
+            }
+            
+            // Numbers and statistics: "25%", "$1000", "3 million"
+            if (settings.captureNumbers && /\b\d+[%$]?\b|\b\d+\s+(million|billion|thousand|percent)\b/i.test(text)) {
+                return { generate: true, reason: 'Numbers/statistics detected' };
+            }
+            
+            // Examples: "for example", "such as", "like"
+            if (settings.captureExamples && /\b(for example|such as|like|including|especially)\b/i.test(text)) {
+                return { generate: true, reason: 'Example detected' };
+            }
+            
+            // Important keywords that indicate educational content
+            if (/\b(because|therefore|however|although|definition|concept|principle|theory)\b/i.test(text)) {
+                return { generate: true, reason: 'Important educational keywords detected' };
+            }
+        }
+        
+        return { generate: true, reason: 'Meets word threshold' };
     }
 }
 

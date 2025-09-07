@@ -308,11 +308,19 @@ class LanguageManager {
         }
         
         this.state.isDropdownOpen = !this.state.isDropdownOpen;
-        dropdown.style.display = this.state.isDropdownOpen ? 'block' : 'none';
-        console.log('🌐 [LanguageManager] Dropdown display:', dropdown.style.display);
         
         if (this.state.isDropdownOpen) {
+            dropdown.style.display = 'block';
+            // FIXED: Position dropdown properly instead of top: -200px
+            dropdown.style.position = 'absolute';
+            dropdown.style.top = '100%'; // Position below the indicator
+            dropdown.style.left = '0';
+            dropdown.style.zIndex = '1000';
+            console.log('🌐 [LanguageManager] Dropdown opened with proper positioning');
             this.updateDropdownSelection();
+        } else {
+            dropdown.style.display = 'none';
+            console.log('🌐 [LanguageManager] Dropdown closed');
         }
     }
     

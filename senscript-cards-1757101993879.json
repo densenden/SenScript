@@ -1,0 +1,70 @@
+{
+  "cards": [
+    {
+      "id": "card_1757101909304_87c2ki4si",
+      "category": "CONCEPT",
+      "front": "Overview of super symmetry and its significance in physics",
+      "back": "🎯 Super symmetry is an extra symmetry addressing quantum effects\n⚡ It splits quantum effects into two parts with opposite signs to cancel each other out\n📝 Super symmetry remains a conjectured symmetry, potentially part of the true theory of the world",
+      "confidence": 95,
+      "skip": false,
+      "provider": "openai",
+      "cardType": "cheat",
+      "source": "card-engine",
+      "language": "en-US",
+      "flag": "🇺🇸",
+      "timestamp": "21:51:49",
+      "originalText": "it is called super symmetry a form of extra symmetry that is especially good entertainment the most dangerous effects of quantum physics in brief supe",
+      "time": "21:51:49"
+    },
+    {
+      "id": "card_1757101736019_v1756ewk2",
+      "category": "CONCEPT",
+      "front": "Reasons for the extensive study of Calabi-Yau manifolds in string theory",
+      "back": "Calabi-Yau manifolds are extensively studied in physics due to their mathematical elegance and complexity. Early string theorists chose these intricate geometries to compactify the extra six dimensions because they provide a unique framework for understanding the hidden dimensions of the universe. These manifolds offer a way to reconcile the theoretical aspects of string theory with observable phenomena, making them essential in exploring the fundamental nature of our reality.",
+      "confidence": 95,
+      "skip": false,
+      "provider": "openai",
+      "cardType": "flash",
+      "source": "card-engine",
+      "language": "en-US",
+      "flag": "🇺🇸",
+      "timestamp": "21:48:56",
+      "originalText": "mathematically they are a Marvel but why have these manifolds been studied so much within physics why did early string theorists choose these bizarre ",
+      "time": "21:48:56"
+    },
+    {
+      "id": "card_1757101720413_atb1gvzi9",
+      "category": "CONCEPT",
+      "front": "Significance of Calabi-Yau manifolds in string theory's extra dimensions",
+      "back": "Calabi-Yau manifolds, named after mathematicians Kalabi and Shing Tong Yao, are complex geometric shapes crucial in studying extra dimensions. These spaces are topologically intricate and challenging to visualize, often containing numerous higher-dimensional holes. They play a fundamental role in understanding the complexities of string theory and the universe's geometric structure.",
+      "confidence": 95,
+      "skip": false,
+      "provider": "openai",
+      "cardType": "flash",
+      "source": "card-engine",
+      "language": "en-US",
+      "flag": "🇺🇸",
+      "timestamp": "21:48:40",
+      "originalText": "named after the Italian American mathematician Eugenio kalabi and the Chinese geometer Shing Tong Yao these spaces had already attracted interest from",
+      "time": "21:48:40"
+    },
+    {
+      "id": "card_1757101688559_7ignowjim",
+      "category": "CONCEPT",
+      "front": "Exploring the complexity of geometries in string theory with extra dimensions",
+      "back": "In the context of string theory's extra dimensions, geometric shapes like Calabi-Yau manifolds are intriguing. These shapes challenge traditional concepts of lines, circles, and ellipses, offering unique and complex topologies that are essential in understanding the higher-dimensional nature of the universe.",
+      "confidence": 90,
+      "skip": false,
+      "provider": "openai",
+      "cardType": "flash",
+      "source": "card-engine",
+      "language": "en-US",
+      "flag": "🇺🇸",
+      "timestamp": "21:48:08",
+      "originalText": "straight lines circles and ellipses might they rather be radically unfamiliar objects with strange and unusual topologies one of the most interesting ",
+      "time": "21:48:08"
+    }
+  ],
+  "exportDate": "2025-09-05T19:53:13.876Z",
+  "totalCards": 4
+}
