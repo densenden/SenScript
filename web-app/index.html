@@ -162,10 +162,17 @@
         /* Intro state: Screen-1 takes full width, others hidden */
         .app[data-state="intro"] .screen-1 {
             flex: 1;
+            width: 100%;
+            height: 100vh;
             min-width: 100%;
+            min-height: 100vh;
             border-radius: 16px;
             opacity: 1;
             transform: scale(1);
+            transition: width var(--transition-duration) var(--transition-easing),
+                        height var(--transition-duration) var(--transition-easing),
+                        border-radius var(--transition-duration) var(--transition-easing),
+                        flex var(--transition-duration) var(--transition-easing);
         }
         
         .app[data-state="intro"] .app-content {
@@ -174,20 +181,25 @@
             pointer-events: none;
         }
         
-        /* Normal state: Screen-1 collapses to circle, others visible */
+        /* Normal state: Screen-1 collapses to rounded square, others visible */
         .app[data-state="normal"] .screen-1 {
             flex: 0 0 var(--circle-size);
             width: var(--circle-size);
             height: var(--circle-size);
             min-height: var(--circle-size);
             max-height: var(--circle-size);
-            border-radius: 50%;
-            overflow: visible; /* Allow logo shadow to show properly */
+            min-width: var(--circle-size);
+            max-width: var(--circle-size);
+            border-radius: 24px; /* Rounded square instead of perfect circle */
+            overflow: visible;
             position: relative;
             opacity: 1;
             transform: scale(1);
-            transition: all var(--transition-duration) var(--transition-easing);
-            cursor: pointer; /* Make entire circle clickable as backup */
+            transition: width var(--transition-duration) var(--transition-easing),
+                        height var(--transition-duration) var(--transition-easing),
+                        border-radius var(--transition-duration) var(--transition-easing),
+                        flex var(--transition-duration) var(--transition-easing);
+            cursor: pointer;
         }
         
         .app[data-state="normal"] .app-content {
@@ -196,13 +208,22 @@
             pointer-events: auto;
         }
         
-        /* Menu-open state: Screen-1 expanded, others pushed right */
+        /* Menu-open state: Screen-1 expanded to original panel size */
         .app[data-state="menu-open"] .screen-1 {
             flex: 0 0 400px;
+            width: 400px;
+            height: 100vh;
             min-height: 100vh;
+            max-height: 100vh;
+            min-width: 400px;
+            max-width: 400px;
             border-radius: 0 16px 16px 0;
             opacity: 1;
             transform: scale(1);
+            transition: width var(--transition-duration) var(--transition-easing),
+                        height var(--transition-duration) var(--transition-easing),
+                        border-radius var(--transition-duration) var(--transition-easing),
+                        flex var(--transition-duration) var(--transition-easing);
         }
         
         .app[data-state="menu-open"] .app-content {
@@ -211,7 +232,7 @@
             pointer-events: auto;
         }
         
-        /* Circle logo styling */
+        /* Circle logo styling - Optimized for black logo on light background */
         .circle-logo {
             position: absolute;
             top: 50%;
@@ -220,18 +241,18 @@
             width: 60px;
             height: 60px;
             cursor: pointer;
-            z-index: 1000; /* High z-index to ensure clickability */
+            z-index: 1000;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8)) 
-                    drop-shadow(0 1px 4px rgba(0,0,0,0.6));
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15)) 
+                    drop-shadow(0 1px 2px rgba(0,0,0,0.1));
             opacity: 1;
             pointer-events: auto;
         }
         
         .circle-logo:hover {
             transform: translate(-50%, -50%) scale(1.15);
-            filter: drop-shadow(0 6px 16px rgba(0,0,0,0.9)) 
-                    drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25)) 
+                    drop-shadow(0 2px 4px rgba(0,0,0,0.15));
         }
         
         /* Hide/show content based on state */
@@ -259,24 +280,33 @@
             pointer-events: none;
         }
         
-        /* Circle background enhancement - Better contrast for white logo */
+        /* Rounded square background enhancement - Light background for black logo */
         .app[data-state="normal"] .screen-1.glass-dark {
-            background: linear-gradient(145deg, rgba(17, 24, 39, 0.98), rgba(0, 0, 0, 0.95));
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.98));
             backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 
-                        0 2px 8px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 
+                        0 2px 8px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
         
-        /* Ensure white logo has good contrast in light mode too */
+        /* Light mode: Also light background for black logo */
         .app[data-state="normal"] .screen-1.glass-light {
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.85), rgba(31, 41, 55, 0.9));
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
             backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
-                        0 2px 8px rgba(0, 0, 0, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 
+                        0 2px 8px rgba(0, 0, 0, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Ensure expanded view has original styling */
+        .app[data-state="menu-open"] .screen-1.glass-dark,
+        .app[data-state="intro"] .screen-1.glass-dark {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
         
         /* Hide settings button during intro mode */
@@ -4685,7 +4715,7 @@
         <!-- Screen 1: Main Control Panel with Three States -->
         <div class="screen-1 glass-dark" id="screen1">
             <!-- Circle Logo: Only visible in 'normal' state -->
-            <img id="circleLogo" class="circle-logo" src="assets/images/logo-white.svg" alt="SenScript" onclick="toggleMenu()">
+            <img id="circleLogo" class="circle-logo" src="assets/images/logo-black.svg" alt="SenScript" onclick="toggleMenu()">
             
             <!-- Invisible click area as backup -->
             
