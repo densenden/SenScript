@@ -132,7 +132,7 @@
         ======================================== */
         
         :root {
-            --circle-size: 96px;
+            --circle-size: 36px;
             --transition-duration: 0.3s;
             --transition-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
@@ -190,7 +190,7 @@
             max-height: var(--circle-size);
             min-width: var(--circle-size);
             max-width: var(--circle-size);
-            border-radius: 24px; /* Rounded square instead of perfect circle */
+            border-radius: 18px; /* Circular with 18px radius for 36px container */
             overflow: visible;
             position: relative;
             opacity: 1;
@@ -238,8 +238,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
+            width: 20px; /* Smaller logo for 36px circle */
+            height: 20px;
             cursor: pointer;
             z-index: 1000;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -3744,6 +3744,328 @@
             color: #10b981;
         }
         
+        /* ========================================
+           INTEGRATED SETTINGS - SUPABASE STYLE
+        ======================================== */
+        
+        .settings-integrated {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-radius: inherit;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: #1f2937;
+            animation: settingsSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .light .settings-integrated {
+            background: rgba(255, 255, 255, 0.98);
+            color: #1f2937;
+        }
+        
+        /* Settings Header */
+        .settings-integrated-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+        }
+        
+        .settings-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .settings-integrated-logo {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+        
+        .settings-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            color: #1f2937;
+            letter-spacing: -0.01em;
+        }
+        
+        .settings-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+            font-weight: 500;
+        }
+        
+        .settings-back-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #6b7280;
+        }
+        
+        .settings-back-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #1f2937;
+        }
+        
+        /* Settings Body */
+        .settings-body {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        /* Navigation */
+        .settings-navigation {
+            width: 240px;
+            padding: 16px 0;
+            border-right: 1px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        
+        .nav-section {
+            margin-bottom: 24px;
+        }
+        
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            padding: 0 16px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.15s ease;
+            text-align: left;
+        }
+        
+        .nav-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1f2937;
+        }
+        
+        .nav-item.active {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+            border-right: 2px solid #f97316;
+        }
+        
+        .nav-item .material-symbols-outlined {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        /* Content Area */
+        .settings-content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+        }
+        
+        .settings-tab-content {
+            display: none;
+        }
+        
+        .settings-tab-content.active {
+            display: block;
+        }
+        
+        .settings-tab-header {
+            margin-bottom: 32px;
+        }
+        
+        .settings-tab-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: #1f2937;
+            letter-spacing: -0.01em;
+        }
+        
+        .settings-tab-header p {
+            font-size: 16px;
+            color: #6b7280;
+            margin: 0;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+        
+        .settings-section {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .setting-info {
+            flex: 1;
+        }
+        
+        .setting-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .setting-description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        
+        /* Reuse existing toggle styles but with integrated prefix */
+        .settings-integrated .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        
+        .settings-integrated .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        
+        .settings-integrated .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-integrated .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            top: 2px;
+            background: white;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        
+        .settings-integrated .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-color: #f97316;
+        }
+        
+        .settings-integrated .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        
+        /* Cards Mode Toggle */
+        .settings-integrated .cards-mode-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+        
+        .settings-integrated .toggle-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .settings-integrated .toggle-option.active {
+            background: white;
+            color: #1f2937;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-integrated .toggle-option .material-symbols-outlined {
+            font-size: 18px;
+        }
+        
+        /* Audio Source Toggle */
+        .settings-integrated .audio-source-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+        
+        @keyframes settingsSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(20px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        
         /* Mobile Optimizations */
         @media (max-width: 640px) {
             .settings-content {
@@ -4824,6 +5146,154 @@
                     <button id="mobileSettingsBtn" class="icon-button" style="width: 32px; height: 32px;">
                         <span class="material-symbols-outlined">more_vert</span>
                     </button>
+                </div>
+                
+                <!-- Integrated Settings View - Supabase Style -->
+                <div class="settings-integrated" id="settingsIntegrated" style="display: none;">
+                    <!-- Settings Header with Logo and Title -->
+                    <div class="settings-integrated-header">
+                        <div class="settings-header-left">
+                            <img src="assets/images/logo-black.svg" alt="SenScript" class="settings-integrated-logo">
+                            <div class="settings-title-container">
+                                <h2 class="settings-title">SenScript</h2>
+                                <p class="settings-subtitle">Smart Meeting Companion</p>
+                            </div>
+                        </div>
+                        <button id="settingsBackBtn" class="settings-back-btn">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Settings Navigation (Left Side) -->
+                    <div class="settings-body">
+                        <div class="settings-navigation">
+                            <div class="nav-section">
+                                <div class="nav-section-title">PREFERENCES</div>
+                                <button class="nav-item active" data-settings-tab="appearance">
+                                    <span class="material-symbols-outlined">palette</span>
+                                    <span>Appearance</span>
+                                </button>
+                                <button class="nav-item" data-settings-tab="audio">
+                                    <span class="material-symbols-outlined">mic</span>
+                                    <span>Audio</span>
+                                </button>
+                                <button class="nav-item" data-settings-tab="language">
+                                    <span class="material-symbols-outlined">language</span>
+                                    <span>Language</span>
+                                </button>
+                            </div>
+                            
+                            <div class="nav-section">
+                                <div class="nav-section-title">AI SETTINGS</div>
+                                <button class="nav-item" data-settings-tab="cards">
+                                    <span class="material-symbols-outlined">auto_awesome</span>
+                                    <span>Card Generation</span>
+                                </button>
+                                <button class="nav-item" data-settings-tab="models">
+                                    <span class="material-symbols-outlined">smart_toy</span>
+                                    <span>AI Models</span>
+                                </button>
+                            </div>
+                            
+                            <div class="nav-section">
+                                <div class="nav-section-title">ACCOUNT</div>
+                                <button class="nav-item" data-settings-tab="usage">
+                                    <span class="material-symbols-outlined">analytics</span>
+                                    <span>Usage</span>
+                                </button>
+                                <button class="nav-item" data-settings-tab="export">
+                                    <span class="material-symbols-outlined">download</span>
+                                    <span>Export</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Settings Content Area -->
+                        <div class="settings-content-area">
+                            <!-- Appearance Tab -->
+                            <div class="settings-tab-content active" data-tab="appearance">
+                                <div class="settings-tab-header">
+                                    <h3>Appearance</h3>
+                                    <p>Customize the look and feel of SenScript</p>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <label class="setting-label">Dark Mode</label>
+                                            <span class="setting-description">Switch between light and dark themes</span>
+                                        </div>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="themeToggleIntegrated" checked>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <label class="setting-label">Cards Mode</label>
+                                            <span class="setting-description">Choose between flashcards or cheat sheets</span>
+                                        </div>
+                                        <div class="cards-mode-toggle" id="cardsModeToggleIntegrated">
+                                            <button class="toggle-option active" data-value="flash">
+                                                <span class="material-symbols-outlined">quiz</span>
+                                                <span>Flash</span>
+                                            </button>
+                                            <button class="toggle-option" data-value="cheat">
+                                                <span class="material-symbols-outlined">description</span>
+                                                <span>Cheat</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Audio Tab -->
+                            <div class="settings-tab-content" data-tab="audio">
+                                <div class="settings-tab-header">
+                                    <h3>Audio Settings</h3>
+                                    <p>Configure microphone and audio processing</p>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <label class="setting-label">Audio Source</label>
+                                            <span class="setting-description">Choose between microphone or system audio</span>
+                                        </div>
+                                        <div class="audio-source-toggle">
+                                            <button class="toggle-option active" data-value="microphone">
+                                                <span class="material-symbols-outlined">mic</span>
+                                                <span>Microphone</span>
+                                            </button>
+                                            <button class="toggle-option" data-value="system">
+                                                <span class="material-symbols-outlined">desktop_windows</span>
+                                                <span>System</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- More tabs would go here... -->
+                            <div class="settings-tab-content" data-tab="language">
+                                <div class="settings-tab-header">
+                                    <h3>Language Settings</h3>
+                                    <p>Configure transcription and card languages</p>
+                                </div>
+                                <!-- Language settings content would go here -->
+                            </div>
+                            
+                            <!-- Placeholder for other tabs -->
+                            <div class="settings-tab-content" data-tab="cards">
+                                <div class="settings-tab-header">
+                                    <h3>Card Generation</h3>
+                                    <p>Customize how AI generates your study cards</p>
+                                </div>
+                                <!-- Cards settings content would go here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -5919,7 +6389,7 @@
             });
             
             document.getElementById('mobileSettingsBtn').addEventListener('click', () => {
-                document.getElementById('settingsModal').style.display = 'flex';
+                showIntegratedSettings();
             });
             
             // Listen for auth state changes
@@ -6318,15 +6788,11 @@
                 recordBtn.addEventListener('click', handleStartClick);
             }
             
-            // Settings button opens existing settings modal (only when not in intro)
+            // Settings button opens integrated settings (only when not in intro)
             if (settingsBtn) {
                 settingsBtn.addEventListener('click', () => {
                     if (currentAppState === 'intro') return; // Prevent settings access during intro
-                    
-                    const settingsModal = document.getElementById('settingsModal');
-                    if (settingsModal) {
-                        settingsModal.style.display = 'flex';
-                    }
+                    showIntegratedSettings();
                 });
             }
             
@@ -6346,9 +6812,118 @@
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', initializeIntroScreen);
         
+        // Integrated Settings Functions
+        function showIntegratedSettings() {
+            console.log('[IntegratedSettings] Opening settings view');
+            const settingsIntegrated = document.getElementById('settingsIntegrated');
+            const screen1Content = document.querySelector('.screen-1-full-content > :not(.settings-integrated)');
+            
+            if (settingsIntegrated && screen1Content) {
+                // Hide main content
+                Array.from(document.querySelector('.screen-1-full-content').children).forEach(child => {
+                    if (!child.classList.contains('settings-integrated')) {
+                        child.style.display = 'none';
+                    }
+                });
+                
+                // Show settings
+                settingsIntegrated.style.display = 'flex';
+                
+                // Setup back button
+                const backBtn = document.getElementById('settingsBackBtn');
+                if (backBtn) {
+                    backBtn.onclick = hideIntegratedSettings;
+                }
+                
+                // Setup navigation
+                setupSettingsNavigation();
+            }
+        }
+        
+        function hideIntegratedSettings() {
+            console.log('[IntegratedSettings] Closing settings view');
+            const settingsIntegrated = document.getElementById('settingsIntegrated');
+            
+            if (settingsIntegrated) {
+                settingsIntegrated.style.display = 'none';
+                
+                // Show main content again
+                Array.from(document.querySelector('.screen-1-full-content').children).forEach(child => {
+                    if (!child.classList.contains('settings-integrated')) {
+                        child.style.display = '';
+                    }
+                });
+            }
+        }
+        
+        function setupSettingsNavigation() {
+            const navItems = document.querySelectorAll('.nav-item[data-settings-tab]');
+            const tabContents = document.querySelectorAll('.settings-tab-content[data-tab]');
+            
+            navItems.forEach(navItem => {
+                navItem.addEventListener('click', () => {
+                    const targetTab = navItem.getAttribute('data-settings-tab');
+                    
+                    // Update nav active state
+                    navItems.forEach(item => item.classList.remove('active'));
+                    navItem.classList.add('active');
+                    
+                    // Show corresponding tab content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.getAttribute('data-tab') === targetTab) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Setup toggle controls
+            setupIntegratedToggles();
+        }
+        
+        function setupIntegratedToggles() {
+            // Theme toggle
+            const themeToggle = document.getElementById('themeToggleIntegrated');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', () => {
+                    document.body.classList.toggle('light');
+                    updateThemeToggle();
+                });
+            }
+            
+            // Cards mode toggle
+            const cardsModeButtons = document.querySelectorAll('#cardsModeToggleIntegrated .toggle-option');
+            cardsModeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    cardsModeButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    const mode = button.getAttribute('data-value');
+                    console.log(`[IntegratedSettings] Cards mode changed to: ${mode}`);
+                    // Add your cards mode change logic here
+                });
+            });
+            
+            // Audio source toggle
+            const audioSourceButtons = document.querySelectorAll('.settings-integrated .audio-source-toggle .toggle-option');
+            audioSourceButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    audioSourceButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    const source = button.getAttribute('data-value');
+                    console.log(`[IntegratedSettings] Audio source changed to: ${source}`);
+                    // Add your audio source change logic here
+                });
+            });
+        }
+        
         // Make functions available globally
         window.setAppState = setAppState;
         window.toggleMenu = toggleMenu;
+        window.showIntegratedSettings = showIntegratedSettings;
+        window.hideIntegratedSettings = hideIntegratedSettings;
     </script>
     
 </body>
